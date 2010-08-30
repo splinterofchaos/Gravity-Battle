@@ -83,12 +83,7 @@ class Actor
     // up a simple, generic state integration.
     virtual void move( int dt )
     {
-        move( dt, 0 );
-    }
-
-    void move( int dt, value_type maxSpeed=0 )
-    {
-        simple_integration( s, v, a, dt, maxSpeed );
+        simple_integration( s, v, a, dt );
     }
 
     virtual ~Actor()

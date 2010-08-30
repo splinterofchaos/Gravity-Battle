@@ -39,7 +39,7 @@ ${OUT} : .draw_shape.o .glpp.o .Actor.o .Player.o .Collision.o .draw_shape.o mai
 	${compile} CircleActor.cpp -o .CircleActor.o
 
 .Player.o : Player.cpp Player.h .CircleActor.o .Texture.o
-	${compile} Player.cpp -o .Player.o
+	${compile} -std=c++0x Player.cpp -o .Player.o
 
 .Texture.o : Texture.cpp Texture.h
 	${compile} Texture.cpp -o .Texture.o
