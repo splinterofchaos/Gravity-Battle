@@ -15,13 +15,13 @@ endif
 
 CC = g++
 
-CFLAGS  += -Wall
+CFLAGS  += -Wall 
 
-compile = ${CC} ${CFLAGS} -c
-link    = ${CC} ${CFLAGS} -o ${OUT}
+compile = ${CC} ${CFLAGS} -c -Ivector
+link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}
 
-${OUT} : .draw_shape.o .glpp.o .Playfield.o .Actor.o .Gunman.o .Bullet.o .Collision.o .draw_shape.o main.cpp makefile
-	${link} main.cpp -std=c++0x .Playfield.o .Actor.o .Gunman.o .Bullet.o .Collision.o .draw_shape.o .glpp.o ${LDFLAGS}
+${OUT} : .draw_shape.o .glpp.o .Actor.o .Player.o .Collision.o .draw_shape.o main.cpp makefile
+	${link} main.cpp -std=c++0x .Actor.o .CircleActor.o .Texture.o .Player.o .Collision.o .draw_shape.o .glpp.o ${LDFLAGS}
 
 .glpp.o : glpp.* makefile
 	${compile} glpp.cpp -o .glpp.o
@@ -32,17 +32,17 @@ ${OUT} : .draw_shape.o .glpp.o .Playfield.o .Actor.o .Gunman.o .Bullet.o .Collis
 .Collision.o : Collision.cpp Collision.h makefile
 	${compile} Collision.cpp -o .Collision.o
 
-.Bullet.o : Bullet.* Actor.h makefile
-	${compile} Bullet.cpp -o .Bullet.o
-
-.Gunman.o : Gunman.* Actor.h makefile
-	${compile} Gunman.cpp -o .Gunman.o
-
 .Actor.o : Actor.cpp Actor.h Collision.h makefile
 	${compile} Actor.cpp -o .Actor.o
 
-.Playfield.o : Playfield.h Playfield.cpp Actor.h Collision.h makefile
-	${compile} Playfield.cpp -o .Playfield.o
+.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o
+	${compile} CircleActor.cpp -o .CircleActor.o
+
+.Player.o : Player.cpp Player.h .CircleActor.o .Texture.o
+	${compile} Player.cpp -o .Player.o
+
+.Texture.o : Texture.cpp Texture.h
+	${compile} Texture.cpp -o .Texture.o
 
 clean:
 	rm *.o

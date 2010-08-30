@@ -2,7 +2,7 @@
 #include "draw_shape.h"
 
 #include "glpp.h"
-#include "math/Vector.h"
+#include "Vector.h"
 
 #include <cmath>
 #include <vector> // Using raw arrays may be smarter.

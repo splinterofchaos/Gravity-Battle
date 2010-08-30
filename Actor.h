@@ -1,5 +1,5 @@
 
-#include "math/Vector.h"
+#include "Vector.h"
 #include "glpp.h"
 #include "draw_shape.h"
 
@@ -17,8 +17,6 @@
     #error "Insert whatever you have to to use shared_ptr here!"
 #endif
 
-#include "Collision.h"
-
 #pragma once
 
 
@@ -32,8 +30,6 @@ class Actor
 
         std::fill( v.begin(), v.end(), 0 );
         std::fill( a.begin(), a.end(), 0 );
-
-        actors.push_back( ActorPointer(this) );
     }
 
   public:
@@ -77,11 +73,7 @@ class Actor
 
     bool destroyMeFlag;
 
-    Actor( const vector_type& pos )
-        : s(pos), previousS(s), maxSpeed(0), scale( 1 )
-    {
-        init();
-    }
+    Actor( const vector_type& pos );
 
     // This class does not care whether its derivatives draw with vectors,
     // bitmaps, or what-have-you.
@@ -98,9 +90,6 @@ class Actor
     {
         simple_integration( s, v, a, dt, maxSpeed );
     }
-
-    virtual CollisionData& collision_data() = 0;
-    virtual void collide( Actor& collider ) = 0;
 
     virtual ~Actor()
     {

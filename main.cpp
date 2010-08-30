@@ -2,13 +2,11 @@
 #include <iostream>
 #include <fstream>
 
-#include "math/Vector.h"
-#include "ScopeGuard.h"
+#include "Vector.h"
 #include "functional_plus.h"
 
 #include "Actor.h"
-#include "Playfield.h"
-#include "Gunman.h"
+#include "Player.h"
 
 #include "Collision.h"
 
@@ -17,10 +15,11 @@
 
 #include <algorithm> // For for_each().
 #include <functional> // For mem_fun_ptr.
+#include <fstream>    // For debugging.
 
 GLenum init_gl( int w, int h )
 {
-    glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -46,11 +45,18 @@ void update_screen()
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
+typedef std::shared_ptr< CircleActor > CActorPtr;
+typedef std::vector< CActorPtr > CActors;
+CActors cActors;
+
+void spawn_player( Actor::value_type x, Actor::value_type y )
+{
+    Player* player = new Player( Actor::vector_type(x,y) );
+    cActors.push_back( CActorPtr( player ) );
+}
+
 int main( int argc, char** argv )
 {
-    // Portably suppresses unused variable compiler warnings.
-    #define NOT_USED(var) ((void)(var))
-
     const int MAX_FRAME_TIME = 10;
 
     bool quit = false;
@@ -59,20 +65,17 @@ int main( int argc, char** argv )
         return 1;
     make_sdl_gl_window( 700, 600 );
 
-#ifdef POSIX
-    // This works best on Linux, but seems to fail on Windows. TODO: WHY!?
-    ScopeGuard quitSdl = scope_guard( SDL_Quit ); NOT_USED( quitSdl ); 
-    ScopeGuard flushGl = scope_guard( glFlush ); NOT_USED( flushGl );
-#endif
+    Player::body.load( "art/Orbital.bmp" );
+    Player::shield.load( "art/Sheild2.bmp" );
 
-    Actor::vector_type pos( 350, 300 );
-    Playfield& playfield = *(new Playfield( pos, 200, 40 ));
+    std::ofstream log( "log" );
 
-    pos.x( 500 );
-    Gunman* gunny = new Gunman (
-        pos, playfield, 
-        new HumanGunmanController
-    );
+#define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
+
+    PANDE( Player::body.handle() );
+    PANDE( Player::shield.handle() );
+
+    spawn_player( 350, 300 );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
@@ -92,37 +95,39 @@ int main( int argc, char** argv )
         // Note that for_each_ptr is needed here. std::mem_fn should work, but
         // for whatever reason it's not. TODO: fix it?
         for_each_ptr ( 
-            Actor::actors.begin(), Actor::actors.end(), 
+            cActors.begin(), cActors.end(), 
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
-        for( Actor::ActorList::iterator it1 = Actor::actors.begin();
-             it1 != Actor::actors.end();
-             it1++ )
-        {
-            for( Actor::ActorList::iterator it2 = it1+1;
-                 it2 != Actor::actors.end();
-                 it2++ )
-            {
-                if( collision((**it1).collision_data(), (**it2).collision_data()) )
-                {
-                    (**it1).collide( **it2 );
-                    (**it2).collide( **it1 );
-                }
-            }
-        }
+//        for( Actor::ActorList::iterator it1 = Actor::cActors.begin();
+//             it1 != Actor::cActors.end();
+//             it1++ )
+//        {
+//            for( Actor::ActorList::iterator it2 = it1+1;
+//                 it2 != Actor::cActors.end();
+//                 it2++ )
+//            {
+//                if( collision((**it1).collision_data(), (**it2).collision_data()) )
+//                {
+//                    (**it1).collide( **it2 );
+//                    (**it2).collide( **it1 );
+//                }
+//            }
+//        }
 
         for_each ( 
-            Actor::actors.begin(), Actor::actors.end(), 
+            cActors.begin(), cActors.end(), 
             std::mem_fn( &Actor::draw ) 
         );
+
+        cActors[0]->draw();
  
-        Actor::actors.erase ( 
-            remove_if (
-                Actor::actors.begin(), Actor::actors.end(), destroy_me
-            ), 
-            Actor::actors.end() 
-        );
+        //cActors.erase ( 
+        //    remove_if (
+        //        cActors.begin(), cActors.end(), destroy_me
+        //    ), 
+        //    cActors.end() 
+        //);
 
         update_screen();
 
@@ -133,9 +138,8 @@ int main( int argc, char** argv )
             frameTime = MAX_FRAME_TIME;
     }
 
-#ifdef _WIN32
     SDL_Quit();
-#endif
+    glFlush();
 
     return 0;
 }
