@@ -7,6 +7,7 @@
 
 #include "Actor.h"
 #include "Player.h"
+#include "Orbitals.h"
 
 #include "Collision.h"
 
@@ -16,6 +17,10 @@
 #include <algorithm> // For for_each().
 #include <functional> // For mem_fun_ptr.
 #include <fstream>    // For debugging.
+#include <ctime>      // For randomization.
+
+int SCREEN_WIDTH;
+int SCREEN_HEIGT;
 
 GLenum init_gl( int w, int h )
 {
@@ -23,7 +28,7 @@ GLenum init_gl( int w, int h )
 
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    glOrtho( 0, w, h, 0, -1, 1 );
+    glOrtho( 0, w, h, 0, -10, 10 );
 
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
@@ -36,6 +41,10 @@ bool make_sdl_gl_window( int w, int h )
     if( ! SDL_SetVideoMode(w, h, 32, SDL_OPENGL) )
         return false;
     init_gl( w, h );
+
+    SCREEN_WIDTH = w;
+    SCREEN_HEIGT = h;
+
     return true;
 }
 
@@ -55,27 +64,48 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
     cActors.push_back( CActorPtr( player ) );
 }
 
+void spawn_orbital( Actor::value_type x, Actor::value_type y )
+{
+    Actor::vector_type v(0,0);
+    Orbital* orbital = new Orbital( Actor::vector_type(x,y), v );
+    cActors.push_back( CActorPtr( orbital ) );
+}
+
+void spawn_orbital()
+{
+    Actor::vector_type pos(0,0);
+
+    int range = SCREEN_WIDTH - 2 * Orbital::RADIUS;
+    pos.x( rand() % range + Orbital::RADIUS );
+    
+    range = SCREEN_HEIGT - 2 * Orbital::RADIUS;
+    pos.y( rand() % range + Orbital::RADIUS );
+
+    spawn_orbital( pos.x(), pos.y() );
+}
+
 int main( int argc, char** argv )
 {
     const int MAX_FRAME_TIME = 10;
 
     bool quit = false;
 
+    srand( time(0) );
+
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
     make_sdl_gl_window( 700, 600 );
 
-    Player::body.load( "art/Orbital.bmp" );
+    Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
+    Orbital::image.load( "art/Orbital.bmp" );
 
     std::ofstream log( "log" );
 
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
-    PANDE( Player::body.handle() );
-    PANDE( Player::shield.handle() );
-
     spawn_player( 350, 300 );
+    spawn_orbital( 300, 200 );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
@@ -120,8 +150,6 @@ int main( int argc, char** argv )
             std::mem_fn( &Actor::draw ) 
         );
 
-        cActors[0]->draw();
- 
         //cActors.erase ( 
         //    remove_if (
         //        cActors.begin(), cActors.end(), destroy_me
