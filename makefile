@@ -20,8 +20,8 @@ CFLAGS  += -Wall
 compile = ${CC} ${CFLAGS} -c -Ivector
 link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}
 
-${OUT} : .draw_shape.o .glpp.o .Actor.o .Player.o .Orbitals.o .Collision.o .draw_shape.o main.cpp makefile
-	${link} main.cpp -std=c++0x .Actor.o .CircleActor.o .Texture.o .Player.o .Orbitals.o .Collision.o .draw_shape.o .glpp.o ${LDFLAGS}
+${OUT} : .draw_shape.o .glpp.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Collision.o .draw_shape.o main.cpp makefile
+	${link} main.cpp -std=c++0x .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Collision.o .draw_shape.o .glpp.o ${LDFLAGS}
 
 .glpp.o : glpp.* makefile
 	${compile} glpp.cpp -o .glpp.o
@@ -35,8 +35,11 @@ ${OUT} : .draw_shape.o .glpp.o .Actor.o .Player.o .Orbitals.o .Collision.o .draw
 .Actor.o : Actor.cpp Actor.h Collision.h makefile
 	${compile} Actor.cpp -o .Actor.o
 
-.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o
+.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o .Arena.o
 	${compile} CircleActor.cpp -o .CircleActor.o
+
+.Arena.o : Arena.h Arena.cpp
+	${compile} Arena.cpp -o .Arena.o
 
 .Player.o : Player.cpp Player.h .CircleActor.o .Texture.o
 	${compile} -std=c++0x Player.cpp -o .Player.o

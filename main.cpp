@@ -62,6 +62,8 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 {
     Player* player = new Player( Actor::vector_type(x,y) );
     cActors.push_back( CActorPtr( player ) );
+
+    Orbital::target = player;
 }
 
 void spawn_orbital( Actor::value_type x, Actor::value_type y )
@@ -84,6 +86,13 @@ void spawn_orbital()
     spawn_orbital( pos.x(), pos.y() );
 }
 
+bool delete_me( CActorPtr& actor )
+{
+    if( actor->deleteMe && actor.get() == Orbital::target )
+        Orbital::target = 0;
+    return actor->deleteMe;
+}
+
 int main( int argc, char** argv )
 {
     const int MAX_FRAME_TIME = 10;
@@ -96,6 +105,11 @@ int main( int argc, char** argv )
         return 1;
     make_sdl_gl_window( 700, 600 );
 
+    Arena::minX = 0;
+    Arena::maxX = 700;
+    Arena::minY = 0;
+    Arena::maxY = 600;
+
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
@@ -105,7 +119,8 @@ int main( int argc, char** argv )
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
     spawn_player( 350, 300 );
-    spawn_orbital( 300, 200 );
+    spawn_orbital();
+    spawn_orbital();
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
@@ -129,33 +144,26 @@ int main( int argc, char** argv )
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
-//        for( Actor::ActorList::iterator it1 = Actor::cActors.begin();
-//             it1 != Actor::cActors.end();
-//             it1++ )
-//        {
-//            for( Actor::ActorList::iterator it2 = it1+1;
-//                 it2 != Actor::cActors.end();
-//                 it2++ )
-//            {
-//                if( collision((**it1).collision_data(), (**it2).collision_data()) )
-//                {
-//                    (**it1).collide( **it2 );
-//                    (**it2).collide( **it1 );
-//                }
-//            }
-//        }
+        if( cActors.size() )
+            for( int i=0; i < cActors.size()-1; i++ )
+                for( int j=i+1; j < cActors.size(); j++ )
+                    if( collision( *cActors[i], *cActors[j] ) ) {
+                        cActors[i]->collide_with( *cActors[j] );
+                        cActors[j]->collide_with( *cActors[i] );
+                    }
+                    
 
         for_each ( 
             cActors.begin(), cActors.end(), 
             std::mem_fn( &Actor::draw ) 
         );
 
-        //cActors.erase ( 
-        //    remove_if (
-        //        cActors.begin(), cActors.end(), destroy_me
-        //    ), 
-        //    cActors.end() 
-        //);
+        cActors.erase ( 
+            remove_if (
+                cActors.begin(), cActors.end(), delete_me
+            ), 
+            cActors.end() 
+        );
 
         update_screen();
 

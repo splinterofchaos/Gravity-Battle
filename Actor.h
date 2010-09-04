@@ -26,7 +26,7 @@ class Actor
 {
     void init()
     {
-        destroyMeFlag = false;
+        deleteMe = false;
 
         std::fill( v.begin(), v.end(), 0 );
         std::fill( a.begin(), a.end(), 0 );
@@ -71,7 +71,7 @@ class Actor
     value_type m;  // Mass.
     value_type im; // Inverse mass.
 
-    bool destroyMeFlag;
+    bool deleteMe;
 
     Actor( const vector_type& pos );
 
@@ -91,4 +91,3 @@ class Actor
     }
 };
 
-bool destroy_me( const Actor::ActorPointer& actor );
