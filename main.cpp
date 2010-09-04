@@ -105,7 +105,7 @@ bool delete_me( CActorPtr& actor )
         if( actor.get() == Orbital::target )
             Orbital::target = 0;
 
-        for( int i=0; i < 100; i++ )
+        for( int i=0; i < 300; i++ )
             spawn_particle( actor->s, actor->v );
     }
     return actor->deleteMe;
@@ -117,14 +117,14 @@ int main( int argc, char** argv )
 
     bool quit = false;
 
+    Arena::minX = 0;
+    Arena::maxX = 1000;
+    Arena::minY = 0;
+    Arena::maxY = 800;
+
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
-    make_sdl_gl_window( 700, 600 );
-
-    Arena::minX = 0;
-    Arena::maxX = 700;
-    Arena::minY = 0;
-    Arena::maxY = 600;
+    make_sdl_gl_window( Arena::maxX, Arena::maxY );
 
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
@@ -144,7 +144,7 @@ int main( int argc, char** argv )
     PANDE( cActors[2]->s.x() );
     PANDE( cActors[2]->s.y() );
 
-    int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
+    int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0, gameTime=0;
     while( quit == false )
     {
         static SDL_Event event;
@@ -157,6 +157,13 @@ int main( int argc, char** argv )
         Uint8* keyState = SDL_GetKeyState( 0 );
         if( keyState[SDLK_ESCAPE] )
             quit = true;
+
+        static int spawnDelay = 3000;
+        static int spawnWait = gameTime + spawnDelay;
+        if( spawnWait < gameTime ) {
+            spawn_orbital();
+            spawnWait = gameTime + spawnDelay;
+        }
 
         // TODO: Fixed time-step. 
         // Note that for_each_ptr is needed here. std::mem_fn should work, but
@@ -202,6 +209,7 @@ int main( int argc, char** argv )
         frameStart = frameEnd;
         frameEnd = SDL_GetTicks();
         frameTime = frameEnd - frameStart;
+        gameTime += frameTime;
         if( frameTime > MAX_FRAME_TIME )
             frameTime = MAX_FRAME_TIME;
     }
