@@ -137,12 +137,6 @@ int main( int argc, char** argv )
     spawn_player( 350, 300 );
     spawn_orbital();
     spawn_orbital();
-    spawn_particle( Actor::vector_type(300,300), Actor::vector_type(0,0) );
-
-    PANDE( cActors[1]->s.x() );
-    PANDE( cActors[1]->s.y() );
-    PANDE( cActors[2]->s.x() );
-    PANDE( cActors[2]->s.y() );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0, gameTime=0;
     while( quit == false )
@@ -179,8 +173,8 @@ int main( int argc, char** argv )
         );
 
         if( cActors.size() )
-            for( int i=0; i < cActors.size()-1; i++ )
-                for( int j=i+1; j < cActors.size(); j++ )
+            for( size_t i=0; i < cActors.size()-1; i++ )
+                for( size_t j=i+1; j < cActors.size(); j++ )
                     if( collision( *cActors[i], *cActors[j] ) ) {
                         cActors[i]->collide_with( *cActors[j] );
                         cActors[j]->collide_with( *cActors[i] );
