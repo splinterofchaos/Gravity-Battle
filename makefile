@@ -20,14 +20,13 @@ CFLAGS  += -Wall
 compile = ${CC} ${CFLAGS} -c -Ivector
 link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}
 
-${OUT} : .draw_shape.o .glpp.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Collision.o .draw_shape.o main.cpp makefile
-	${link} main.cpp -std=c++0x .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Collision.o .draw_shape.o .glpp.o ${LDFLAGS}
+OBJ = .Random.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Particle.o .Collision.o 
 
-.glpp.o : glpp.* makefile
-	${compile} glpp.cpp -o .glpp.o
+${OUT} : ${OBJ} main.cpp makefile
+	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
 
-.draw_shape.o : draw_shape.* makefile
-	${compile} draw_shape.cpp  -o .draw_shape.o
+.Random.o : Random.h Random.cpp
+	${compile} Random.cpp -o .Random.o
 
 .Collision.o : Collision.cpp Collision.h makefile
 	${compile} Collision.cpp -o .Collision.o
@@ -46,6 +45,9 @@ ${OUT} : .draw_shape.o .glpp.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Play
 
 .Orbitals.o : Orbitals.cpp Orbitals.h .CircleActor.o .Texture.o
 	${compile} Orbitals.cpp -o .Orbitals.o
+
+.Particle.o : Particle.cpp Particle.h .Actor.o
+	${compile} Particle.cpp -o .Particle.o
 
 .Texture.o : Texture.cpp Texture.h
 	${compile} Texture.cpp -o .Texture.o

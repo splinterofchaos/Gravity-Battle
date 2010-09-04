@@ -1,13 +1,12 @@
 
-#include <iostream>
-#include <fstream>
-
-#include "Vector.h"
-#include "functional_plus.h"
-
 #include "Actor.h"
 #include "Player.h"
 #include "Orbitals.h"
+#include "Particle.h"
+
+#include "Vector.h"
+#include "functional_plus.h"
+#include "Random.h"
 
 #include "Collision.h"
 
@@ -17,7 +16,8 @@
 #include <algorithm> // For for_each().
 #include <functional> // For mem_fun_ptr.
 #include <fstream>    // For debugging.
-#include <ctime>      // For randomization.
+
+#include <iostream>
 
 int SCREEN_WIDTH;
 int SCREEN_HEIGT;
@@ -58,6 +58,10 @@ typedef std::shared_ptr< CircleActor > CActorPtr;
 typedef std::vector< CActorPtr > CActors;
 CActors cActors;
 
+typedef Particle* ParticlePtr;
+typedef std::vector< ParticlePtr > Particles;
+Particles particles;
+
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
     Player* player = new Player( Actor::vector_type(x,y) );
@@ -77,19 +81,33 @@ void spawn_orbital()
 {
     Actor::vector_type pos(0,0);
 
-    int range = SCREEN_WIDTH - 2 * Orbital::RADIUS;
-    pos.x( rand() % range + Orbital::RADIUS );
-    
-    range = SCREEN_HEIGT - 2 * Orbital::RADIUS;
-    pos.y( rand() % range + Orbital::RADIUS );
+    pos.x( random( Orbital::RADIUS, SCREEN_WIDTH - Orbital::RADIUS ) );
+    pos.y( random( Orbital::RADIUS, SCREEN_HEIGT - Orbital::RADIUS ) );
 
     spawn_orbital( pos.x(), pos.y() );
 }
 
+void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v )
+{
+    typedef Actor::vector_type V;
+
+    ParticlePtr particle = new Particle ( 
+        pos, v, 0, 1, {1,1,1,1}
+    );
+
+    particles.push_back( particle );
+}
+
 bool delete_me( CActorPtr& actor )
 {
-    if( actor->deleteMe && actor.get() == Orbital::target )
-        Orbital::target = 0;
+    if( actor->deleteMe )
+    {
+        if( actor.get() == Orbital::target )
+            Orbital::target = 0;
+
+        for( int i=0; i < 100; i++ )
+            spawn_particle( actor->s, actor->v );
+    }
     return actor->deleteMe;
 }
 
@@ -98,8 +116,6 @@ int main( int argc, char** argv )
     const int MAX_FRAME_TIME = 10;
 
     bool quit = false;
-
-    srand( time(0) );
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
@@ -121,6 +137,12 @@ int main( int argc, char** argv )
     spawn_player( 350, 300 );
     spawn_orbital();
     spawn_orbital();
+    spawn_particle( Actor::vector_type(300,300), Actor::vector_type(0,0) );
+
+    PANDE( cActors[1]->s.x() );
+    PANDE( cActors[1]->s.y() );
+    PANDE( cActors[2]->s.x() );
+    PANDE( cActors[2]->s.y() );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
@@ -144,6 +166,11 @@ int main( int argc, char** argv )
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
+        for_each_ptr ( 
+            particles.begin(), particles.end(), 
+            std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
+        );
+
         if( cActors.size() )
             for( int i=0; i < cActors.size()-1; i++ )
                 for( int j=i+1; j < cActors.size(); j++ )
@@ -155,6 +182,11 @@ int main( int argc, char** argv )
 
         for_each ( 
             cActors.begin(), cActors.end(), 
+            std::mem_fn( &Actor::draw ) 
+        );
+
+        for_each ( 
+            particles.begin(), particles.end(), 
             std::mem_fn( &Actor::draw ) 
         );
 
