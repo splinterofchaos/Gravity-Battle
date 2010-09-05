@@ -15,7 +15,7 @@ endif
 
 CC = g++
 
-CFLAGS  += -Wall 
+CFLAGS  += -Wall
 
 compile = ${CC} ${CFLAGS} -c -Ivector
 link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}

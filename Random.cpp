@@ -15,13 +15,12 @@ int cheater = cheat();
 // Postcondition: min <= random(min,max) < max
 int random( int min, int max )
 {
-        
-    return rand() % (max-min) + min;
+    return rand()%(max-min) + min;
 }
 
 float random( float min, float max )
 {
-    const int PRECISION = 10000;
+    const int PRECISION = 1000;
     int val = random( (int)min*PRECISION, (int)max*PRECISION );
     return (float) val / PRECISION;
 }

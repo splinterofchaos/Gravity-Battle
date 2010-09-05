@@ -72,8 +72,14 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 
 void spawn_orbital( Actor::value_type x, Actor::value_type y )
 {
-    Actor::vector_type v(0,0);
-    Orbital* orbital = new Orbital( Actor::vector_type(x,y), v );
+    float speed = 0;//random( 0.01f, 0.5f );
+    float angle = 0;//random( 0.0f, 2*3.145 );
+    float vx = std::cos(angle) * speed;
+    float vy = std::sin(angle) * speed;
+
+    Orbital* orbital = new Orbital(
+        Actor::vector_type(x,y), Actor::vector_type(vx,vy) 
+    );
     cActors.push_back( CActorPtr( orbital ) );
 }
 
@@ -87,12 +93,14 @@ void spawn_orbital()
     spawn_orbital( pos.x(), pos.y() );
 }
 
-void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v )
+void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale )
 {
     typedef Actor::vector_type V;
 
+    scale = random( 0.0f, scale );
+
     ParticlePtr particle = new Particle ( 
-        pos, v, 0, 1, {1,1,1,1}
+        pos, v, 0, 1, scale, {1,1,1,1}
     );
 
     particles.push_back( particle );
@@ -105,10 +113,32 @@ bool delete_me( CActorPtr& actor )
         if( actor.get() == Orbital::target )
             Orbital::target = 0;
 
-        for( int i=0; i < 300; i++ )
-            spawn_particle( actor->s, actor->v );
+        for( int i=0; i < actor->mass()*80; i++ )
+            spawn_particle( actor->s, actor->v, actor->radius()/10 );
     }
     return actor->deleteMe;
+}
+
+bool is_off_screen( ParticlePtr p )
+{
+    return p->s.x() < Arena::minX-p->scale || p->s.x() > Arena::maxX || 
+        p->s.y() < Arena::minY-p->scale || p->s.y() > Arena::maxY;
+}
+
+int spawnDelay;
+int spawnWait;
+int gameTime;
+
+void reset()
+{
+    particles.clear();
+    cActors.clear();
+
+    spawn_player( 350, 300 );
+
+    gameTime   = 0;
+    spawnDelay = 3000;
+    spawnWait  = 30;
 }
 
 int main( int argc, char** argv )
@@ -134,11 +164,9 @@ int main( int argc, char** argv )
 
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
-    spawn_player( 350, 300 );
-    spawn_orbital();
-    spawn_orbital();
+    reset();
 
-    int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0, gameTime=0;
+    int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
     {
         static SDL_Event event;
@@ -151,9 +179,9 @@ int main( int argc, char** argv )
         Uint8* keyState = SDL_GetKeyState( 0 );
         if( keyState[SDLK_ESCAPE] )
             quit = true;
+        if( keyState[ SDLK_r ] )
+            reset();
 
-        static int spawnDelay = 3000;
-        static int spawnWait = gameTime + spawnDelay;
         if( spawnWait < gameTime ) {
             spawn_orbital();
             spawnWait = gameTime + spawnDelay;
@@ -196,6 +224,13 @@ int main( int argc, char** argv )
                 cActors.begin(), cActors.end(), delete_me
             ), 
             cActors.end() 
+        );
+
+        particles.erase ( 
+            remove_if (
+                particles.begin(), particles.end(), is_off_screen
+            ), 
+            particles.end() 
         );
 
         update_screen();

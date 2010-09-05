@@ -5,11 +5,13 @@
 #include <cmath>
 
 Particle::Particle( const vector_type& pos, const vector_type& v, 
-                    value_type minSpeed, value_type maxSpeed, const Color& c )   
-    : Actor(pos), c( c )
+                    value_type minSpeed, value_type maxSpeed, float scale,
+                    const Color& c )   
+    : Actor( pos ), scale( scale ), c( c )
 {
     value_type speed = random( minSpeed, maxSpeed );
-    float angle = random( 0.0f, 2*3.145 );
+    // TODO: When 2nd arg=2*3.14, particles don't spawn between 0 and ~15 degs. WHY?    
+    float angle = random( 0.0f, 2.3*3.14159 );
 
     this->v.x( std::cos(angle) * speed );
     this->v.y( std::sin(angle) * speed );
@@ -22,10 +24,10 @@ void Particle::draw()
     glTranslatef( s.x(), s.y(), 0 );
 
     float verts[] = { 
-        -5, -5,
-         5, -5,
-         5,  5,        
-        -5,  5,
+        -scale, -scale,
+         scale, -scale,
+         scale,  scale,        
+        -scale,  scale,
     };
 
     int texCoords[] = {
