@@ -42,7 +42,6 @@ void Orbital::move( int dt )
     if( isActive && target )
     {
         // Orbit the target.
-        const value_type G = 1; // Gravitational const.
         const vector_type r = target->s - s;
 
         if( true )
@@ -101,7 +100,6 @@ void Orbital::draw()
     {
         glTexCoordPointer( 2, GL_INT, 0, texCoords );
         glVertexPointer( 2, GL_FLOAT, 0, verts );
-        glBindTexture( GL_TEXTURE_2D, image.handle() );
         glDrawArrays( GL_QUADS, 0, 4 );
 
     }

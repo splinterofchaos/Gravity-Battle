@@ -87,8 +87,8 @@ void spawn_orbital()
 {
     Actor::vector_type pos(0,0);
 
-    pos.x( random( Orbital::RADIUS, SCREEN_WIDTH - Orbital::RADIUS ) );
-    pos.y( random( Orbital::RADIUS, SCREEN_HEIGT - Orbital::RADIUS ) );
+    pos.x( random( Orbital::RADIUS, Arena::maxX - Orbital::RADIUS ) );
+    pos.y( random( Orbital::RADIUS, Arena::maxY - Orbital::RADIUS ) );
 
     spawn_orbital( pos.x(), pos.y() );
 }
@@ -113,7 +113,7 @@ bool delete_me( CActorPtr& actor )
         if( actor.get() == Orbital::target )
             Orbital::target = 0;
 
-        for( int i=0; i < actor->mass()*80; i++ )
+        for( int i=0; i < actor->mass()*200; i++ )
             spawn_particle( actor->s, actor->v, actor->radius()/10 );
     }
     return actor->deleteMe;
@@ -148,9 +148,9 @@ int main( int argc, char** argv )
     bool quit = false;
 
     Arena::minX = 0;
-    Arena::maxX = 1000;
+    Arena::maxX = 900;
     Arena::minY = 0;
-    Arena::maxY = 800;
+    Arena::maxY = 700;
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
