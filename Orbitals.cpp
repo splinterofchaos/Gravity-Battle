@@ -109,6 +109,11 @@ void Orbital::draw()
     glLoadIdentity();
 }
 
+int Orbital::score_value()
+{
+    return 5;
+}
+
 Orbital::value_type Orbital::radius() const
 {
     return RADIUS;

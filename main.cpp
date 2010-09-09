@@ -24,7 +24,7 @@
 #include <functional> // For mem_fun_ptr.
 #include <fstream>    // For debugging.
 
-#include <iostream>
+#include <sstream> // For int -> string conversions.
 
 int SCREEN_WIDTH;
 int SCREEN_HEIGT;
@@ -115,19 +115,6 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
     particles.push_back( particle );
 }
 
-bool delete_me( CActorPtr& actor )
-{
-    if( actor->deleteMe )
-    {
-        if( actor.get() == Orbital::target )
-            Orbital::target = 0;
-
-        for( int i=0; i < actor->mass()*200; i++ )
-            spawn_particle( actor->s, actor->v, actor->radius()/10 );
-    }
-    return actor->deleteMe;
-}
-
 bool is_off_screen( ParticlePtr p )
 {
     return p->s.x() < Arena::minX-p->scale || p->s.x() > Arena::maxX || 
@@ -137,6 +124,8 @@ bool is_off_screen( ParticlePtr p )
 int spawnDelay;
 int spawnWait;
 int gameTime;
+
+unsigned int scoreVal = 0;
 
 void reset()
 {
@@ -148,15 +137,45 @@ void reset()
     gameTime   = 0;
     spawnDelay = 3000;
     spawnWait  = 30;
+
+    scoreVal = 0;
+}
+
+bool delete_me( CActorPtr& actor )
+{
+    if( actor->deleteMe )
+    {
+        // Explode.
+        for( int i=0; i < actor->mass()*200; i++ )
+            spawn_particle( actor->s, actor->v, actor->radius()/10 );
+
+        // Add to score if player is alive.
+        if( Orbital::target )
+            scoreVal += actor->score_value();
+
+        // Don't point to a dead player.
+        if( actor.get() == Orbital::target )
+            Orbital::target = 0;
+    }
+    return actor->deleteMe;
+}
+
+std::string to_string( int x )
+{
+    std::stringstream ss;
+    ss << x;
+    return ss.str();
 }
 
 int main( int argc, char** argv )
 {
 #ifdef _WIN32
-    const int IDEAL_FRAME_TIME = CLOCKS_PER_SEC / 60;
+    const int SECOND = CLOCKS_PER_SEC;
 #else
-    const int IDEAL_FRAME_TIME = 1000 / 60;
+    const int SECOND = 1000;
 #endif
+
+    const int IDEAL_FRAME_TIME = SECOND / 60;
     const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;
 
     bool quit = false;
@@ -197,6 +216,15 @@ int main( int argc, char** argv )
         if( keyState[ SDLK_r ] )
             reset();
 
+        const int SCORE_DELAY = SECOND;
+        static int scoreIncWait = gameTime + SCORE_DELAY;
+
+        // If the player is alive and SCORE_DELAY seconds have passed...
+        if( Orbital::target && scoreIncWait < gameTime ) {
+            scoreVal++;
+            scoreIncWait = gameTime + SCORE_DELAY;
+        }
+
         if( spawnWait < gameTime ) {
             spawn_orbital();
             spawnWait = gameTime + spawnDelay;
@@ -236,7 +264,7 @@ int main( int argc, char** argv )
 
         glLoadIdentity();
 
-        score.text( "Hello" );
+        score.text( "Score: " + to_string(scoreVal) );
         score.draw();
 
         cActors.erase ( 

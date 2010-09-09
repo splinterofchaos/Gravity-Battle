@@ -89,6 +89,11 @@ void Player::draw()
     glLoadIdentity();
 }
 
+int Player::score_value()
+{
+    return -10;
+}
+
 Player::value_type Player::radius() const 
 {
     return 25;

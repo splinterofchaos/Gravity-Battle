@@ -24,6 +24,9 @@ struct CircleActor : public Actor
     // screen.
     void move( int dt );
 
+    // How many points are awarded for killing this. Allows negative values.
+    virtual int score_value() = 0;
+
     void collide_with( CircleActor& collider );
 };
 

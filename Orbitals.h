@@ -29,6 +29,8 @@ class Orbital : public CircleActor
     void move( int dt );
     void draw();
 
+    int score_value();
+
     value_type radius() const;
     value_type mass()   const;
 
