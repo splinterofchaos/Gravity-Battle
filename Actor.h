@@ -1,7 +1,9 @@
 
 #include "Vector.h"
-#include "glpp.h"
-#include "draw_shape.h"
+
+#ifdef _WIN32
+    #include <Windows.h>
+#endif
 
 #include <GL/gl.h>
 #include <SDL/SDL.h>
@@ -28,8 +30,8 @@ class Actor
     {
         deleteMe = false;
 
-        std::fill( v.begin(), v.end(), 0 );
-        std::fill( a.begin(), a.end(), 0 );
+        std::fill( v.begin(), v.end(), 0.0f );
+        std::fill( a.begin(), a.end(), 0.0f );
     }
 
   public:

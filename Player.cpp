@@ -96,7 +96,7 @@ Player::value_type Player::radius() const
 
 Player::value_type Player::mass() const
 {
-    return 20;
+    return 18;
 }
 
 void Player::collide_with( CircleActor& collider )

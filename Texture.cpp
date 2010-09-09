@@ -1,5 +1,26 @@
-
+ 
 #include "Texture.h"
+
+void gen_texture( GLuint handle, SDL_Surface* surface )
+{
+    glBindTexture( GL_TEXTURE_2D, handle );
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, surface->w, surface->h, 0, 
+                  GL_BGRA, GL_UNSIGNED_BYTE, surface->pixels );
+}
+
+Texture::Registry Texture::registery;
+
+Texture::Ref Texture::get_ref()
+{
+    for( size_t i=0; i < registery.size(); i++ )
+        if( registery[i].key == key )
+            return i;
+    return -1;
+}
 
 Texture::Texture()
 {
@@ -8,44 +29,69 @@ Texture::Texture()
 
 Texture::Texture( const std::string& filename )
 {
-    load( filename );
+    key = filename;
+
+    Ref ref = get_ref();
+
+    if( ref != -1u ) 
+        registery[ ref ].refCount++;
+    else 
+        load( filename );
 }
 
 void Texture::load( const std::string& filaname )
 {
-    glGenTextures( 1, &glHandle );
+    Ref ref; // Reference to the Item we'll be working on.
+
+    // We only need to reset if we're referencing a texture.
+    if( key.size() ) {
+        reset();
+    }
+
+    key = filaname;
+
+    ref = get_ref();
+
+    // If this Item already exists, and is loaded (recount!=0), we're all set.
+    if( get_ref() != -1u && registery[ref].refCount++ != 0 ) {
+        return;
+    } else {
+        // Otherwise, make it.
+        registery.push_back( Item(key,0,1) );
+        ref = registery.size() - 1;
+    }
+
+    glGenTextures( 1, &registery[ref].glHandle );
 
     // Use SDL to lead the image for simplicity.
     SDL_Surface *sdlSurface = SDL_LoadBMP( filaname.c_str() ); 
     
     if( sdlSurface ) 
     { 
-        glBindTexture( GL_TEXTURE_2D, glHandle );
-        
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, sdlSurface->w, sdlSurface->h, 0, 
-                      GL_BGRA, GL_UNSIGNED_BYTE, sdlSurface->pixels );
+        gen_texture( registery[ref].glHandle, sdlSurface );
 
         SDL_FreeSurface( sdlSurface );
-
-        // state = NO_ERROR;
     } 
-    else 
-    {
-        // state = IMAGE_NOT_LOADED;
-    }
+}
 
-    return; // state;
+void Texture::reset()
+{
+    Ref ref = get_ref();
+    if( ref != -1u && --registery[ ref ].refCount == 0 ) {
+        glDeleteTextures( 1, &registery[ ref ].glHandle );
+    }
 }
 
 Texture::~Texture()
 {
-    glDeleteTextures( 1, &glHandle );
+    reset();
 }
 
 GLuint Texture::handle()
 {
-    return glHandle; 
+    Ref ref = get_ref();
+    if( ref != -1u )
+        return registery[ ref ].glHandle; 
+    else
+        return 0;
 }

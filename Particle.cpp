@@ -10,8 +10,7 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
     : Actor( pos ), c( c ), scale( scale )
 {
     value_type speed = random( minSpeed, maxSpeed );
-    // TODO: When 2nd arg=2*3.14, particles don't spawn between 0 and ~15 degs. WHY?    
-    float angle = random( 0.0f, 2.3*3.14159 );
+    float angle = random_angle();
 
     this->v.x( std::cos(angle) * speed );
     this->v.y( std::sin(angle) * speed );
@@ -40,7 +39,7 @@ void Particle::draw()
     glEnable( GL_TEXTURE_2D );
     glColor3f( 1, 1, 1 );
 
-    // Transparency used for drawing body on to of shield.
+    glBindTexture( GL_TEXTURE_2D, 1 );
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );

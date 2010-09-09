@@ -1,4 +1,8 @@
 
+#ifdef _WIN32
+    #include <Windows.h>
+#endif
+
 #include "Actor.h"
 #include "Player.h"
 #include "Orbitals.h"
@@ -9,6 +13,8 @@
 #include "Random.h"
 
 #include "Collision.h"
+
+#include "PlainText.h"
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -72,23 +78,25 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 
 void spawn_orbital( Actor::value_type x, Actor::value_type y )
 {
-    float speed = 0;//random( 0.01f, 0.5f );
-    float angle = 0;//random( 0.0f, 2*3.145 );
+    float speed = random( .01f, .35f );
+    float angle = random_angle();
+
     float vx = std::cos(angle) * speed;
     float vy = std::sin(angle) * speed;
 
     Orbital* orbital = new Orbital(
         Actor::vector_type(x,y), Actor::vector_type(vx,vy) 
     );
+
     cActors.push_back( CActorPtr( orbital ) );
 }
 
 void spawn_orbital()
 {
-    Actor::vector_type pos(0,0);
+    Actor::vector_type pos(0.0f,0.0f);
 
-    pos.x( random( Orbital::RADIUS, Arena::maxX - Orbital::RADIUS ) );
-    pos.y( random( Orbital::RADIUS, Arena::maxY - Orbital::RADIUS ) );
+    pos.x( random( int(Orbital::RADIUS), int(Arena::maxX - Orbital::RADIUS) ) );
+    pos.y( random( int(Orbital::RADIUS), int(Arena::maxY - Orbital::RADIUS) ) );
 
     spawn_orbital( pos.x(), pos.y() );
 }
@@ -97,10 +105,10 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
 {
     typedef Actor::vector_type V;
 
-    scale = random( 0.0f, scale );
+    scale = random( 0.5f, scale );
 
     ParticlePtr particle = new Particle ( 
-        pos, v, 0, 1, scale, {1,1,1,1}
+		pos, v, 0, 1, scale, Particle::Color(1,1,1,1)
     );
 
     particles.push_back( particle );
@@ -143,7 +151,7 @@ void reset()
 
 int main( int argc, char** argv )
 {
-    const int MAX_FRAME_TIME = 10;
+    const int MAX_FRAME_TIME = 200;
 
     bool quit = false;
 
@@ -154,17 +162,18 @@ int main( int argc, char** argv )
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
-    make_sdl_gl_window( Arena::maxX, Arena::maxY );
+    make_sdl_gl_window( (int)Arena::maxX, (int)Arena::maxY );
 
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
 
     std::ofstream log( "log" );
-
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
     reset();
+
+    PlainText score( PlainText::Position(300, 100) );
 
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
@@ -187,13 +196,13 @@ int main( int argc, char** argv )
             spawnWait = gameTime + spawnDelay;
         }
 
-        // TODO: Fixed time-step. 
-        // Note that for_each_ptr is needed here. std::mem_fn should work, but
-        // for whatever reason it's not. TODO: fix it?
-        for_each_ptr ( 
-            cActors.begin(), cActors.end(), 
-            std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
-        );
+        const int DT = 5; // in ms.
+        static int time = 0;
+        for( time += frameTime; time >= DT; time -= DT )
+            for_each_ptr ( 
+                cActors.begin(), cActors.end(), 
+                std::bind2nd( std::mem_fun_ref(&Actor::move), DT )
+            );
 
         for_each_ptr ( 
             particles.begin(), particles.end(), 
@@ -219,6 +228,11 @@ int main( int argc, char** argv )
             std::mem_fn( &Actor::draw ) 
         );
 
+        glLoadIdentity();
+
+        score.text( "Hello" );
+        score.draw();
+
         cActors.erase ( 
             remove_if (
                 cActors.begin(), cActors.end(), delete_me
@@ -239,6 +253,9 @@ int main( int argc, char** argv )
         frameEnd = SDL_GetTicks();
         frameTime = frameEnd - frameStart;
         gameTime += frameTime;
+
+        log << frameTime << '\n';
+
         if( frameTime > MAX_FRAME_TIME )
             frameTime = MAX_FRAME_TIME;
     }

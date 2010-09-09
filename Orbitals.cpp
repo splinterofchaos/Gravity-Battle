@@ -93,7 +93,7 @@ void Orbital::draw()
     glEnable( GL_TEXTURE_2D );
     glColor4f( activationProgress, activationProgress, activationProgress, activationProgress );
 
-    // Transparency used for drawing body on to of shield.
+    glBindTexture( GL_TEXTURE_2D, image.handle() );
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );

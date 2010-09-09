@@ -1,4 +1,8 @@
 
+#ifdef _WIN32
+    #include <Windows.h>
+#endif
+
 #include "Actor.h"
 
 class Particle : public Actor
@@ -7,6 +11,11 @@ class Particle : public Actor
     struct Color
     {
         float r, g, b, a;
+
+		Color( float r, float g, float b, float a )
+			: r(r), g(g), b(b), a(a)
+		{
+		}
     } c;
 
     float scale;
