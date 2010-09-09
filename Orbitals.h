@@ -19,7 +19,7 @@ class Orbital : public CircleActor
 
     static Player* target;
 
-    static const int ACTIVATION_DELAY = 1000;
+    static const int ACTIVATION_DELAY = 2000;
     int activationDelay;
 
     Orbital( const vector_type& position, const vector_type& v );

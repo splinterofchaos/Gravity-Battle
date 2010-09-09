@@ -1,6 +1,7 @@
 
 #ifdef _WIN32
     #include <Windows.h>
+    #include <ctime>
 #endif
 
 #include "Actor.h"
@@ -151,7 +152,12 @@ void reset()
 
 int main( int argc, char** argv )
 {
-    const int MAX_FRAME_TIME = 200;
+#ifdef _WIN32
+    const int IDEAL_FRAME_TIME = CLOCKS_PER_SEC / 60;
+#else
+    const int IDEAL_FRAME_TIME = 1000 / 60;
+#endif
+    const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;
 
     bool quit = false;
 
@@ -196,7 +202,7 @@ int main( int argc, char** argv )
             spawnWait = gameTime + spawnDelay;
         }
 
-        const int DT = 5; // in ms.
+        const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
         for( time += frameTime; time >= DT; time -= DT )
             for_each_ptr ( 
@@ -250,14 +256,19 @@ int main( int argc, char** argv )
         update_screen();
 
         frameStart = frameEnd;
+#ifdef _WIN32 
+        frameEnd = clock();
+#else
         frameEnd = SDL_GetTicks();
+#endif
         frameTime = frameEnd - frameStart;
-        gameTime += frameTime;
 
         log << frameTime << '\n';
 
         if( frameTime > MAX_FRAME_TIME )
             frameTime = MAX_FRAME_TIME;
+
+        gameTime += frameTime;
     }
 
     SDL_Quit();

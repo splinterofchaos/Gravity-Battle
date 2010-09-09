@@ -1,4 +1,4 @@
-
+ 
 #include "Player.h"
 
 #include <SDL/SDL.h> // For 
@@ -15,7 +15,7 @@ void Player::move( int dt )
 {
     Uint8* keyStates = SDL_GetKeyState( 0 );
 
-    const value_type SPEED = 0.29;
+    const value_type SPEED = 0.25;
 
     v = vector_type( 0, 0 );
 
@@ -91,7 +91,7 @@ void Player::draw()
 
 Player::value_type Player::radius() const 
 {
-    return 30;
+    return 25;
 }
 
 Player::value_type Player::mass() const

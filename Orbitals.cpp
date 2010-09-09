@@ -1,9 +1,9 @@
-
+ 
 #include "Orbitals.h"
 
 Texture Orbital::image;
 
-const Orbital::value_type Orbital::RADIUS = 20;
+const Orbital::value_type Orbital::RADIUS = 18;
 
 Player* Orbital::target = 0;
 
