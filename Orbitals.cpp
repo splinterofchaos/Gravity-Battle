@@ -141,6 +141,8 @@ void CircleActor::collide_with( CircleActor& collider )
 Twister::Twister( const Orbital::vector_type& pos, const Orbital::vector_type& v )
     : Orbital( pos, v )
 {
+    angleAcc = 0;
+    angleVel = random( 0.1f, 0.3f );
     angle = random_angle() * (180/3.145);
 }
 
@@ -180,7 +182,9 @@ void Twister::move( int dt )
     CircleActor::move( dt );
 
     const float ROTATION_MULTIPLIER =  800;
-    angle += cross(a,v) * ROTATION_MULTIPLIER * dt*dt;
+    angleAcc = cross(a,v) * ROTATION_MULTIPLIER; 
+    angleVel += angleAcc * dt;
+    angle +=  angleVel*dt + angleAcc*dt*dt;
 }
 
 void Twister::draw()

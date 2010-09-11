@@ -44,6 +44,8 @@ class Orbital : public CircleActor
 
 class Twister : public Orbital
 {
+    float angleAcc;
+    float angleVel;
     float angle;
 
   public:
