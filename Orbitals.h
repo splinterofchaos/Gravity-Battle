@@ -36,3 +36,14 @@ class Orbital : public CircleActor
 
     void collide_with( CircleActor& collider );
 };
+
+class Twister : public Orbital
+{
+    float angle;
+
+  public:
+    Twister( const vector_type& pos, const vector_type& v );
+
+    void move( int dt );
+    void draw();
+};
