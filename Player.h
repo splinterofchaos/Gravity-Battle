@@ -27,4 +27,6 @@ class Player : public CircleActor
     value_type mass()   const;
 
     void collide_with( CircleActor& collider );
+
+    Color color();
 };

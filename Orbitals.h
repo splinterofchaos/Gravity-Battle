@@ -12,6 +12,9 @@
 
 class Orbital : public CircleActor
 {
+  protected:
+    GLfloat colorIntensity;
+
   public:
     static Texture image;
     
@@ -35,6 +38,8 @@ class Orbital : public CircleActor
     value_type mass()   const;
 
     void collide_with( CircleActor& collider );
+
+    Color color();
 };
 
 class Twister : public Orbital
@@ -46,4 +51,6 @@ class Twister : public Orbital
 
     void move( int dt );
     void draw();
+
+    Color color();
 };

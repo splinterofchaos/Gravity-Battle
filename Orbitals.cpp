@@ -14,6 +14,8 @@ Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& v
     v = vel;
     activationDelay = ACTIVATION_DELAY;
     isActive = false;
+
+    colorIntensity = random( 0.6f, 1.0f );
 }
 
 void Orbital::on_off_screen()
@@ -89,8 +91,10 @@ void Orbital::draw()
         0, 1
     };
 
+    Color c = color() * activationProgress;
+
     glEnable( GL_TEXTURE_2D );
-    glColor4f( activationProgress, activationProgress, activationProgress, activationProgress );
+    glColor4f( c.r(), c.g(), c.b(), c.a() );
 
     glBindTexture( GL_TEXTURE_2D, image.handle() );
 
@@ -121,6 +125,12 @@ Orbital::value_type Orbital::radius() const
 Orbital::value_type Orbital::mass() const
 {
     return 10;
+}
+
+Color Orbital::color()
+{
+    Color c( .4f, .4f, 1.0, 1.0f );
+    return c * colorIntensity;
 }
 
 void CircleActor::collide_with( CircleActor& collider )
@@ -197,8 +207,10 @@ void Twister::draw()
         0, 1
     };
 
+    Color c = color() * activationProgress;
+
     glEnable( GL_TEXTURE_2D );
-    glColor4f( activationProgress, activationProgress, activationProgress, activationProgress );
+    glColor4f( c.r(), c.g(), c.b(), c.a() );
 
     glBindTexture( GL_TEXTURE_2D, 1 );
 
@@ -216,4 +228,10 @@ void Twister::draw()
     glDisableClientState( GL_VERTEX_ARRAY );
 
     glLoadIdentity();
+}
+
+Color Twister::color()
+{
+    Color c( 1.0f, 0.0f, 0.0f, 1.0f );
+    return c * colorIntensity;
 }

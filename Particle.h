@@ -4,19 +4,12 @@
 #endif
 
 #include "Actor.h"
+#include "Color.h"
 
 class Particle : public Actor
 {
   public:
-    struct Color
-    {
-        float r, g, b, a;
-
-		Color( float r, float g, float b, float a )
-			: r(r), g(g), b(b), a(a)
-		{
-		}
-    } c;
+    Color c;
 
     float scale;
 

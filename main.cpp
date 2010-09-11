@@ -109,14 +109,14 @@ void spawn()
     spawn<T>( pos.x(), pos.y() );
 }
 
-void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale )
+void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale, const Color& c )
 {
     typedef Actor::vector_type V;
 
-    scale = random( 0.5f, scale );
+    scale = random( 0.75f, scale );
 
     ParticlePtr particle = new Particle ( 
-		pos, v, 0, 1, scale, Particle::Color(1,1,1,1)
+		pos, v, 0, 1, scale, c
     );
 
     particles.push_back( particle );
@@ -152,7 +152,7 @@ bool delete_me( CActorPtr& actor )
     {
         // Explode.
         for( int i=0; i < actor->mass()*200; i++ )
-            spawn_particle( actor->s, actor->v, actor->radius()/10 );
+            spawn_particle( actor->s, actor->v/4, actor->radius()/8, actor->color() );
 
         // Add to score if player is alive.
         if( Orbital::target )

@@ -108,3 +108,8 @@ void Player::collide_with( CircleActor& collider )
 {
     deleteMe = true;
 }
+
+Color Player::color()
+{
+    return Color(1,1,1,1);
+}

@@ -20,7 +20,7 @@ CFLAGS  += -Wall
 compile = ${CC} ${CFLAGS} -c -Ivector
 link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}
 
-OBJ = .Random.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Particle.o .Collision.o .PlainText.o
+OBJ = .Random.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Particle.o .Collision.o .PlainText.o .Color.o
 
 ${OUT} : ${OBJ} main.cpp makefile
 	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
@@ -34,7 +34,7 @@ ${OUT} : ${OBJ} main.cpp makefile
 .Actor.o : Actor.cpp Actor.h Collision.h 
 	${compile} Actor.cpp -o .Actor.o
 
-.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o .Arena.o
+.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o .Arena.o .Color.o
 	${compile} CircleActor.cpp -o .CircleActor.o
 
 .Arena.o : Arena.h Arena.cpp
@@ -54,6 +54,9 @@ ${OUT} : ${OBJ} main.cpp makefile
 
 .PlainText.o : PlainText.cpp PlainText.h Texture.h
 	${compile} PlainText.cpp -o .PlainText.o
+
+.Color.o : Color.cpp Color.h 
+	${compile} Color.cpp -o .Color.o
 
 clean:
 	rm *.o

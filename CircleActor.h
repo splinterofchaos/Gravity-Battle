@@ -7,6 +7,7 @@
 
 #include "Actor.h"
 #include "Arena.h"
+#include "Color.h"
 
 struct CircleActor : public Actor
 {
@@ -28,6 +29,9 @@ struct CircleActor : public Actor
     virtual int score_value() = 0;
 
     void collide_with( CircleActor& collider );
+
+    // The general color of this. 
+    virtual Color color() = 0;
 };
 
 bool collision( const CircleActor& c1, const CircleActor& c2 );

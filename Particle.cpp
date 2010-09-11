@@ -20,7 +20,7 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
 
 void Particle::draw()
 {
-    glTranslatef( s.x(), s.y(), 0 );
+    glTranslatef( s.x(), s.y(), 1 );
 
     float verts[] = { 
         -scale, -scale,
@@ -37,7 +37,7 @@ void Particle::draw()
     };
 
     glEnable( GL_TEXTURE_2D );
-    glColor3f( 1, 1, 1 );
+    glColor3f( c.r(), c.g(), c.b() );
 
     glBindTexture( GL_TEXTURE_2D, 1 );
 
