@@ -29,7 +29,9 @@ class Orbital : public CircleActor
 
     virtual void on_off_screen();
 
+    virtual vector_type acceleration( const vector_type& r );
     void move( int dt );
+
     void draw();
 
     int score_value();
@@ -52,6 +54,8 @@ class Twister : public Orbital
     Twister( const vector_type& pos, const vector_type& v );
 
     void on_off_screen();
+
+    vector_type acceleration( const vector_type& r );
 
     void move( int dt );
     void draw();

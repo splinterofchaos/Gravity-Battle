@@ -33,6 +33,11 @@ void Orbital::on_off_screen()
         v.y( -v.y() * BOUNCINESS );
 }
 
+Orbital::vector_type Orbital::acceleration( const vector_type& r )
+{
+    return magnitude( r, target->mass() * (1.0f/100.0f) / magnitude(r) );
+}
+
 void Orbital::move( int dt )
 {
     if( !isActive )
@@ -46,20 +51,7 @@ void Orbital::move( int dt )
     {
         // Orbit the target.
         const vector_type r = target->s - s;
-
-        if( true )
-        { 
-            // Use fake gravity.
-            const float MULTIPLIER = 1.0f / 100.0f;
-            a = magnitude( r, target->mass()*MULTIPLIER / magnitude(r) );
-        }
-        else
-        {
-            // F_grav = G*m1*m2 / r^2
-            // a1 = G*m2 / r^2
-            // Assuming target->mass() = G*m2
-            a = magnitude( r, target->mass() / (r*r) / 100 );
-        }
+        a = acceleration( r );
     }
     else
     {
@@ -86,7 +78,7 @@ void Orbital::draw()
         -radius()*activationProgress,  radius()*activationProgress,
     };
 
-    int texCoords[] = {
+    float texCoords[] = {
         0, 0,
         1, 0,
         1, 1, 
@@ -103,8 +95,8 @@ void Orbital::draw()
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );
     {
-        glTexCoordPointer( 2, GL_INT, 0, texCoords );
-        glVertexPointer( 2, GL_FLOAT, 0, verts );
+        glTexCoordPointer( 2, GL_FLOAT, 0, texCoords );
+        glVertexPointer(   2, GL_FLOAT, 0, verts     );
         glDrawArrays( GL_QUADS, 0, 4 );
 
         glLoadIdentity();
@@ -114,13 +106,35 @@ void Orbital::draw()
                 s.x(), s.y(),
                 target->s.x(), target->s.y()
             };
+
             glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
             glDrawArrays( GL_LINES, 0, 2 );
+
+            const unsigned int NUM_PREDICTIONS = 900;
+            Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
+
+            struct Prediction {
+                vector_type s, v, a;
+            } p;
+
+            p.s = s; p.v = v;
+            pathOfOrbit[0] = p.s;
+
+            for( size_t i=1; i < NUM_PREDICTIONS; i++ ) {
+                vector_type r = target->s - p.s;
+                p.a = acceleration( r );
+                simple_integration( p.s, p.v, p.a, 4 );
+                pathOfOrbit[i] = p.s;
+            }
+
+            glDisable( GL_TEXTURE_2D );
+            glVertexPointer( 2, GL_FLOAT, 0, pathOfOrbit );
+            glDrawArrays( GL_LINES, 0, NUM_PREDICTIONS );
         }
 
     }
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 
 }
 
@@ -167,40 +181,14 @@ void Twister::on_off_screen()
         angleVel = -angleVel;
 }
 
+Twister::vector_type Twister::acceleration( const vector_type& r )
+{
+    return magnitude( r, target->mass() / (r*r) );
+}
+
 void Twister::move( int dt )
 {
-    if( !isActive )
-    {
-        activationDelay -= dt;
-        if( activationDelay <= 0 )
-            isActive = true;
-    }
-
-    if( isActive && target )
-    {
-        // Orbit the target.
-        const vector_type r = target->s - s;
-
-        if( true )
-        { 
-            // Use fake gravity.
-            const float MULTIPLIER = 1.8;
-            a = magnitude( r, target->mass()*MULTIPLIER / (r*r) );
-        }
-        else
-        {
-            // F_grav = G*m1*m2 / r^2
-            // a1 = G*m2 / r^2
-            // Assuming target->mass() = G*m2
-            a = magnitude( r, target->mass() / (r*r) / 100 );
-        }
-    }
-    else
-    {
-        a = vector_type( 0, 0 );
-    }
-
-    CircleActor::move( dt );
+    Orbital::move( dt );
 
     const float ROTATION_MULTIPLIER =  1.0f / 1.0f;
     angleAcc = cross(a,v) * ROTATION_MULTIPLIER; 
@@ -255,8 +243,30 @@ void Twister::draw()
                 s.x(), s.y(),
                 target->s.x(), target->s.y()
             };
+
             glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
             glDrawArrays( GL_LINES, 0, 2 );
+
+            const unsigned int NUM_PREDICTIONS = 1200;
+            Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
+
+            struct Prediction {
+                vector_type s, v, a;
+            } p;
+
+            p.s = s; p.v = v;
+            pathOfOrbit[0] = p.s;
+
+            for( size_t i=1; i < NUM_PREDICTIONS; i++ ) {
+                vector_type r = target->s - p.s;
+                p.a = acceleration( r );
+                simple_integration( p.s, p.v, p.a, 4 );
+                pathOfOrbit[i] = p.s;
+            }
+
+            glDisable( GL_TEXTURE_2D );
+            glVertexPointer( 2, GL_FLOAT, 0, pathOfOrbit );
+            glDrawArrays( GL_LINES, 0, NUM_PREDICTIONS );
         }
     }
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
