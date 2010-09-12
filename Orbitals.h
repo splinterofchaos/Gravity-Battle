@@ -32,6 +32,8 @@ class Orbital : public CircleActor
     virtual vector_type acceleration( const vector_type& r );
     void move( int dt );
 
+    void draw_impl( float* verts, float zRotation );
+
     void draw();
 
     int score_value();

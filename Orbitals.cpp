@@ -61,9 +61,10 @@ void Orbital::move( int dt )
     CircleActor::move( dt );
 }
 
-void Orbital::draw()
+void Orbital::draw_impl( float* verts, float zRotation )
 {
     glTranslatef( s.x(), s.y(), 0 );
+    glRotatef( zRotation, 0, 0, 1 );
 
     GLfloat activationProgress;
     if( isActive )
@@ -71,12 +72,8 @@ void Orbital::draw()
     else
         activationProgress = 1.0f - (float)activationDelay / ACTIVATION_DELAY;
 
-    float verts[] = { 
-        -radius()*activationProgress, -radius()*activationProgress,
-         radius()*activationProgress, -radius()*activationProgress,
-         radius()*activationProgress,  radius()*activationProgress,        
-        -radius()*activationProgress,  radius()*activationProgress,
-    };
+    for( int i=0; i < 8; i++ )
+        verts[i] *= activationProgress;
 
     float texCoords[] = {
         0, 0,
@@ -135,7 +132,18 @@ void Orbital::draw()
     }
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+}
 
+void Orbital::draw()
+{
+    float verts[] = { 
+        -radius(), -radius(),
+         radius(), -radius(),
+         radius(),  radius(),        
+        -radius(),  radius(),
+    };
+
+    draw_impl( verts, 0 );
 }
 
 int Orbital::score_value()
@@ -198,81 +206,14 @@ void Twister::move( int dt )
 
 void Twister::draw()
 {
-    glTranslatef( s.x(), s.y(), 0 );
-
-    GLfloat activationProgress;
-    if( isActive )
-        activationProgress = 1;
-    else
-        activationProgress = 1.0f - (float)activationDelay / ACTIVATION_DELAY;
-
     float verts[] = { 
-        -radius()*activationProgress, -radius()*activationProgress/2,
-         radius()*activationProgress, -radius()*activationProgress/2,
-         radius()*activationProgress,  radius()*activationProgress/2,        
-        -radius()*activationProgress,  radius()*activationProgress/2,
+        -radius(), -radius()/2,
+         radius(), -radius()/2,
+         radius(),  radius()/2,        
+        -radius(),  radius()/2,
     };
 
-    int texCoords[] = {
-        0, 0,
-        1, 0,
-        1, 1, 
-        0, 1
-    };
-
-    Color c = color() * activationProgress;
-
-    glEnable( GL_TEXTURE_2D );
-    glColor4f( c.r(), c.g(), c.b(), c.a() );
-
-    glBindTexture( GL_TEXTURE_2D, 1 );
-
-    glRotatef( angle, 0, 0, 1 );
-
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-    {
-        glTexCoordPointer( 2, GL_INT, 0, texCoords );
-        glVertexPointer( 2, GL_FLOAT, 0, verts );
-        glDrawArrays( GL_QUADS, 0, 4 );
-
-        glLoadIdentity();
-
-        if( target ) {
-            float accelerationLine[] = {
-                s.x(), s.y(),
-                target->s.x(), target->s.y()
-            };
-
-            glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
-            glDrawArrays( GL_LINES, 0, 2 );
-
-            const unsigned int NUM_PREDICTIONS = 1200;
-            Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
-
-            struct Prediction {
-                vector_type s, v, a;
-            } p;
-
-            p.s = s; p.v = v;
-            pathOfOrbit[0] = p.s;
-
-            for( size_t i=1; i < NUM_PREDICTIONS; i++ ) {
-                vector_type r = target->s - p.s;
-                p.a = acceleration( r );
-                simple_integration( p.s, p.v, p.a, 4 );
-                pathOfOrbit[i] = p.s;
-            }
-
-            glDisable( GL_TEXTURE_2D );
-            glVertexPointer( 2, GL_FLOAT, 0, pathOfOrbit );
-            glDrawArrays( GL_LINES, 0, NUM_PREDICTIONS );
-        }
-    }
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-    glDisableClientState( GL_VERTEX_ARRAY );
-
-    glLoadIdentity();
+    draw_impl( verts, angle );
 }
 
 Color Twister::color()
