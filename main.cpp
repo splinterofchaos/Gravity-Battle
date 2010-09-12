@@ -30,12 +30,46 @@ int spawnDelay;
 int spawnWait;
 int gameTime;
 
+int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
+
+const int VERSION = 2;
 
 // SDL used milliseconds.
 const int SECOND = 1000;
 
 const int SCORE_DELAY = SECOND;
 int scoreIncWait;
+
+std::ofstream loggit( "log" );
+#define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
+
+std::string to_string( int x )
+{
+    std::stringstream ss;
+    ss << x;
+    return ss.str();
+}
+
+int to_int( std::string str )
+{
+    std::stringstream ss;
+    ss << str;
+    int x;
+    ss >> x;
+    return x;
+}
+
+void configure()
+{
+    std::ifstream cfg( "config.txt" );
+
+    std::string line;
+    std::getline( cfg, line );
+    std::string::iterator it = std::find( line.begin(), line.end(), '=' );
+    it += 2;
+    particleRatio = to_int( std::string(it,line.end()) );
+}
+
 
 GLenum init_gl( int w, int h )
 {
@@ -128,7 +162,7 @@ bool is_off_screen( ParticlePtr p )
         p->s.y() < Arena::minY-p->scale || p->s.y() > Arena::maxY;
 }
 
-unsigned int scoreVal = 0;
+int scoreVal = 0;
 
 void reset()
 {
@@ -138,12 +172,14 @@ void reset()
     spawn_player( 350, 300 );
 
     gameTime   = 0;
-    spawnDelay = 3000;
+    spawnDelay = 6000;
     spawnWait  = 30;
 
     scoreVal = 0;
 
     scoreIncWait = gameTime + SCORE_DELAY;
+
+    configure();
 }
 
 bool delete_me( CActorPtr& actor )
@@ -151,7 +187,7 @@ bool delete_me( CActorPtr& actor )
     if( actor->deleteMe )
     {
         // Explode.
-        for( int i=0; i < actor->mass()*200; i++ )
+        for( int i=0; i < actor->mass()*particleRatio; i++ )
             spawn_particle( actor->s, actor->v/4, actor->radius()/8, actor->color() );
 
         // Add to score if player is alive.
@@ -159,22 +195,29 @@ bool delete_me( CActorPtr& actor )
             scoreVal += actor->score_value();
 
         // Don't point to a dead player.
-        if( actor.get() == Orbital::target )
+        if( actor.get() == Orbital::target ) 
+        {
             Orbital::target = 0;
+
+            int version;
+            int score;
+
+            {
+                std::ifstream scoresIn( "Highscore.txt" );
+                scoresIn >> version >> score;
+            }
+
+            if( version != VERSION || (version == VERSION && scoreVal > score) ) {
+                std::ofstream scoresOut( "Highscore.txt" );
+                scoresOut << VERSION << ' ' << scoreVal;
+            }
+        }
     }
     return actor->deleteMe;
 }
 
-std::string to_string( int x )
-{
-    std::stringstream ss;
-    ss << x;
-    return ss.str();
-}
-
 int main( int argc, char** argv )
 {
-
     const int IDEAL_FRAME_TIME = SECOND / 60;
     const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;
 
@@ -192,9 +235,6 @@ int main( int argc, char** argv )
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
-
-    std::ofstream log( "log" );
-#define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
     reset();
 
@@ -217,12 +257,22 @@ int main( int argc, char** argv )
 
         // If the player is alive and SCORE_DELAY seconds have passed...
         if( Orbital::target && scoreIncWait < gameTime ) {
-            scoreVal++;
             scoreIncWait = gameTime + SCORE_DELAY;
+
+            int sum = 0;
+            for( size_t i=1; i < cActors.size(); i++ )
+                sum += cActors[i]->score_value();
+            scoreVal += sum / 2;
         }
 
         if( spawnWait < gameTime ) {
             spawnWait = gameTime + spawnDelay;
+
+            spawnDelay -= 500;
+            if( spawnDelay <= 3000 )
+                spawnDelay -= -250;
+            if( spawnDelay < 1000 )
+                spawnDelay = 1000;
 
             if( random( 0, 6 ) < 4 )
                 spawn<Orbital>();
@@ -243,6 +293,7 @@ int main( int argc, char** argv )
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
+
         if( cActors.size() )
             for( size_t i=0; i < cActors.size()-1; i++ )
                 for( size_t j=i+1; j < cActors.size(); j++ )
@@ -252,13 +303,13 @@ int main( int argc, char** argv )
                     }
                     
 
-        for_each ( 
-            cActors.begin(), cActors.end(), 
-            std::mem_fn( &Actor::draw ) 
-        );
 
         for_each ( 
             particles.begin(), particles.end(), 
+            std::mem_fn( &Actor::draw ) 
+        );
+        for_each ( 
+            cActors.begin(), cActors.end(), 
             std::mem_fn( &Actor::draw ) 
         );
 
@@ -286,8 +337,6 @@ int main( int argc, char** argv )
         frameStart = frameEnd;
         frameEnd = SDL_GetTicks();
         frameTime = frameEnd - frameStart;
-
-        log << frameTime << '\n';
 
         if( frameTime > MAX_FRAME_TIME )
             frameTime = MAX_FRAME_TIME;

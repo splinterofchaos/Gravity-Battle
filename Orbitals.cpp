@@ -20,15 +20,17 @@ Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& v
 
 void Orbital::on_off_screen()
 {
+    const float BOUNCINESS = 0.8;
+
     if( s.x() - radius() < 0 && v.x() < 0 )
-        v.x( -v.x() );
+        v.x( -v.x() * BOUNCINESS );
     else if( s.x() + radius() > Arena::maxX && v.x() > 0 )
-        v.x( -v.x() );
+        v.x( -v.x() * BOUNCINESS );
 
     if( s.y() - radius() < 0 && v.y() < 0 )
-        v.y( -v.y() );
+        v.y( -v.y() * BOUNCINESS );
     else if( s.y() + radius() > Arena::maxY && v.y() > 0 )
-        v.y( -v.y() );
+        v.y( -v.y() * BOUNCINESS );
 }
 
 void Orbital::move( int dt )
@@ -105,11 +107,21 @@ void Orbital::draw()
         glVertexPointer( 2, GL_FLOAT, 0, verts );
         glDrawArrays( GL_QUADS, 0, 4 );
 
+        glLoadIdentity();
+
+        if( target ) {
+            float accelerationLine[] = {
+                s.x(), s.y(),
+                target->s.x(), target->s.y()
+            };
+            glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
+            glDrawArrays( GL_LINES, 0, 2 );
+        }
+
     }
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_VERTEX_ARRAY );
 
-    glLoadIdentity();
 }
 
 int Orbital::score_value()
@@ -142,8 +154,17 @@ Twister::Twister( const Orbital::vector_type& pos, const Orbital::vector_type& v
     : Orbital( pos, v )
 {
     angleAcc = 0;
-    angleVel = random( 0.1f, 0.3f );
+    angleVel = random( 0.1f, 0.9f );
     angle = random_angle() * (180/3.145);
+}
+
+void Twister::on_off_screen()
+{
+    vector_type v0 = v;
+    Orbital::on_off_screen();
+
+    if( v0 != v )
+        angleVel = -angleVel;
 }
 
 void Twister::move( int dt )
@@ -181,7 +202,7 @@ void Twister::move( int dt )
 
     CircleActor::move( dt );
 
-    const float ROTATION_MULTIPLIER =  800;
+    const float ROTATION_MULTIPLIER =  1.0f / 1.0f;
     angleAcc = cross(a,v) * ROTATION_MULTIPLIER; 
     angleVel += angleAcc * dt;
     angle +=  angleVel*dt + angleAcc*dt*dt;
@@ -227,6 +248,16 @@ void Twister::draw()
         glVertexPointer( 2, GL_FLOAT, 0, verts );
         glDrawArrays( GL_QUADS, 0, 4 );
 
+        glLoadIdentity();
+
+        if( target ) {
+            float accelerationLine[] = {
+                s.x(), s.y(),
+                target->s.x(), target->s.y()
+            };
+            glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
+            glDrawArrays( GL_LINES, 0, 2 );
+        }
     }
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_VERTEX_ARRAY );
@@ -238,4 +269,9 @@ Color Twister::color()
 {
     Color c( 1.0f, 0.0f, 0.0f, 1.0f );
     return c * colorIntensity;
+}
+
+int Twister::score_value()
+{
+    return 10;
 }

@@ -28,6 +28,9 @@ void Player::move( int dt )
     if( keyStates[ SDLK_s ] )
         v.y( v.y() + SPEED );
 
+    moreGravity = keyStates[ SDLK_SPACE ];
+        
+
     CircleActor::move( dt );
 }
 
@@ -60,6 +63,7 @@ void Player::draw()
     };
 
     glEnable( GL_TEXTURE_2D );
+    glDisable( GL_DEPTH_TEST );
     glColor3f( 1, 1, 1 );
 
     // Transparency used for drawing body on to of shield.
@@ -86,6 +90,8 @@ void Player::draw()
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_VERTEX_ARRAY );
 
+    glEnable( GL_DEPTH_TEST );
+
     glLoadIdentity();
 }
 
@@ -101,7 +107,10 @@ Player::value_type Player::radius() const
 
 Player::value_type Player::mass() const
 {
-    return 18;
+    if( moreGravity )
+        return 100;
+    else
+        return 18;
 }
 
 void Player::collide_with( CircleActor& collider )

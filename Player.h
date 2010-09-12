@@ -11,6 +11,7 @@
 class Player : public CircleActor
 {
     bool isVisible;
+    bool moreGravity;
 
   public:
     static Texture shield;

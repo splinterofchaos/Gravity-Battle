@@ -36,7 +36,6 @@ void Particle::draw()
         0, 1
     };
 
-    glEnable( GL_TEXTURE_2D );
     glColor3f( c.r(), c.g(), c.b() );
 
     glBindTexture( GL_TEXTURE_2D, 1 );
@@ -52,5 +51,6 @@ void Particle::draw()
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_VERTEX_ARRAY );
 
+    glDisable( GL_DEPTH_TEST );
     glLoadIdentity();
 }
