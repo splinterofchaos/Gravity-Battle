@@ -15,13 +15,11 @@ Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& v
     activationDelay = ACTIVATION_DELAY;
     isActive = false;
 
-    colorIntensity = random( 0.6f, 1.0f );
+    colorIntensity = random( 6, 10 ) / 10.0f;
 }
 
 void Orbital::on_off_screen()
 {
-    const float BOUNCINESS = 0.8;
-
     if( s.x() - radius() < 0 && v.x() < 0 )
         v.x( -v.x() * BOUNCINESS );
     else if( s.x() + radius() > Arena::maxX && v.x() > 0 )
@@ -99,16 +97,21 @@ void Orbital::draw_impl( float* verts, float zRotation )
         glLoadIdentity();
 
         if( target ) {
-            float accelerationLine[] = {
-                s.x(), s.y(),
-                target->s.x(), target->s.y()
-            };
 
-            glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
-            glDrawArrays( GL_LINES, 0, 2 );
+            if( false ) {
+                float accelerationLine[] = {
+                    s.x(), s.y(),
+                    target->s.x(), target->s.y()
+                };
 
-            const unsigned int NUM_PREDICTIONS = 900;
+                glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
+                glDrawArrays( GL_LINES, 0, 2 );
+            }
+
+            const unsigned int NUM_PREDICTIONS = 80;
+            unsigned int actualPredictions = 0;
             Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
+            Color           pathColors[NUM_PREDICTIONS];
 
             struct Prediction {
                 vector_type s, v, a;
@@ -117,16 +120,44 @@ void Orbital::draw_impl( float* verts, float zRotation )
             p.s = s; p.v = v;
             pathOfOrbit[0] = p.s;
 
-            for( size_t i=1; i < NUM_PREDICTIONS; i++ ) {
-                vector_type r = target->s - p.s;
-                p.a = acceleration( r );
-                simple_integration( p.s, p.v, p.a, 4 );
+            for( size_t i=1; i < NUM_PREDICTIONS; i++, actualPredictions++ ) 
+            {
+                for( int j=0; j < 10; j++ )
+                {
+                    vector_type r = target->s - p.s;
+                    p.a = acceleration( r );
+                    simple_integration( p.s, p.v, p.a, 4 );
+
+                    if( true )
+                        if( magnitude(r) < target->radius() + radius() ) {
+                            i = NUM_PREDICTIONS;
+                            actualPredictions--;
+                            break;
+                        }
+
+                    if( true ) {
+                        if( (p.s.x()-radius() < 0 && p.v.x() < 0 ) || 
+                            (p.s.x()+radius() > Arena::maxX && p.v.x() > 0) )
+                            p.v.x() = -p.v.x() * BOUNCINESS;
+                        if( (p.s.y()-radius() < 0 && p.v.y() < 0 ) || 
+                            (p.s.y()+radius() > Arena::maxY && p.v.y() > 0) )
+                            p.v.y() = -p.v.y() * BOUNCINESS;
+                    }
+                }
+
                 pathOfOrbit[i] = p.s;
+                if( false )
+                    pathColors[i] = c * magnitude(p.v) * 4;
+                else
+                    pathColors[i] = c * (float(NUM_PREDICTIONS-i)/NUM_PREDICTIONS) * 4;
             }
 
             glDisable( GL_TEXTURE_2D );
-            glVertexPointer( 2, GL_FLOAT, 0, pathOfOrbit );
-            glDrawArrays( GL_LINES, 0, NUM_PREDICTIONS );
+            glEnableClientState( GL_COLOR_ARRAY );
+                glVertexPointer( 2, GL_FLOAT, 0, pathOfOrbit );
+                glColorPointer( 4, GL_FLOAT, 0, pathColors );
+                glDrawArrays( GL_LINES, 0, actualPredictions );
+            glDisableClientState( GL_COLOR_ARRAY );
         }
 
     }
@@ -218,7 +249,7 @@ void Twister::draw()
 
 Color Twister::color()
 {
-    Color c( 1.0f, 0.0f, 0.0f, 1.0f );
+    Color c( 1.0f, 0.1f, 0.1f, 1.0f );
     return c * colorIntensity;
 }
 

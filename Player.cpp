@@ -108,7 +108,7 @@ Player::value_type Player::radius() const
 Player::value_type Player::mass() const
 {
     if( moreGravity )
-        return 100;
+        return 30;
     else
         return 18;
 }

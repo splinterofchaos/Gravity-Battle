@@ -16,6 +16,8 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
     this->v.y( std::sin(angle) * speed );
 
     this->v += v;
+
+    this->c *= random( 0.1f, 1.5f );
 }   
 
 void Particle::draw()

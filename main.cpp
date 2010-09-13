@@ -64,10 +64,16 @@ void configure()
     std::ifstream cfg( "config.txt" );
 
     std::string line;
-    std::getline( cfg, line );
-    std::string::iterator it = std::find( line.begin(), line.end(), '=' );
-    it += 2;
-    particleRatio = to_int( std::string(it,line.end()) );
+    while( std::getline( cfg, line ) ) 
+    {
+        std::string::iterator it = std::find( line.begin(), line.end(), ' ' );
+        std::string valName( line.begin(), it );
+        it += 3;
+        int value = to_int( std::string(it,line.end()) );
+
+        if( valName == "particleRatio" )
+            particleRatio = value;
+    }
 }
 
 
@@ -119,7 +125,7 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 template< typename T >
 void spawn( Actor::value_type x, Actor::value_type y )
 {
-    float speed = random( .01f, .40f );
+    float speed = random( .11f, .40f );
     float angle = random_angle();
 
     float vx = std::cos(angle) * speed;
@@ -260,21 +266,34 @@ int main( int argc, char** argv )
             scoreIncWait = gameTime + SCORE_DELAY;
 
             int sum = 0;
+            unsigned int nEnemies = 0;
             for( size_t i=1; i < cActors.size(); i++ )
-                sum += cActors[i]->score_value();
-            scoreVal += sum / 2;
+                if( cActors[i]->isActive ) {
+                    sum += cActors[i]->score_value();
+                    nEnemies++;
+                }
+
+            scoreVal += sum / 4 * nEnemies*nEnemies;
         }
 
         if( spawnWait < gameTime ) {
             spawnWait = gameTime + spawnDelay;
 
-            spawnDelay -= 500;
+            spawnDelay -= 300;
             if( spawnDelay <= 3000 )
-                spawnDelay -= -250;
+                spawnDelay -= -500;
             if( spawnDelay < 1000 )
                 spawnDelay = 1000;
 
-            if( random( 0, 6 ) < 4 )
+            static int difficulty = 1;
+            if( spawnDelay > 5000 )
+                difficulty = 1;
+            else if( spawnDelay > 4000 )
+                difficulty = 12;
+            else if( spawnDelay > 3000 )
+                difficulty = 15;
+
+            if( random( 0, difficulty ) <= 7 )
                 spawn<Orbital>();
             else
                 spawn<Twister>();
