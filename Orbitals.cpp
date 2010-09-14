@@ -2,7 +2,13 @@
 #include "Orbitals.h"
 #include "Random.h"
 
+#include <algorithm>
+
 Texture Orbital::image;
+unsigned int Orbital::predictionLength = 0;
+unsigned int Orbital::predictionPrecision = 17;
+unsigned int Orbital::gravityLine = 0;
+bool         Orbital::velocityArrow = false;
 
 const Orbital::value_type Orbital::RADIUS = 18;
 
@@ -96,9 +102,9 @@ void Orbital::draw_impl( float* verts, float zRotation )
 
         glLoadIdentity();
 
-        if( target ) {
-
-            if( false ) {
+        if( target )
+        {
+            if( gravityLine ) {
                 float accelerationLine[] = {
                     s.x(), s.y(),
                     target->s.x(), target->s.y()
@@ -108,7 +114,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
                 glDrawArrays( GL_LINES, 0, 2 );
             }
 
-            const unsigned int NUM_PREDICTIONS = 80;
+            const unsigned int NUM_PREDICTIONS = predictionLength;
             unsigned int actualPredictions = 0;
             Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
             Color           pathColors[NUM_PREDICTIONS];
@@ -122,7 +128,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
 
             for( size_t i=1; i < NUM_PREDICTIONS; i++, actualPredictions++ ) 
             {
-                for( int j=0; j < 10; j++ )
+                for( size_t j=0; j < predictionPrecision; j++ )
                 {
                     vector_type r = target->s - p.s;
                     p.a = acceleration( r );
@@ -146,11 +152,13 @@ void Orbital::draw_impl( float* verts, float zRotation )
                 }
 
                 pathOfOrbit[i] = p.s;
-                if( false )
+                if( false ) {
                     pathColors[i] = c * magnitude(p.v) * 4;
-                else
+                } else {
                     pathColors[i] = c * (float(NUM_PREDICTIONS-i)/NUM_PREDICTIONS) * 4;
-            }
+                    pathColors[i].a( 0.7 );
+                }
+            } // For( i = (0,NUM_PREDICTIONS] )
 
             glDisable( GL_TEXTURE_2D );
             glEnableClientState( GL_COLOR_ARRAY );
@@ -158,7 +166,30 @@ void Orbital::draw_impl( float* verts, float zRotation )
                 glColorPointer( 4, GL_FLOAT, 0, pathColors );
                 glDrawArrays( GL_LINES, 0, actualPredictions );
             glDisableClientState( GL_COLOR_ARRAY );
-        }
+
+
+            if( velocityArrow ) {
+                const float LENGTH_MULT = 500;
+                const float WIDTH_MULT  = 20;
+                vector_type velocityLine[] = {
+                    s,
+                    s + magnitude(v)*v*LENGTH_MULT*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
+                    s + magnitude(v)*v*LENGTH_MULT,
+                    s + magnitude(v)*v*LENGTH_MULT*(4.0/5) - clockwise_tangent(v)*WIDTH_MULT,
+                    velocityLine[ 1 ]
+                };
+                // Draw arrow over this.
+                glTranslatef( 0, 0, 1 );
+
+                Color c = color() * 2;
+                glColor4f( c.r(), c.g(), c.b(), 0.5 );
+
+                glVertexPointer( 2, GL_FLOAT, 0, velocityLine );
+                glDrawArrays( GL_POLYGON, 0, 4 );
+
+                glLoadIdentity();
+            }
+        } // if target
 
     }
     glDisableClientState( GL_VERTEX_ARRAY );
@@ -194,8 +225,9 @@ Orbital::value_type Orbital::mass() const
 
 Color Orbital::color()
 {
-    Color c( .4f, .4f, 1.0, 1.0f );
-    return c * colorIntensity;
+    Color c = Color( .4f, .4f, 1.0, 1.0f ) * colorIntensity;
+    c.a( 1 );
+    return c;
 }
 
 void CircleActor::collide_with( CircleActor& collider )
@@ -249,8 +281,9 @@ void Twister::draw()
 
 Color Twister::color()
 {
-    Color c( 1.0f, 0.1f, 0.1f, 1.0f );
-    return c * colorIntensity;
+    Color c = Color( 1.0f, 0.1f, 0.1f, 1.0f ) * colorIntensity;
+    c.a( 1 );
+    return c;
 }
 
 int Twister::score_value()

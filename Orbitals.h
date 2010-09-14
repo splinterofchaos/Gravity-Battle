@@ -23,6 +23,11 @@ class Orbital : public CircleActor
     static Texture image;
     static Player* target;
 
+    static unsigned int predictionLength;
+    static unsigned int predictionPrecision;
+    static unsigned int gravityLine;
+    static bool         velocityArrow;
+
     int activationDelay;
 
     Orbital( const vector_type& position, const vector_type& v );

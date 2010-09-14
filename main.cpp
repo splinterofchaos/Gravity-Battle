@@ -26,6 +26,7 @@
 
 #include <sstream> // For int -> string conversions.
 
+// GLOBALS //
 int spawnDelay;
 int spawnWait;
 int gameTime;
@@ -43,6 +44,9 @@ int scoreIncWait;
 std::ofstream loggit( "log" );
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
+bool motionBlur = false;
+
+// FUNCTIONS //
 std::string to_string( int x )
 {
     std::stringstream ss;
@@ -66,13 +70,26 @@ void configure()
     std::string line;
     while( std::getline( cfg, line ) ) 
     {
+        if( line.size() == 0 || line[0] == '#' )
+            continue;
+
         std::string::iterator it = std::find( line.begin(), line.end(), ' ' );
         std::string valName( line.begin(), it );
         it += 3;
-        int value = to_int( std::string(it,line.end()) );
+        int value = to_int( std::string( it, line.end() ) );
 
         if( valName == "particleRatio" )
             particleRatio = value;
+        else if( valName == "predictionLength" )
+            Orbital::predictionLength = value;
+        else if( valName == "predictionPrecision" )
+            Orbital::predictionPrecision = value;
+        else if( valName == "gravityLine" )
+            Orbital::gravityLine = value;
+        else if( valName == "velocityArrow" )
+            Orbital::velocityArrow = value;
+        else if( valName == "motionBlur" )
+            motionBlur = value;
     }
 }
 
@@ -88,6 +105,9 @@ GLenum init_gl( int w, int h )
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     return glGetError();
 }
 
@@ -102,6 +122,13 @@ bool make_sdl_gl_window( int w, int h )
 
 void update_screen()
 {
+    if( motionBlur ) {
+        float q = 0.97;
+        glAccum( GL_MULT, q );
+        glAccum( GL_ACCUM, 1-q );
+        glAccum( GL_RETURN, 1 );
+    }
+
     SDL_GL_SwapBuffers();
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
@@ -200,7 +227,7 @@ bool delete_me( CActorPtr& actor )
         if( Orbital::target )
             scoreVal += actor->score_value();
 
-        // Don't point to a dead player.
+        // If this player's what just died...
         if( actor.get() == Orbital::target ) 
         {
             Orbital::target = 0;
@@ -213,7 +240,17 @@ bool delete_me( CActorPtr& actor )
                 scoresIn >> version >> score;
             }
 
-            if( version != VERSION || (version == VERSION && scoreVal > score) ) {
+            if( version != VERSION ) {
+                // Preserve the old high scores in another file.
+                std::string filename = "Highscore (" + to_string(version) + ").txt";
+                std::ofstream out( filename );
+                out << version << ' ' << score;
+
+                // Make sure the new score, no matter how low, is put into Highscore.txt.
+                score = -100; 
+            }
+
+            if( scoreVal > score ) {
                 std::ofstream scoresOut( "Highscore.txt" );
                 scoresOut << VERSION << ' ' << scoreVal;
             }
@@ -351,8 +388,10 @@ int main( int argc, char** argv )
             particles.end() 
         );
 
-        update_screen();
-
+        static int lastUpdate = gameTime;
+        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime )
+            update_screen();
+        
         frameStart = frameEnd;
         frameEnd = SDL_GetTicks();
         frameTime = frameEnd - frameStart;
