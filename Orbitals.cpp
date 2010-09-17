@@ -3,6 +3,7 @@
 #include "Random.h"
 
 #include <algorithm>
+#include <cmath>
 
 Texture Orbital::image;
 unsigned int Orbital::predictionLength = 0;
@@ -74,7 +75,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress = 1.0f - (float)activationDelay / ACTIVATION_DELAY;
+        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY/2) );//1.0f - (float)activationDelay / ACTIVATION_DELAY;
 
     for( int i=0; i < 8; i++ )
         verts[i] *= activationProgress;

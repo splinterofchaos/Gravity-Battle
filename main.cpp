@@ -8,6 +8,7 @@
 #include "Player.h"
 #include "Orbitals.h"
 #include "Particle.h"
+#include "MenuOrbital.h"
 
 #include "Vector.h"
 #include "functional_plus.h"
@@ -15,7 +16,7 @@
 
 #include "Collision.h"
 
-#include "PlainText.h"
+#include "Font.h"
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -33,7 +34,7 @@ int gameTime;
 
 int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
 
-const int VERSION = 2;
+const int VERSION = 4;
 
 // SDL used milliseconds.
 const int SECOND = 1000;
@@ -45,6 +46,21 @@ std::ofstream loggit( "log" );
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
 bool motionBlur = false;
+
+typedef void(*GameLogic)(int dt );
+GameLogic gameLogic;
+
+typedef std::shared_ptr< CircleActor > CActorPtr;
+typedef std::vector< CActorPtr > CActors;
+CActors cActors;
+
+typedef Particle* ParticlePtr;
+typedef std::vector< ParticlePtr > Particles;
+Particles particles;
+
+std::shared_ptr<BitmapFont> font;
+
+int timePlayerDied = -1000;
 
 // FUNCTIONS //
 std::string to_string( int x )
@@ -76,7 +92,11 @@ void configure()
         std::string::iterator it = std::find( line.begin(), line.end(), ' ' );
         std::string valName( line.begin(), it );
         it += 3;
-        int value = to_int( std::string( it, line.end() ) );
+        int value;
+        if( it < line.end() )
+            value = to_int( std::string( it, line.end() ) );
+        else
+            continue;
 
         if( valName == "particleRatio" )
             particleRatio = value;
@@ -117,6 +137,8 @@ bool make_sdl_gl_window( int w, int h )
         return false;
     init_gl( w, h );
 
+    font.reset( new BitmapFont );
+
     return true;
 }
 
@@ -132,14 +154,6 @@ void update_screen()
     SDL_GL_SwapBuffers();
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
-
-typedef std::shared_ptr< CircleActor > CActorPtr;
-typedef std::vector< CActorPtr > CActors;
-CActors cActors;
-
-typedef Particle* ParticlePtr;
-typedef std::vector< ParticlePtr > Particles;
-Particles particles;
 
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
@@ -197,16 +211,28 @@ bool is_off_screen( ParticlePtr p )
 
 int scoreVal = 0;
 
-void reset()
+void reset( GameLogic logic = 0 )
 {
-    particles.clear();
-    cActors.clear();
+    if( logic )
+        gameLogic = logic;
 
-    spawn_player( 350, 300 );
+    particles.clear();
+
+    if( cActors.size() ) {
+        if ( Orbital::target ) {
+            cActors.erase( cActors.begin() + 1, cActors.end() );
+        } else {
+            cActors.clear();
+            spawn_player( 350, 300 );
+        }
+    } else {
+        spawn_player( 350, 300 );
+    }
 
     gameTime   = 0;
     spawnDelay = 6000;
     spawnWait  = 30;
+    timePlayerDied = 0;
 
     scoreVal = 0;
 
@@ -232,6 +258,8 @@ bool delete_me( CActorPtr& actor )
         {
             Orbital::target = 0;
 
+            timePlayerDied = gameTime;
+
             int version;
             int score;
 
@@ -246,7 +274,8 @@ bool delete_me( CActorPtr& actor )
                 std::ofstream out( filename );
                 out << version << ' ' << score;
 
-                // Make sure the new score, no matter how low, is put into Highscore.txt.
+                // Make sure the new score, no matter how low, is put into
+                // Highscore.txt.
                 score = -100; 
             }
 
@@ -257,6 +286,66 @@ bool delete_me( CActorPtr& actor )
         }
     }
     return actor->deleteMe;
+}
+
+void arcade_mode( int dt )
+{
+
+    font->draw( "Score: " + to_string(scoreVal), 100, 100 );
+
+    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
+        font->draw( "Press r to reset, m for menu", 600, 200 );
+
+    // If the player is alive and SCORE_DELAY seconds have passed...
+    if( Orbital::target && scoreIncWait < gameTime ) {
+        scoreIncWait = gameTime + SCORE_DELAY;
+
+        int sum = 0;
+        unsigned int nEnemies = 0;
+        for( size_t i=1; i < cActors.size(); i++ )
+            if( cActors[i]->isActive ) {
+                sum += cActors[i]->score_value();
+                nEnemies++;
+            }
+
+        scoreVal += sum / 4 * nEnemies*nEnemies;
+    }
+
+    if( spawnWait < gameTime ) {
+        spawnWait = gameTime + spawnDelay;
+
+        spawnDelay -= 300;
+        if( spawnDelay <= 3000 )
+            spawnDelay -= -500;
+        if( spawnDelay < 1000 )
+            spawnDelay = 1000;
+
+        static int difficulty = 1;
+        if( spawnDelay > 5000 )
+            difficulty = 1;
+        else if( spawnDelay > 4000 )
+            difficulty = 9;
+        else if( spawnDelay > 3000 )
+            difficulty = 13;
+
+        if( random( 0, difficulty ) <= 7 )
+            spawn<Orbital>();
+        else
+            spawn<Twister>();
+    }
+}
+
+void menu( int dt )
+{
+    if( cActors.size() == 1 )
+        spawn<MenuOrbital>();
+
+    font->draw( "WASD to move.", 400, 300 );
+    font->draw( "^^ Up here for arcade mode! ^^", 350, 50 );
+
+    if( cActors[1]->s.y() < cActors[1]->radius() ) {
+        reset( arcade_mode );
+    }
 }
 
 int main( int argc, char** argv )
@@ -279,9 +368,8 @@ int main( int argc, char** argv )
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
 
-    reset();
+    reset( menu ); 
 
-    PlainText score( PlainText::Position(300, 100) );
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
     {
@@ -297,44 +385,10 @@ int main( int argc, char** argv )
             quit = true;
         if( keyState[ SDLK_r ] )
             reset();
+        if( keyState[ SDLK_m ] )
+            reset( menu );
 
-        // If the player is alive and SCORE_DELAY seconds have passed...
-        if( Orbital::target && scoreIncWait < gameTime ) {
-            scoreIncWait = gameTime + SCORE_DELAY;
-
-            int sum = 0;
-            unsigned int nEnemies = 0;
-            for( size_t i=1; i < cActors.size(); i++ )
-                if( cActors[i]->isActive ) {
-                    sum += cActors[i]->score_value();
-                    nEnemies++;
-                }
-
-            scoreVal += sum / 4 * nEnemies*nEnemies;
-        }
-
-        if( spawnWait < gameTime ) {
-            spawnWait = gameTime + spawnDelay;
-
-            spawnDelay -= 300;
-            if( spawnDelay <= 3000 )
-                spawnDelay -= -500;
-            if( spawnDelay < 1000 )
-                spawnDelay = 1000;
-
-            static int difficulty = 1;
-            if( spawnDelay > 5000 )
-                difficulty = 1;
-            else if( spawnDelay > 4000 )
-                difficulty = 12;
-            else if( spawnDelay > 3000 )
-                difficulty = 15;
-
-            if( random( 0, difficulty ) <= 7 )
-                spawn<Orbital>();
-            else
-                spawn<Twister>();
-        }
+        gameLogic( frameTime );
 
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
@@ -349,7 +403,6 @@ int main( int argc, char** argv )
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
-
         if( cActors.size() )
             for( size_t i=0; i < cActors.size()-1; i++ )
                 for( size_t j=i+1; j < cActors.size(); j++ )
@@ -357,22 +410,18 @@ int main( int argc, char** argv )
                         cActors[i]->collide_with( *cActors[j] );
                         cActors[j]->collide_with( *cActors[i] );
                     }
-                    
-
 
         for_each ( 
             particles.begin(), particles.end(), 
             std::mem_fn( &Actor::draw ) 
         );
+
         for_each ( 
             cActors.begin(), cActors.end(), 
             std::mem_fn( &Actor::draw ) 
         );
 
         glLoadIdentity();
-
-        score.text( "Score: " + to_string(scoreVal) );
-        score.draw();
 
         cActors.erase ( 
             remove_if (

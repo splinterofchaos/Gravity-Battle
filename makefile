@@ -12,21 +12,24 @@ else
 	OUT     = run
 endif
 
-
+ 
 CC = g++
 
-CFLAGS  += -Wall
+CFLAGS  += -Wall  
 
 compile = ${CC} ${CFLAGS} -c -Ivector
 link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}
 
-OBJ = .Random.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .Particle.o .Collision.o .PlainText.o .Color.o
+OBJ = .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o
 
 ${OUT} : ${OBJ} main.cpp makefile
 	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
 
 .Random.o : Random.h Random.cpp
 	${compile} Random.cpp -o .Random.o
+
+.Font.o : Font.cpp Font.h
+	${compile} Font.cpp -o .Font.o
 
 .Collision.o : Collision.cpp Collision.h 
 	${compile} Collision.cpp -o .Collision.o
@@ -46,14 +49,14 @@ ${OUT} : ${OBJ} main.cpp makefile
 .Orbitals.o : Orbitals.cpp Orbitals.h .CircleActor.o .Texture.o
 	${compile} Orbitals.cpp -o .Orbitals.o
 
+.MenuOrbital.o : MenuOrbital.cpp MenuOrbital.h .Orbitals.o
+	${compile} MenuOrbital.cpp -o .MenuOrbital.o
+
 .Particle.o : Particle.cpp Particle.h .Actor.o .Random.o
 	${compile} Particle.cpp -o .Particle.o
 
 .Texture.o : Texture.cpp Texture.h
 	${compile} Texture.cpp -o .Texture.o
-
-.PlainText.o : PlainText.cpp PlainText.h Texture.h
-	${compile} PlainText.cpp -o .PlainText.o
 
 .Color.o : Color.cpp Color.h 
 	${compile} Color.cpp -o .Color.o
