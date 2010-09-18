@@ -62,6 +62,9 @@ std::shared_ptr<BitmapFont> font;
 
 int timePlayerDied = -1000;
 
+// True if the player has moved since the game started.
+bool playerHasMoved = false; 
+
 // FUNCTIONS //
 std::string to_string( int x )
 {
@@ -341,8 +344,17 @@ void menu( int dt )
     if( cActors.size() == 1 )
         spawn<MenuOrbital>();
 
-    font->draw( "WASD to move.", 400, 300 );
     font->draw( "^^ Up here for arcade mode! ^^", 350, 50 );
+
+    if( ! playerHasMoved )
+        font->draw( "WASD to move.", 300, 350 );
+
+    int y = 350; const int LINE_HEIGHT = 20;
+    font->draw( "Press 1 to switch on/off prediction lines.", 500, y );
+    font->draw( "Press 2 to switch on/off gravity lines.", 500, y += LINE_HEIGHT );
+    font->draw( "Press 3 to switch on/off velocity arrows.", 500, y += LINE_HEIGHT );
+    font->draw( "Press 4 to switch on/off motion blur.", 500, y += LINE_HEIGHT );
+    font->draw( "To permanently change, edit config.txt", 500, y += 2*LINE_HEIGHT );
 
     // Enter arcade mode when the orbital reaches the top of the screen.
     if( cActors[1]->s.y() < cActors[1]->radius()  ) {
@@ -384,30 +396,37 @@ int main( int argc, char** argv )
         static SDL_Event event;
 		while( SDL_PollEvent(&event) )
 		{
-			if( event.type == SDL_QUIT )
-                quit = true;
+            switch( event.type ) 
+            {
+              case SDL_QUIT: quit = true; break;
+
+              case SDL_KEYDOWN:
+                switch( event.key.keysym.sym )
+                {
+                  case 'r': reset();             break;
+                  case 'm': reset( menu );       break;
+                  case SDLK_ESCAPE: quit = true; break;
+
+                  case '1': 
+                    if( ! Orbital::predictionLength )
+                        Orbital::predictionLength = 100;
+                    else
+                        Orbital::predictionLength = 0;
+                    break;
+
+                  case '2': Orbital::gravityLine   = ! Orbital::gravityLine;   break;
+                  case '3': Orbital::velocityArrow = ! Orbital::velocityArrow; break;
+                  case '4': motionBlur = ! motionBlur;                         break;
+
+                  case 'w': case 'a': case 's': case 'd': playerHasMoved = true; break;
+
+                  default:                       break;
+                }
+                break;
+
+              default: break;
+            }
 		}
-
-        Uint8* keyState = SDL_GetKeyState( 0 );
-        if( keyState[SDLK_ESCAPE] )
-            quit = true;
-        if( keyState[ SDLK_r ] )
-            reset();
-        if( keyState[ SDLK_m ] )
-            reset( menu );
-
-        if( keyState[ SDLK_1 ] ) {
-            if( ! Orbital::predictionLength )
-                Orbital::predictionLength = 100;
-            else
-                Orbital::predictionLength = 0;
-        }
-        if( keyState[ SDLK_2 ] )
-            Orbital::gravityLine = ! Orbital::gravityLine;
-        if( keyState[ SDLK_3 ] )
-            Orbital::velocityArrow = ! Orbital::velocityArrow;
-        if( keyState[ SDLK_4 ] )
-            motionBlur = ! motionBlur;
 
         gameLogic( frameTime );
 
