@@ -211,36 +211,6 @@ bool is_off_screen( ParticlePtr p )
 
 int scoreVal = 0;
 
-void reset( GameLogic logic = 0 )
-{
-    if( logic )
-        gameLogic = logic;
-
-    particles.clear();
-
-    if( cActors.size() ) {
-        if ( Orbital::target ) {
-            cActors.erase( cActors.begin() + 1, cActors.end() );
-        } else {
-            cActors.clear();
-            spawn_player( 350, 300 );
-        }
-    } else {
-        spawn_player( 350, 300 );
-    }
-
-    gameTime   = 0;
-    spawnDelay = 6000;
-    spawnWait  = 30;
-    timePlayerDied = 0;
-
-    scoreVal = 0;
-
-    scoreIncWait = gameTime + SCORE_DELAY;
-
-    configure();
-}
-
 bool delete_me( CActorPtr& actor )
 {
     if( actor->deleteMe )
@@ -288,16 +258,47 @@ bool delete_me( CActorPtr& actor )
     return actor->deleteMe;
 }
 
+void reset( GameLogic logic = 0 )
+{
+    if( logic )
+        gameLogic = logic;
+    else
+        particles.clear();
+
+    if( cActors.size() ) {
+        if ( Orbital::target ) {
+            cActors.erase( cActors.begin() + 1, cActors.end() );
+        } else {
+            cActors.clear();
+            spawn_player( 350, 300 );
+        }
+    } else {
+        // The player either hasn't spawned yet or died. Fix that.
+        spawn_player( 350, 300 );
+    }
+
+    gameTime   = 0;
+    spawnDelay = 6000;
+    spawnWait  = 30;
+    timePlayerDied = 0;
+
+    scoreVal = 0;
+
+    scoreIncWait = gameTime + SCORE_DELAY;
+
+    configure();
+}
+
 void arcade_mode( int dt )
 {
-
     font->draw( "Score: " + to_string(scoreVal), 100, 100 );
 
     if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
     // If the player is alive and SCORE_DELAY seconds have passed...
-    if( Orbital::target && scoreIncWait < gameTime ) {
+    if( Orbital::target && scoreIncWait < gameTime ) 
+    {
         scoreIncWait = gameTime + SCORE_DELAY;
 
         int sum = 0;
@@ -343,8 +344,15 @@ void menu( int dt )
     font->draw( "WASD to move.", 400, 300 );
     font->draw( "^^ Up here for arcade mode! ^^", 350, 50 );
 
-    if( cActors[1]->s.y() < cActors[1]->radius() ) {
-        reset( arcade_mode );
+    // Enter arcade mode when the orbital reaches the top of the screen.
+    if( cActors[1]->s.y() < cActors[1]->radius()  ) {
+            // Before being deleted, explode--EYE CANDY!
+            // Since delete_me is what spawns the particles, and reset clears
+            // cActors without calling delete_me, do it here.
+            cActors[1]->deleteMe = true;
+            delete_me( cActors[1] );
+
+            reset( arcade_mode );
     }
 }
 
@@ -388,6 +396,19 @@ int main( int argc, char** argv )
         if( keyState[ SDLK_m ] )
             reset( menu );
 
+        if( keyState[ SDLK_1 ] ) {
+            if( ! Orbital::predictionLength )
+                Orbital::predictionLength = 100;
+            else
+                Orbital::predictionLength = 0;
+        }
+        if( keyState[ SDLK_2 ] )
+            Orbital::gravityLine = ! Orbital::gravityLine;
+        if( keyState[ SDLK_3 ] )
+            Orbital::velocityArrow = ! Orbital::velocityArrow;
+        if( keyState[ SDLK_4 ] )
+            motionBlur = ! motionBlur;
+
         gameLogic( frameTime );
 
         const int DT = IDEAL_FRAME_TIME / 4;
@@ -420,7 +441,7 @@ int main( int argc, char** argv )
             cActors.begin(), cActors.end(), 
             std::mem_fn( &Actor::draw ) 
         );
-
+        
         glLoadIdentity();
 
         cActors.erase ( 

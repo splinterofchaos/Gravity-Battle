@@ -75,7 +75,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY/2) );//1.0f - (float)activationDelay / ACTIVATION_DELAY;
+        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) ) / 2 + 0.5;
 
     for( int i=0; i < 8; i++ )
         verts[i] *= activationProgress;
@@ -263,7 +263,7 @@ void Twister::move( int dt )
     Orbital::move( dt );
 
     const float ROTATION_MULTIPLIER =  1.0f / 1.0f;
-    angleAcc = cross(a,v) * ROTATION_MULTIPLIER; 
+    angleAcc = cross(a,v) * ROTATION_MULTIPLIER / magnitude(v); 
     angleVel += angleAcc * dt;
     angle +=  angleVel*dt + angleAcc*dt*dt;
 }
