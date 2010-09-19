@@ -212,7 +212,7 @@ bool is_off_screen( ParticlePtr p )
         p->s.y() < Arena::minY-p->scale || p->s.y() > Arena::maxY;
 }
 
-int scoreVal = 0;
+float scoreVal = 0;
 
 bool delete_me( CActorPtr& actor )
 {
@@ -294,17 +294,17 @@ void reset( GameLogic logic = 0 )
 
 void arcade_mode( int dt )
 {
-    font->draw( "Score: " + to_string(scoreVal), 100, 100 );
+    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
     if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
     // If the player is alive and SCORE_DELAY seconds have passed...
-    if( Orbital::target && scoreIncWait < gameTime ) 
+    if( Orbital::target ) 
     {
         scoreIncWait = gameTime + SCORE_DELAY;
 
-        int sum = 0;
+        float sum = 0;
         unsigned int nEnemies = 0;
         for( size_t i=1; i < cActors.size(); i++ )
             if( cActors[i]->isActive ) {
@@ -312,7 +312,7 @@ void arcade_mode( int dt )
                 nEnemies++;
             }
 
-        scoreVal += sum / 4 * nEnemies*nEnemies;
+        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
     }
 
     if( spawnWait < gameTime ) {
