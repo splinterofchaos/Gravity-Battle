@@ -18,7 +18,7 @@ void MenuOrbital::move( int dt )
     angle += float(dt) / 1000;
 
     value_type magnitude = cos( time * 3 );
-    value_type amplitude = 250;
+    value_type amplitude = 4000 / target->mass();
 
     vector_type oldS = s;
     s.x( std::cos(angle) );

@@ -12,6 +12,7 @@
 struct CircleActor : public Actor
 {
     bool isActive;
+    bool isMovable;
 
     CircleActor();
     CircleActor( const vector_type& position );
@@ -28,7 +29,7 @@ struct CircleActor : public Actor
     // How many points are awarded for killing this. Allows negative values.
     virtual int score_value() = 0;
 
-    void collide_with( CircleActor& collider );
+    virtual void collide_with( CircleActor& collider ) = 0;
 
     // The general color of this. 
     virtual Color color() = 0;

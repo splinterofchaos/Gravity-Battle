@@ -103,7 +103,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
 
         glLoadIdentity();
 
-        if( target )
+        if( target && isMovable )
         {
             if( gravityLine ) {
                 float accelerationLine[] = {
@@ -231,7 +231,7 @@ Color Orbital::color()
     return c;
 }
 
-void CircleActor::collide_with( CircleActor& collider )
+void Orbital::collide_with( CircleActor& collider )
 {
     deleteMe = true;;
 }
@@ -290,4 +290,90 @@ Color Twister::color()
 int Twister::score_value()
 {
     return 10;
+}
+
+Stopper::Stopper( const vector_type& pos, const vector_type& v )
+    : Orbital( pos, v )
+{
+    std::fill_n( timesOfCollisions, N_COLLISIONS_PER_SEC, 101 );
+}
+
+Stopper::vector_type Stopper::acceleration( const vector_type& r )
+{
+    return magnitude( r, target->mass() * (1.0f/250.0f) / magnitude(r) );
+}
+
+int Stopper::score_value()
+{
+    return 8;
+}
+
+void Stopper::move( int dt )
+{
+    // Update the collision times.
+    for( size_t i=0; i < N_COLLISIONS_PER_SEC; i++ )
+        timesOfCollisions[i] += dt;
+
+    if( isMovable )
+        Orbital::move( dt );
+}
+
+void Stopper::draw()
+{
+    Orbital::draw();
+}
+
+Stopper::value_type Stopper::radius() const
+{
+    if( isMovable )
+        return RADIUS;
+    else
+        return STOPPED_RADIUS;
+}
+
+Stopper::value_type Stopper::mass() const
+{
+    return 15;
+}
+
+void Stopper::collide_with( CircleActor& collider )
+{
+    // If the most recent collision was too recent...
+    if( timesOfCollisions[0] < 100 )
+        return;
+
+    std::copy ( 
+        timesOfCollisions, timesOfCollisions+N_COLLISIONS_PER_SEC-1,
+        timesOfCollisions+1 
+    );
+
+    timesOfCollisions[0] = 0;
+
+    s -= v * 4 + a * 16;
+
+    if( isMovable ) {
+        isMovable = false;
+    } else {
+        // If collider is player (only type with radius==25), die.
+        if( collider.radius() == 25 || 
+            ( 
+                timesOfCollisions[3] < 325
+            ) 
+            ) {
+            deleteMe = true;
+        } else {
+            // Non-players will make it go again.
+            isMovable = true;
+
+            // Transfer momentum fro collider to this.
+            v = collider.v;
+        }
+    }
+}
+
+Color Stopper::color()
+{
+    Color grey = Color( 1, 1, 1, 1 ) * colorIntensity;
+    grey.a( 1 );
+    return grey;
 }

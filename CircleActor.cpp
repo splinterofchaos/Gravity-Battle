@@ -4,12 +4,14 @@
 CircleActor::CircleActor()
 {
     isActive = true;
+    isMovable = true;
 }
 
 CircleActor::CircleActor( const CircleActor::vector_type& position )
     : Actor( position )
 {
     isActive = true;
+    isMovable = true;
 }
 
 void CircleActor::on_off_screen()
@@ -34,6 +36,6 @@ void CircleActor::move( int dt )
 
 bool collision( const CircleActor& c1, const CircleActor& c2 )
 {
-    return c1.isActive && c2.isActive && magnitude(c1.s - c2.s) < c1.radius() +
-        c2.radius();
+    return c1.isActive && c2.isActive && 
+        magnitude(c1.s - c2.s) < c1.radius() + c2.radius();
 }

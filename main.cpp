@@ -34,7 +34,7 @@ int gameTime;
 
 int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
 
-const int VERSION = 4;
+const int VERSION = 5;
 
 // SDL used milliseconds.
 const int SECOND = 1000;
@@ -64,6 +64,8 @@ int timePlayerDied = -1000;
 
 // True if the player has moved since the game started.
 bool playerHasMoved = false; 
+// True if the player has pressed spacebar.
+bool playerIncreasedGravity = false;
 
 // FUNCTIONS //
 std::string to_string( int x )
@@ -307,7 +309,7 @@ void arcade_mode( int dt )
         float sum = 0;
         unsigned int nEnemies = 0;
         for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive ) {
+            if( cActors[i]->isActive && cActors[i]->isMovable ) {
                 sum += cActors[i]->score_value();
                 nEnemies++;
             }
@@ -328,14 +330,24 @@ void arcade_mode( int dt )
         if( spawnDelay > 5000 )
             difficulty = 1;
         else if( spawnDelay > 4000 )
-            difficulty = 9;
+            difficulty = 6;
         else if( spawnDelay > 3000 )
-            difficulty = 13;
+            difficulty = 9;
 
-        if( random( 0, difficulty ) <= 7 )
-            spawn<Orbital>();
-        else
-            spawn<Twister>();
+        enum Spawns { ORBITAL, STOPPER, TWISTER };
+        Spawns spawnSlots[14] = {
+            ORBITAL, ORBITAL, 
+            STOPPER, ORBITAL, ORBITAL, TWISTER,
+            TWISTER, ORBITAL, TWISTER, STOPPER
+        };
+
+        switch( spawnSlots[ random(0, difficulty) ] )
+        {
+          case ORBITAL: spawn<Orbital>(); break;
+          case STOPPER: spawn<Stopper>(); break;
+          case TWISTER: spawn<Twister>(); break;
+          default: break;// ...
+        }
     }
 }
 
@@ -346,10 +358,15 @@ void menu( int dt )
 
     font->draw( "^^ Up here for arcade mode! ^^", 350, 50 );
 
-    if( ! playerHasMoved )
-        font->draw( "WASD to move.", 300, 350 );
+    const int LINE_HEIGHT = 20;
 
-    int y = 350; const int LINE_HEIGHT = 20;
+    int y = 350;
+    if( ! playerHasMoved )
+        font->draw( "WASD to move.", 270, y );
+    if( ! playerIncreasedGravity )
+        font->draw( "SPACEBAR to increase gravity.", 270, y += LINE_HEIGHT );
+
+    y = 350; 
     font->draw( "Press 1 to switch on/off prediction lines.", 500, y );
     font->draw( "Press 2 to switch on/off gravity lines.", 500, y += LINE_HEIGHT );
     font->draw( "Press 3 to switch on/off velocity arrows.", 500, y += LINE_HEIGHT );
@@ -416,9 +433,14 @@ int main( int argc, char** argv )
 
                   case '2': Orbital::gravityLine   = ! Orbital::gravityLine;   break;
                   case '3': Orbital::velocityArrow = ! Orbital::velocityArrow; break;
-                  case '4': motionBlur = ! motionBlur;                         break;
+                  case '4': 
+                            motionBlur = ! motionBlur;                         
+                            if( motionBlur )
+                                glAccum( GL_LOAD, 1 );
+                  break;
 
                   case 'w': case 'a': case 's': case 'd': playerHasMoved = true; break;
+                  case SDLK_SPACE: playerIncreasedGravity = true;
 
                   default:                       break;
                 }
@@ -432,24 +454,25 @@ int main( int argc, char** argv )
 
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
-        for( time += frameTime; time >= DT; time -= DT )
+        for( time += frameTime; time >= DT; time -= DT ) {
             for_each_ptr ( 
                 cActors.begin(), cActors.end(), 
                 std::bind2nd( std::mem_fun_ref(&Actor::move), DT )
             );
 
+            if( cActors.size() )
+                for( size_t i=0; i < cActors.size()-1; i++ )
+                    for( size_t j=i+1; j < cActors.size(); j++ )
+                        if( collision( *cActors[i], *cActors[j] ) ) {
+                            cActors[i]->collide_with( *cActors[j] );
+                            cActors[j]->collide_with( *cActors[i] );
+                        }
+        }
+
         for_each_ptr ( 
             particles.begin(), particles.end(), 
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
-
-        if( cActors.size() )
-            for( size_t i=0; i < cActors.size()-1; i++ )
-                for( size_t j=i+1; j < cActors.size(); j++ )
-                    if( collision( *cActors[i], *cActors[j] ) ) {
-                        cActors[i]->collide_with( *cActors[j] );
-                        cActors[j]->collide_with( *cActors[i] );
-                    }
 
         for_each ( 
             particles.begin(), particles.end(), 
@@ -490,6 +513,9 @@ int main( int argc, char** argv )
 
         gameTime += frameTime;
     }
+
+    particles.clear();
+    cActors.clear();
 
     SDL_Quit();
     glFlush();

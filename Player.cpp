@@ -108,14 +108,18 @@ Player::value_type Player::radius() const
 Player::value_type Player::mass() const
 {
     if( moreGravity )
-        return 30;
+        return 50;
     else
         return 18;
 }
 
 void Player::collide_with( CircleActor& collider )
 {
-    deleteMe = true;
+    if( collider.isMovable )
+        deleteMe = true;
+    
+    // If collider isn't movable, it must be a stopper that is stopped, so
+    // don't die.
 }
 
 Color Player::color()

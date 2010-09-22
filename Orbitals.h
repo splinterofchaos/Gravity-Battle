@@ -72,4 +72,28 @@ class Twister : public Orbital
     Color color();
 };
 
+class Stopper : public Orbital
+{
+    static const unsigned int N_COLLISIONS_PER_SEC = 4;
+    int timesOfCollisions[N_COLLISIONS_PER_SEC]; // In ascending order.
 
+    static const value_type RADIUS = 31;
+    static const value_type STOPPED_RADIUS = 28;
+
+  public:
+    Stopper( const vector_type& pos, const vector_type& v );
+
+    vector_type acceleration( const vector_type& r );
+
+    void move( int dt );
+    void draw();
+
+    int score_value();
+
+    value_type radius() const;
+    value_type mass()   const;
+
+    void collide_with( CircleActor& collider );
+
+    Color color();
+};
