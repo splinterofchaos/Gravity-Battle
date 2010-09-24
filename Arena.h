@@ -7,5 +7,5 @@ struct Arena
     static float maxX;
     static float minY;
     static float maxY;
+    static float scale;
 };
-

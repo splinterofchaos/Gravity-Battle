@@ -68,6 +68,10 @@ bool playerHasMoved = false;
 bool playerIncreasedGravity = false;
 
 // FUNCTIONS //
+void arcade_mode( int dt );
+void dual_mode( int dt );
+void menu( int dt );
+
 std::string to_string( int x )
 {
     std::stringstream ss;
@@ -75,11 +79,11 @@ std::string to_string( int x )
     return ss.str();
 }
 
-int to_int( std::string str )
+float to_float( std::string str )
 {
     std::stringstream ss;
     ss << str;
-    int x;
+    float x;
     ss >> x;
     return x;
 }
@@ -97,9 +101,9 @@ void configure()
         std::string::iterator it = std::find( line.begin(), line.end(), ' ' );
         std::string valName( line.begin(), it );
         it += 3;
-        int value;
+        float value;
         if( it < line.end() )
-            value = to_int( std::string( it, line.end() ) );
+            value = to_float( std::string( it, line.end() ) );
         else
             continue;
 
@@ -115,6 +119,8 @@ void configure()
             Orbital::velocityArrow = value;
         else if( valName == "motionBlur" )
             motionBlur = value;
+        else if( valName == "scale" )
+            Arena::scale = value;
     }
 }
 
@@ -162,10 +168,25 @@ void update_screen()
 
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
-    Player* player = new Player( Actor::vector_type(x,y) );
-    cActors.push_back( CActorPtr( player ) );
+    if( gameLogic != dual_mode ) {
+        Player* player = new Player( Actor::vector_type(x,y) );
+        cActors.push_back( CActorPtr( player ) );
 
-    Orbital::target = player;
+        Orbital::target = player;
+        Player::original = player;
+        Player::copy = 0;
+    } else {
+        Player* player = new Player( Actor::vector_type(x-50,y) );
+        cActors.push_back( CActorPtr( player ) );
+        Orbital::target = player;
+
+        Player2* player2 = new Player2( Actor::vector_type(x+50,y) );
+        cActors.push_back( CActorPtr( player2 ) );
+        Orbital::target2 = player2;
+
+        Player::copy = player2;
+        Player2::original = player;
+    }
 }
 
 template< typename T >
@@ -270,17 +291,13 @@ void reset( GameLogic logic = 0 )
     else
         particles.clear();
 
-    if( cActors.size() ) {
-        if ( Orbital::target ) {
-            cActors.erase( cActors.begin() + 1, cActors.end() );
-        } else {
-            cActors.clear();
-            spawn_player( 350, 300 );
-        }
-    } else {
-        // The player either hasn't spawned yet or died. Fix that.
-        spawn_player( 350, 300 );
-    }
+    Actor::vector_type playerPos( 350, 300 );
+    if( Orbital::target )
+        playerPos = Orbital::target->s;
+
+    cActors.clear();
+
+    spawn_player( playerPos.x(), playerPos.y() );
 
     gameTime   = 0;
     spawnDelay = 6000;
@@ -295,6 +312,63 @@ void reset( GameLogic logic = 0 )
 }
 
 void arcade_mode( int dt )
+{
+    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+
+    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
+        font->draw( "Press r to reset, m for menu", 600, 200 );
+
+    // If the player is alive and SCORE_DELAY seconds have passed...
+    if( Orbital::target ) 
+    {
+        scoreIncWait = gameTime + SCORE_DELAY;
+
+        float sum = 0;
+        unsigned int nEnemies = 0;
+        for( size_t i=1; i < cActors.size(); i++ )
+            if( cActors[i]->isActive && cActors[i]->isMovable ) {
+                sum += cActors[i]->score_value();
+                nEnemies++;
+            }
+
+        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
+    }
+
+    if( spawnWait < gameTime ) {
+        spawnWait = gameTime + spawnDelay;
+
+        spawnDelay -= 300;
+        if( spawnDelay <= 3000 )
+            spawnDelay -= -500;
+        if( spawnDelay < 1000 )
+            spawnDelay = 1000;
+
+        static int difficulty = 1;
+        if( spawnDelay > 5000 )
+            difficulty = 1;
+        else if( spawnDelay > 4000 )
+            difficulty = 6;
+        else if( spawnDelay > 3000 )
+            difficulty = 9;
+
+        enum Spawns { ORBITAL, STOPPER, TWISTER };
+        Spawns spawnSlots[14] = {
+            STOPPER, ORBITAL, 
+            ORBITAL, ORBITAL, ORBITAL, TWISTER,
+            TWISTER, ORBITAL, TWISTER, STOPPER
+        };
+
+        switch( spawnSlots[ random(0, difficulty) ] )
+        {
+          case ORBITAL: spawn<Orbital>(); break;
+          case STOPPER: spawn<Stopper>(); break;
+          case TWISTER: spawn<Twister>(); break;
+          default: break;// ...
+        }
+    }
+}
+
+void dual_mode( int dt )
 {
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -356,7 +430,8 @@ void menu( int dt )
     if( cActors.size() == 1 )
         spawn<MenuOrbital>();
 
-    font->draw( "^^ Up here for arcade mode! ^^", 350, 50 );
+    font->draw( "^^ Move up here for arcade mode! ^^", 350, 50 );
+    font->draw( "Move down here for dual mode! (use WASD and arrow keys)", 350, Arena::maxY - 50 );
 
     const int LINE_HEIGHT = 20;
 
@@ -382,6 +457,11 @@ void menu( int dt )
             delete_me( cActors[1] );
 
             reset( arcade_mode );
+    } else if( Arena::maxY < cActors[1]->s.y() + cActors[1]->radius() ) {
+            cActors[1]->deleteMe = true;
+            delete_me( cActors[1] );
+
+            reset( dual_mode );
     }
 }
 

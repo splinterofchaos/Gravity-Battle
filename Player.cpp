@@ -6,6 +6,9 @@
 Texture Player::shield;
 Texture Player::body;
 
+Player * Player::original = 0;
+Player2* Player::copy = 0;
+
 Player::Player( const Player::vector_type& position )
     : CircleActor( position ), isVisible( true )
 {
@@ -28,8 +31,8 @@ void Player::move( int dt )
     if( keyStates[ SDLK_s ] )
         v.y( v.y() + SPEED );
 
+    // Used in Player::mass called by CircleActor::move.
     moreGravity = keyStates[ SDLK_SPACE ];
-        
 
     CircleActor::move( dt );
 }
@@ -64,7 +67,9 @@ void Player::draw()
 
     glEnable( GL_TEXTURE_2D );
     glDisable( GL_DEPTH_TEST );
-    glColor3f( 1, 1, 1 );
+
+    Color c = color();
+    glColor3f( c.r(), c.g(), c.b() );
 
     // Transparency used for drawing body on to of shield.
     glEnable( GL_BLEND );
@@ -86,6 +91,17 @@ void Player::draw()
         glBindTexture( GL_TEXTURE_2D, body.handle() );
         glDrawArrays( GL_QUADS, 0, 4 );
 
+        glLoadIdentity();
+
+        if( this==original && copy ) {
+            vector_type connectingLine[] = { s, copy->s };
+            c = ( c + copy->color() ) / 2;
+
+            glColor3f( c.r(), c.g(), c.b() );
+            glVertexPointer( 2, GL_FLOAT, 0, connectingLine );
+            glDrawArrays( GL_LINES, 0, 2 );
+        }
+
     }
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_VERTEX_ARRAY );
@@ -97,26 +113,36 @@ void Player::draw()
 
 int Player::score_value()
 {
-    return -10;
+    return 0;
 }
 
 Player::value_type Player::radius() const 
 {
-    return 25;
+    return RADIUS / (1 + 0.5*!!copy) * Arena::scale;
 }
 
 Player::value_type Player::mass() const
 {
+    value_type g;
     if( moreGravity )
-        return 50;
+        g = 50;
     else
-        return 18;
+        g = 18;
+
+    if( copy )
+        return g / 2;
+    else
+        return g;
 }
 
 void Player::collide_with( CircleActor& collider )
 {
-    if( collider.isMovable )
+    if( collider.isMovable ) {
         deleteMe = true;
+
+        if( copy )
+            copy->collide_with( *this );
+    }
     
     // If collider isn't movable, it must be a stopper that is stopped, so
     // don't die.
@@ -125,4 +151,47 @@ void Player::collide_with( CircleActor& collider )
 Color Player::color()
 {
     return Color(1,1,1,1);
+}
+
+Player2::Player2( const vector_type& pos )
+    : Player( pos )
+{
+}
+
+void Player2::move( int dt )
+{
+    Uint8* keyStates = SDL_GetKeyState( 0 );
+
+    const value_type SPEED = 0.25;
+
+    v = vector_type( 0, 0 );
+
+    if( keyStates[ SDLK_LEFT ] )
+        v.x( v.x() - SPEED );
+    if( keyStates[ SDLK_RIGHT ] )
+        v.x( v.x() + SPEED );
+    if( keyStates[ SDLK_UP ] )
+        v.y( v.y() - SPEED );
+    if( keyStates[ SDLK_DOWN ] )
+        v.y( v.y() + SPEED );
+
+    moreGravity = keyStates[ SDLK_SPACE ];
+
+    CircleActor::move( dt );
+}
+
+void Player2::collide_with( CircleActor& collider )
+{
+    if( collider.isMovable ) {
+        deleteMe = true;
+
+        // One can't survive without the other.
+        if( !original->deleteMe )
+            original->collide_with( *this );
+    }
+}
+
+Color Player2::color()
+{
+    return Color( 1, .5, 1, 1 );
 }

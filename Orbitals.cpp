@@ -11,9 +11,8 @@ unsigned int Orbital::predictionPrecision = 17;
 unsigned int Orbital::gravityLine = 0;
 bool         Orbital::velocityArrow = false;
 
-const Orbital::value_type Orbital::RADIUS = 18;
-
-Player* Orbital::target = 0;
+Player*  Orbital::target  = 0;
+Player2* Orbital::target2 = 0;
 
 Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& vel )
     : CircleActor( pos )
@@ -55,8 +54,11 @@ void Orbital::move( int dt )
     if( isActive && target )
     {
         // Orbit the target.
-        const vector_type r = target->s - s;
+        vector_type r = target->s - s;
         a = acceleration( r );
+
+        if( target2 )
+            a += acceleration( target2->s - s );
     }
     else
     {
@@ -106,13 +108,20 @@ void Orbital::draw_impl( float* verts, float zRotation )
         if( target && isMovable )
         {
             if( gravityLine ) {
-                float accelerationLine[] = {
-                    s.x(), s.y(),
-                    target->s.x(), target->s.y()
+                vector_type accelerationLine[] = {
+                    target->s,
+                    s,
+                    target2? target2->s : target->s
                 };
 
                 glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
-                glDrawArrays( GL_LINES, 0, 2 );
+                glDrawArrays( GL_LINE_STRIP, 0, 3 );
+
+                if( target2 ) {
+                    accelerationLine[2] = target2->s;
+                    glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
+                    glDrawArrays( GL_LINES, 0, 2 );
+                }
             }
 
             const unsigned int NUM_PREDICTIONS = predictionLength;
@@ -132,15 +141,25 @@ void Orbital::draw_impl( float* verts, float zRotation )
                 for( size_t j=0; j < predictionPrecision; j++ )
                 {
                     vector_type r = target->s - p.s;
+                    vector_type r2 = vector_type(0,0);;
+                    if( target2 )
+                        r2 = target2->s - p.s;
                     p.a = acceleration( r );
+                    if( target2 )
+                        p.a += acceleration( r2 );
+
                     simple_integration( p.s, p.v, p.a, 4 );
 
-                    if( true )
-                        if( magnitude(r) < target->radius() + radius() ) {
+                    if( true ) 
+                    {
+                        if( magnitude(r) < target->radius() + radius() || 
+                            (target2 && magnitude(r2) < target->radius() + radius()) ) 
+                        {
                             i = NUM_PREDICTIONS;
                             actualPredictions--;
                             break;
-                        }
+                        } 
+                    }
 
                     if( true ) {
                         if( (p.s.x()-radius() < 0 && p.v.x() < 0 ) || 
@@ -216,7 +235,7 @@ int Orbital::score_value()
 
 Orbital::value_type Orbital::radius() const
 {
-    return RADIUS;
+    return RADIUS * Arena::scale;
 }
 
 Orbital::value_type Orbital::mass() const
@@ -326,14 +345,14 @@ void Stopper::draw()
 Stopper::value_type Stopper::radius() const
 {
     if( isMovable )
-        return RADIUS;
+        return RADIUS * Arena::scale;
     else
-        return STOPPED_RADIUS;
+        return STOPPED_RADIUS * Arena::scale;
 }
 
 Stopper::value_type Stopper::mass() const
 {
-    return 15;
+    return 15 * Arena::scale;
 }
 
 void Stopper::collide_with( CircleActor& collider )
@@ -349,13 +368,13 @@ void Stopper::collide_with( CircleActor& collider )
 
     timesOfCollisions[0] = 0;
 
-    s -= v * 4 + a * 16;
-
     if( isMovable ) {
         isMovable = false;
     } else {
+        s -= v * 4 + a * 16;
+
         // If collider is player (only type with radius==25), die.
-        if( collider.radius() == 25 || 
+        if( &collider == Orbital::target || &collider == Orbital::target2 || 
             ( 
                 timesOfCollisions[3] < 325
             ) 
@@ -373,7 +392,7 @@ void Stopper::collide_with( CircleActor& collider )
 
 Color Stopper::color()
 {
-    Color grey = Color( 1, 1, 1, 1 ) * colorIntensity;
+    Color grey = Color( 0.9, 0.9, 0.9, 0.9 ) * colorIntensity;
     grey.a( 1 );
     return grey;
 }

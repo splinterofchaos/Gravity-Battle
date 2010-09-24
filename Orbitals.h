@@ -16,12 +16,13 @@ class Orbital : public CircleActor
     GLfloat colorIntensity;
 
   public:
-    static const value_type RADIUS;
+    static const value_type RADIUS = 18;
     static const int ACTIVATION_DELAY = 2000;
     static const float BOUNCINESS = 0.8;
 
-    static Texture image;
-    static Player* target;
+    static Texture  image;
+    static Player*  target;
+    static Player2* target2;
 
     static unsigned int predictionLength;
     static unsigned int predictionPrecision;
