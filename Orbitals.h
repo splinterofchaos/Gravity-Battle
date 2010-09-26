@@ -28,6 +28,7 @@ class Orbital : public CircleActor
     static unsigned int predictionPrecision;
     static unsigned int gravityLine;
     static bool         velocityArrow;
+    static bool         accelerationArrow;
 
     int activationDelay;
 
@@ -75,7 +76,7 @@ class Twister : public Orbital
 
 class Stopper : public Orbital
 {
-    static const unsigned int N_COLLISIONS_PER_SEC = 4;
+    static const unsigned int N_COLLISIONS_PER_SEC = 5;
     int timesOfCollisions[N_COLLISIONS_PER_SEC]; // In ascending order.
 
     static const value_type RADIUS = 31;

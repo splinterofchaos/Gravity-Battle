@@ -18,6 +18,7 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
     this->v += v;
 
     this->c *= random( 0.1f, 1.5f );
+	this->c.a( 0.7 );
 }   
 
 void Particle::draw()
@@ -38,7 +39,7 @@ void Particle::draw()
         0, 1
     };
 
-    glColor3f( c.r(), c.g(), c.b() );
+    glColor4f( c.r(), c.g(), c.b(), c.a() );
 
     glBindTexture( GL_TEXTURE_2D, 1 );
 

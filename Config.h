@@ -13,6 +13,7 @@ class Config
     
     bool gravityLine;
     bool velocityArrow;
+	bool accelerationArrow;
 
     bool motionBlur;
 

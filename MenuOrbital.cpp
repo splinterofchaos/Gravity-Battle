@@ -21,12 +21,15 @@ void MenuOrbital::move( int dt )
     value_type amplitude = 4000 / target->mass();
 
     vector_type oldS = s;
+	vector_type oldV = v;
+
     s.x( std::cos(angle) );
     s.y( std::sin(angle) );
     s = s*amplitude*magnitude + target->s;
 
     // v is not needed, but setting it properly enables the velocity arrow.
-    v = s - oldS;
+    v = (s - oldS) / 10;
+	a = (v - oldV) / 10;
 }
 
 void MenuOrbital::draw()

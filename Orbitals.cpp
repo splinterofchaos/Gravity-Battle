@@ -6,10 +6,11 @@
 #include <cmath>
 
 Texture Orbital::image;
-unsigned int Orbital::predictionLength = 0;
+unsigned int Orbital::predictionLength    = 0;
 unsigned int Orbital::predictionPrecision = 17;
-unsigned int Orbital::gravityLine = 0;
-bool         Orbital::velocityArrow = false;
+unsigned int Orbital::gravityLine         = 0;
+bool         Orbital::velocityArrow       = false;
+bool         Orbital::accelerationArrow   = false;
 
 Player*  Orbital::target  = 0;
 Player2* Orbital::target2 = 0;
@@ -193,15 +194,15 @@ void Orbital::draw_impl( float* verts, float zRotation )
                 const float WIDTH_MULT  = 20;
                 vector_type velocityLine[] = {
                     s,
-                    s + magnitude(v)*v*LENGTH_MULT*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
-                    s + magnitude(v)*v*LENGTH_MULT,
-                    s + magnitude(v)*v*LENGTH_MULT*(4.0/5) - clockwise_tangent(v)*WIDTH_MULT,
+                    s + magnitude( v, magnitude(v*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
+                    s + magnitude( v, magnitude(v*LENGTH_MULT) ),
+                    s + magnitude( v, magnitude(v*LENGTH_MULT) )*(4.0/5) - clockwise_tangent(v)*WIDTH_MULT,
                     velocityLine[ 1 ]
                 };
                 // Draw arrow over this.
                 glTranslatef( 0, 0, 1 );
 
-                Color c = color() * 2;
+                Color c = color() / 1.5;
                 glColor4f( c.r(), c.g(), c.b(), 0.5 );
 
                 glVertexPointer( 2, GL_FLOAT, 0, velocityLine );
@@ -209,6 +210,28 @@ void Orbital::draw_impl( float* verts, float zRotation )
 
                 glLoadIdentity();
             }
+
+			if( accelerationArrow ) {
+                const float LENGTH_MULT = 250000;
+                const float WIDTH_MULT  = 20000;
+                vector_type velocityLine[] = {
+                    s,
+                    s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(a)*WIDTH_MULT,
+                    s + magnitude( a, magnitude(a*LENGTH_MULT) ),
+                    s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) - clockwise_tangent(a)*WIDTH_MULT,
+                    velocityLine[ 0 ]
+                };
+                // Draw arrow over this.
+                glTranslatef( 0, 0, 1 );
+
+                Color c = color() * 4;
+                glColor4f( c.r(), c.g(), c.b(), 0.5 );
+
+                glVertexPointer( 2, GL_FLOAT, 0, velocityLine );
+                glDrawArrays( GL_LINE_STRIP, 0, 5 );
+
+                glLoadIdentity();
+			}
         } // if target
 
     }
@@ -274,7 +297,7 @@ void Twister::on_off_screen()
 
 Twister::vector_type Twister::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() / (r*r) );
+    return magnitude( r, target->mass() / (r*r) ) * Arena::scale;
 }
 
 void Twister::move( int dt )
@@ -319,7 +342,7 @@ Stopper::Stopper( const vector_type& pos, const vector_type& v )
 
 Stopper::vector_type Stopper::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() * (1.0f/250.0f) / magnitude(r) );
+    return magnitude( r, target->mass() * (1.0f/250.0f) / magnitude(r) ) * Arena::scale;
 }
 
 int Stopper::score_value()
@@ -357,8 +380,10 @@ Stopper::value_type Stopper::mass() const
 
 void Stopper::collide_with( CircleActor& collider )
 {
+	const int COLLISION_DELAY = 16;
+
     // If the most recent collision was too recent...
-    if( timesOfCollisions[0] < 100 )
+    if( timesOfCollisions[0] < COLLISION_DELAY )
         return;
 
     std::copy ( 
@@ -376,7 +401,7 @@ void Stopper::collide_with( CircleActor& collider )
         // If collider is player (only type with radius==25), die.
         if( &collider == Orbital::target || &collider == Orbital::target2 || 
             ( 
-                timesOfCollisions[3] < 325
+                timesOfCollisions[4] < COLLISION_DELAY*5 && this > &collider
             ) 
             ) {
             deleteMe = true;

@@ -100,6 +100,7 @@ void configure( const Config& cfg )
     Orbital::predictionPrecision = cfg.predictionPrecision;
     Orbital::gravityLine         = cfg.gravityLine;
     Orbital::velocityArrow       = cfg.velocityArrow;
+    Orbital::accelerationArrow   = cfg.accelerationArrow;
     motionBlur                   = cfg.motionBlur;
     Arena::scale                 = cfg.scale;
 }
@@ -312,7 +313,7 @@ void arcade_mode( int dt )
         scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
     }
 
-    if( spawnWait < gameTime ) {
+    if( spawnWait <= gameTime ) {
         spawnWait = gameTime + spawnDelay;
 
         spawnDelay -= 300;
@@ -333,7 +334,7 @@ void arcade_mode( int dt )
         Spawns spawnSlots[14] = {
             STOPPER, ORBITAL, 
             ORBITAL, ORBITAL, ORBITAL, TWISTER,
-            TWISTER, ORBITAL, TWISTER, STOPPER
+            TWISTER, ORBITAL, TWISTER 
         };
 
         switch( spawnSlots[ random(0, difficulty) ] )
@@ -369,7 +370,7 @@ void dual_mode( int dt )
         scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
     }
 
-    if( spawnWait < gameTime ) {
+    if( spawnWait > gameTime ) {
         spawnWait = gameTime + spawnDelay;
 
         spawnDelay -= 300;
@@ -423,7 +424,8 @@ void menu( int dt )
     font->draw( "Press 1 to switch on/off prediction lines.", 500, y );
     font->draw( "Press 2 to switch on/off gravity lines.", 500, y += LINE_HEIGHT );
     font->draw( "Press 3 to switch on/off velocity arrows.", 500, y += LINE_HEIGHT );
-    font->draw( "Press 4 to switch on/off motion blur.", 500, y += LINE_HEIGHT );
+    font->draw( "Press 4 to switch on/off acceleration arrows.", 500, y += LINE_HEIGHT );
+    font->draw( "Press 5 to switch on/off motion blur.", 500, y += LINE_HEIGHT );
     font->draw( "To permanently change, edit config.txt", 500, y += 2*LINE_HEIGHT );
 
     // Enter arcade mode when the orbital reaches the top of the screen.
@@ -500,7 +502,9 @@ int main( int argc, char** argv )
 
                   case '2': config.gravityLine   = ! config.gravityLine;   break;
                   case '3': config.velocityArrow = ! config.velocityArrow; break;
-                  case '4': 
+                  case '4': config.accelerationArrow = ! config.accelerationArrow; break;
+
+                  case '5': 
                             config.motionBlur = ! config.motionBlur;                         
                             if( config.motionBlur )
                                 glAccum( GL_LOAD, 1 );
@@ -516,8 +520,6 @@ int main( int argc, char** argv )
               default: break;
             }
 		}
-
-        configure( config );
 
         gameLogic( frameTime );
 
@@ -570,8 +572,10 @@ int main( int argc, char** argv )
         );
 
         static int lastUpdate = gameTime;
-        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime )
+        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime ) {
+            configure( config );
             update_screen();
+        }
         
         frameStart = frameEnd;
         frameEnd = SDL_GetTicks();

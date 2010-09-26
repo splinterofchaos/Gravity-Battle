@@ -13,6 +13,7 @@ void Config::set_defaults()
 
     gravityLine = true;
     velocityArrow = false;
+	accelerationArrow = false;
 
     motionBlur = false;
 
@@ -70,6 +71,8 @@ bool Config::reload( const std::string& filename )
             motionBlur = value;
         else if( valName == "scale" )
             scale = value;
+		else if( valName == "accelerationArrow" )
+			accelerationArrow = value;
     }
 
     return cfg;
