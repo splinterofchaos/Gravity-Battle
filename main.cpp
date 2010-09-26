@@ -18,6 +18,8 @@
 
 #include "Font.h"
 
+#include "Config.h"
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 
@@ -67,6 +69,9 @@ bool playerHasMoved = false;
 // True if the player has pressed spacebar.
 bool playerIncreasedGravity = false;
 
+const Config defaultConfig; // Used when no unsure about any config option.
+Config fileConfig( "config.txt" ), config = fileConfig;
+
 // FUNCTIONS //
 void arcade_mode( int dt );
 void dual_mode( int dt );
@@ -88,40 +93,15 @@ float to_float( std::string str )
     return x;
 }
 
-void configure()
+void configure( const Config& cfg )
 {
-    std::ifstream cfg( "config.txt" );
-
-    std::string line;
-    while( std::getline( cfg, line ) ) 
-    {
-        if( line.size() == 0 || line[0] == '#' )
-            continue;
-
-        std::string::iterator it = std::find( line.begin(), line.end(), ' ' );
-        std::string valName( line.begin(), it );
-        it += 3;
-        float value;
-        if( it < line.end() )
-            value = to_float( std::string( it, line.end() ) );
-        else
-            continue;
-
-        if( valName == "particleRatio" )
-            particleRatio = value;
-        else if( valName == "predictionLength" )
-            Orbital::predictionLength = value;
-        else if( valName == "predictionPrecision" )
-            Orbital::predictionPrecision = value;
-        else if( valName == "gravityLine" )
-            Orbital::gravityLine = value;
-        else if( valName == "velocityArrow" )
-            Orbital::velocityArrow = value;
-        else if( valName == "motionBlur" )
-            motionBlur = value;
-        else if( valName == "scale" )
-            Arena::scale = value;
-    }
+    particleRatio                = cfg.particleRatio;
+    Orbital::predictionLength    = cfg.predictionLength;
+    Orbital::predictionPrecision = cfg.predictionPrecision;
+    Orbital::gravityLine         = cfg.gravityLine;
+    Orbital::velocityArrow       = cfg.velocityArrow;
+    motionBlur                   = cfg.motionBlur;
+    Arena::scale                 = cfg.scale;
 }
 
 
@@ -307,8 +287,6 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 
     scoreIncWait = gameTime + SCORE_DELAY;
-
-    configure();
 }
 
 void arcade_mode( int dt )
@@ -505,17 +483,26 @@ int main( int argc, char** argv )
                   case SDLK_ESCAPE: quit = true; break;
 
                   case '1': 
-                    if( ! Orbital::predictionLength )
-                        Orbital::predictionLength = 100;
+                    // Do this in case the user updated prediction- Length or Precision.
+                    fileConfig.reload( "config.txt" );
+
+                    if( ! config.predictionLength )
+                        if( fileConfig.predictionLength )
+                            config.predictionLength = fileConfig.predictionLength;
+                        else
+                            config.predictionLength = defaultConfig.predictionLength;
                     else
-                        Orbital::predictionLength = 0;
+                        config.predictionLength = 0;
+
+                    config.predictionPrecision = fileConfig.predictionPrecision;
+
                     break;
 
-                  case '2': Orbital::gravityLine   = ! Orbital::gravityLine;   break;
-                  case '3': Orbital::velocityArrow = ! Orbital::velocityArrow; break;
+                  case '2': config.gravityLine   = ! config.gravityLine;   break;
+                  case '3': config.velocityArrow = ! config.velocityArrow; break;
                   case '4': 
-                            motionBlur = ! motionBlur;                         
-                            if( motionBlur )
+                            config.motionBlur = ! config.motionBlur;                         
+                            if( config.motionBlur )
                                 glAccum( GL_LOAD, 1 );
                   break;
 
@@ -529,6 +516,8 @@ int main( int argc, char** argv )
               default: break;
             }
 		}
+
+        configure( config );
 
         gameLogic( frameTime );
 
