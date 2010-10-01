@@ -40,7 +40,7 @@ void Orbital::on_off_screen()
 
 Orbital::vector_type Orbital::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() * (1.0f/100.0f) / magnitude(r) );
+    return magnitude( r, target->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale );
 }
 
 void Orbital::move( int dt )
@@ -51,6 +51,9 @@ void Orbital::move( int dt )
         if( activationDelay <= 0 )
             isActive = true;
     }
+
+    if( !isMovable )
+        return;
 
     if( isActive && target )
     {
@@ -190,7 +193,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
 
 
             if( velocityArrow ) {
-                const float LENGTH_MULT = 500;
+                const float LENGTH_MULT = 300;
                 const float WIDTH_MULT  = 20;
                 vector_type velocityLine[] = {
                     s,
@@ -212,7 +215,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
             }
 
 			if( accelerationArrow ) {
-                const float LENGTH_MULT = 250000;
+                const float LENGTH_MULT = 220000;
                 const float WIDTH_MULT  = 20000;
                 vector_type velocityLine[] = {
                     s,
@@ -420,4 +423,31 @@ Color Stopper::color()
     Color grey = Color( 0.9, 0.9, 0.9, 0.9 ) * colorIntensity;
     grey.a( 1 );
     return grey;
+}
+
+Sticker::Sticker( const vector_type& pos, const vector_type& v )
+	: Orbital( pos, v )
+{
+}
+
+Sticker::vector_type Sticker::acceleration( const vector_type& r )
+{
+	return magnitude( r, r*r / 50000000 );
+}
+
+void Sticker::on_off_screen()
+{
+    Orbital::on_off_screen();
+}
+
+Sticker::value_type Sticker::radius() const
+{
+	return RADIUS;
+}
+
+Color Sticker::color()
+{
+    Color c = Color( 0.3f, 1.0f, 1.0f, 1.0f ) * colorIntensity;
+    c.a( 1 );
+    return c;
 }

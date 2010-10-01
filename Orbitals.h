@@ -79,8 +79,8 @@ class Stopper : public Orbital
     static const unsigned int N_COLLISIONS_PER_SEC = 5;
     int timesOfCollisions[N_COLLISIONS_PER_SEC]; // In ascending order.
 
-    static const value_type RADIUS = 31;
-    static const value_type STOPPED_RADIUS = 28;
+    static const value_type RADIUS = 34;
+    static const value_type STOPPED_RADIUS = 30;
 
   public:
     Stopper( const vector_type& pos, const vector_type& v );
@@ -98,4 +98,19 @@ class Stopper : public Orbital
     void collide_with( CircleActor& collider );
 
     Color color();
+};
+
+struct Sticker : public Orbital
+{
+	static const float RADIUS = 10; 
+
+	Sticker( const vector_type& pos, const vector_type& v );
+
+	vector_type acceleration( const vector_type& r );
+
+	void on_off_screen();
+
+	value_type radius() const;
+
+	Color color();
 };

@@ -24,7 +24,7 @@ struct CircleActor : public Actor
 
     // Overloads Actor::move to add functionality like staying on the
     // screen.
-    void move( int dt );
+    void move( int dt, value_type maxSpeed=0 );
 
     // How many points are awarded for killing this. Allows negative values.
     virtual int score_value() = 0;

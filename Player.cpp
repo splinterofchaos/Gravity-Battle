@@ -18,23 +18,30 @@ void Player::move( int dt )
 {
     Uint8* keyStates = SDL_GetKeyState( 0 );
 
-    const value_type SPEED = 0.25;
+    const value_type ACC   = 0.015;
 
-    v = vector_type( 0, 0 );
+    // TODO: The value of SPEED seems not to affect this function. Why?
+    const value_type SPEED = 0.0000005;
 
     if( keyStates[ SDLK_a ] )
-        v.x( v.x() - SPEED );
+        a.x( a.x() - ACC );
     if( keyStates[ SDLK_d ] )
-        v.x( v.x() + SPEED );
+        a.x( a.x() + ACC );
     if( keyStates[ SDLK_w ] )
-        v.y( v.y() - SPEED );
+        a.y( a.y() - ACC );
     if( keyStates[ SDLK_s ] )
-        v.y( v.y() + SPEED );
+        a.y( a.y() + ACC );
+
+    if( magnitude(a) > ACC )
+        magnitude( a, ACC );
 
     // Used in Player::mass called by CircleActor::move.
     moreGravity = keyStates[ SDLK_SPACE ];
 
-    CircleActor::move( dt );
+    CircleActor::move( dt, SPEED );
+
+    //v *= 0.2;
+    a *= 0.9;
 }
 
 void Player::draw()

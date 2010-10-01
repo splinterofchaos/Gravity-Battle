@@ -27,11 +27,11 @@ void CircleActor::on_off_screen()
         s.y( s.y() - ((s.y()+radius()) - Arena::maxY) );
 }
 
-void CircleActor::move( int dt )
+void CircleActor::move( int dt, value_type maxSpeed )
 {
     on_off_screen();
 
-    Actor::move( dt );
+    Actor::simple_integration( s, v, a, dt, maxSpeed );
 }
 
 bool collision( const CircleActor& c1, const CircleActor& c2 )

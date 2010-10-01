@@ -44,14 +44,14 @@ class Actor
     }
 
     template< typename T >
-    void simple_integration( T& _s, T& v, T& a, int dt, value_type maxSpeed=0 )
+    void simple_integration( T& s, T& v, T& a, int dt, value_type maxSpeed=0 )
     {
         v += a * dt;
 
-        if( maxSpeed && v*v > maxSpeed*maxSpeed )
+        if( maxSpeed && magnitude(v) > maxSpeed )
             v = magnitude( v, maxSpeed );
 
-        _s += v*dt + a*dt*dt*0.5;
+        s += v*dt + a*dt*dt*0.5;
     }
 
   public:

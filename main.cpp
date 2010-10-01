@@ -9,6 +9,7 @@
 #include "Orbitals.h"
 #include "Particle.h"
 #include "MenuOrbital.h"
+#include "Challenge.h"
 
 #include "Vector.h"
 #include "functional_plus.h"
@@ -171,7 +172,7 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 }
 
 template< typename T >
-void spawn( Actor::value_type x, Actor::value_type y )
+T* spawn( Actor::value_type x, Actor::value_type y )
 {
     float speed = random( .11f, .40f );
     float angle = random_angle();
@@ -184,17 +185,19 @@ void spawn( Actor::value_type x, Actor::value_type y )
     );
 
     cActors.push_back( CActorPtr( newActor ) );
+
+    return newActor;
 }
 
 template< typename T >
-void spawn()
+T* spawn()
 {
     Actor::vector_type pos(0.0f,0.0f);
 
     pos.x( random( int(Orbital::RADIUS), int(Arena::maxX - Orbital::RADIUS) ) );
     pos.y( random( int(Orbital::RADIUS), int(Arena::maxY - Orbital::RADIUS) ) );
 
-    spawn<T>( pos.x(), pos.y() );
+    return spawn<T>( pos.x(), pos.y() );
 }
 
 void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale, const Color& c )
@@ -276,6 +279,7 @@ void reset( GameLogic logic = 0 )
     if( Orbital::target )
         playerPos = Orbital::target->s;
 
+    Orbital::target2 = 0;
     cActors.clear();
 
     spawn_player( playerPos.x(), playerPos.y() );
@@ -290,7 +294,70 @@ void reset( GameLogic logic = 0 )
     scoreIncWait = gameTime + SCORE_DELAY;
 }
 
+enum Spawns { ORBITAL, STOPPER, TWISTER, STICKER, N_SPAWN_SLOTS=9 };
+Spawns spawnSlots[14] = {
+    STOPPER, ORBITAL,
+    ORBITAL, ORBITAL, ORBITAL, TWISTER,
+    TWISTER, ORBITAL, TWISTER 
+};
+
+void randome_spawn( int difficulty )
+{
+    switch( spawnSlots[ random(0, difficulty) ] )
+    {
+      case ORBITAL: spawn<Orbital>(); break;
+      case STOPPER: spawn<Stopper>(); break;
+      case TWISTER: spawn<Twister>(); break;
+      case STICKER: spawn<Sticker>(); break;
+      default: break;// ...
+    }
+}
+
 void arcade_mode( int dt )
+{
+    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+
+    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
+        font->draw( "Press r to reset, m for menu", 600, 200 );
+
+    // If the player is alive and SCORE_DELAY seconds have passed...
+    if( Orbital::target ) 
+    {
+        scoreIncWait = gameTime + SCORE_DELAY;
+
+        float sum = 0;
+        unsigned int nEnemies = 0;
+        for( size_t i=1; i < cActors.size(); i++ )
+            if( cActors[i]->isActive && cActors[i]->isMovable ) {
+                sum += cActors[i]->score_value();
+                nEnemies++;
+            }
+
+        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
+    }
+
+    if( spawnWait <= gameTime ) {
+        spawnWait = gameTime + spawnDelay;
+
+        spawnDelay -= 300;
+        if( spawnDelay <= 3000 )
+            spawnDelay -= -500;
+        if( spawnDelay < 1000 )
+            spawnDelay = 1000;
+
+        static int difficulty = 1;
+        if( spawnDelay > 5000 )
+            difficulty = 2;
+        else if( spawnDelay > 4000 )
+            difficulty = 6;
+        else if( spawnDelay > 3000 )
+            difficulty = N_SPAWN_SLOTS;
+
+        randome_spawn( difficulty );
+    }
+}
+
+void dual_mode( int dt )
 {
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -330,78 +397,28 @@ void arcade_mode( int dt )
         else if( spawnDelay > 3000 )
             difficulty = 9;
 
-        enum Spawns { ORBITAL, STOPPER, TWISTER };
-        Spawns spawnSlots[14] = {
-            STOPPER, ORBITAL, 
-            ORBITAL, ORBITAL, ORBITAL, TWISTER,
-            TWISTER, ORBITAL, TWISTER 
-        };
-
-        switch( spawnSlots[ random(0, difficulty) ] )
-        {
-          case ORBITAL: spawn<Orbital>(); break;
-          case STOPPER: spawn<Stopper>(); break;
-          case TWISTER: spawn<Twister>(); break;
-          default: break;// ...
-        }
+        randome_spawn( difficulty );
     }
 }
 
-void dual_mode( int dt )
+void challenge( int dt )
 {
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+    static Package* package = 0;
+    static bool started = false;
 
-    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
-        font->draw( "Press r to reset, m for menu", 600, 200 );
-
-    // If the player is alive and SCORE_DELAY seconds have passed...
-    if( Orbital::target ) 
-    {
-        scoreIncWait = gameTime + SCORE_DELAY;
-
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive && cActors[i]->isMovable ) {
-                sum += cActors[i]->score_value();
-                nEnemies++;
-            }
-
-        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
+    if( cActors.size() == 1 ) {
+        package = spawn<Package>( 100, 100 );
+        package->isMovable = false;
+        started = false;
     }
 
-    if( spawnWait > gameTime ) {
-        spawnWait = gameTime + spawnDelay;
-
-        spawnDelay -= 300;
-        if( spawnDelay <= 3000 )
-            spawnDelay -= -500;
-        if( spawnDelay < 1000 )
-            spawnDelay = 1000;
-
-        static int difficulty = 1;
-        if( spawnDelay > 5000 )
-            difficulty = 1;
-        else if( spawnDelay > 4000 )
-            difficulty = 6;
-        else if( spawnDelay > 3000 )
-            difficulty = 9;
-
-        enum Spawns { ORBITAL, STOPPER, TWISTER };
-        Spawns spawnSlots[14] = {
-            ORBITAL, ORBITAL, 
-            STOPPER, ORBITAL, ORBITAL, TWISTER,
-            TWISTER, ORBITAL, TWISTER, STOPPER
-        };
-
-        switch( spawnSlots[ random(0, difficulty) ] )
-        {
-          case ORBITAL: spawn<Orbital>(); break;
-          case STOPPER: spawn<Stopper>(); break;
-          case TWISTER: spawn<Twister>(); break;
-          default: break;// ...
-        }
+    if( !started && magnitude(cActors[0]->s - package->s) < 300 ) {
+        package->isMovable = true;
+        started = true;
     }
+
+    if( started && !package->isMovable )
+        font->draw( "You won!!!", 300, 300 );
 }
 
 void menu( int dt )
@@ -409,24 +426,28 @@ void menu( int dt )
     if( cActors.size() == 1 )
         spawn<MenuOrbital>();
 
-    font->draw( "^^ Move up here for arcade mode! ^^", 350, 50 );
-    font->draw( "Move down here for dual mode! (use WASD and arrow keys)", 350, Arena::maxY - 50 );
-
     const int LINE_HEIGHT = 20;
 
     int y = 350;
-    if( ! playerHasMoved )
-        font->draw( "WASD to move.", 270, y );
-    if( ! playerIncreasedGravity )
-        font->draw( "SPACEBAR to increase gravity.", 270, y += LINE_HEIGHT );
+    if( ! playerHasMoved ) {
+        font->draw( "WASD to move.", 270, 350 );
+    } else {
+        y = 350; 
+        font->draw( "Press 1 to switch on/off prediction lines.", 500, y );
+        font->draw( "Press 2 to switch on/off gravity lines.", 500, y += LINE_HEIGHT );
+        font->draw( "Press 3 to switch on/off velocity arrows.", 500, y += LINE_HEIGHT );
+        font->draw( "Press 4 to switch on/off acceleration arrows.", 500, y += LINE_HEIGHT );
+        font->draw( "Press 5 to switch on/off motion blur.", 500, y += LINE_HEIGHT );
+        font->draw( "To permanently change, edit config.txt", 500, y += 2*LINE_HEIGHT );
 
-    y = 350; 
-    font->draw( "Press 1 to switch on/off prediction lines.", 500, y );
-    font->draw( "Press 2 to switch on/off gravity lines.", 500, y += LINE_HEIGHT );
-    font->draw( "Press 3 to switch on/off velocity arrows.", 500, y += LINE_HEIGHT );
-    font->draw( "Press 4 to switch on/off acceleration arrows.", 500, y += LINE_HEIGHT );
-    font->draw( "Press 5 to switch on/off motion blur.", 500, y += LINE_HEIGHT );
-    font->draw( "To permanently change, edit config.txt", 500, y += 2*LINE_HEIGHT );
+        font->draw( "^^ Move up here for arcade mode! ^^", 350, 50 );
+        font->draw( "Move down here for dual mode! (use WASD and arrow keys)", 350, Arena::maxY - 50 );
+        font->draw( "To the left for challenge mode. >>>", 650, 300 );
+    }
+
+    if( ! playerIncreasedGravity )
+        font->draw( "SPACEBAR to increase gravity.", 270, 350 + LINE_HEIGHT );
+
 
     // Enter arcade mode when the orbital reaches the top of the screen.
     if( cActors[1]->s.y() < cActors[1]->radius()  ) {
@@ -442,6 +463,11 @@ void menu( int dt )
             delete_me( cActors[1] );
 
             reset( dual_mode );
+    } else if( Arena::maxX < cActors[1]->s.x() + cActors[1]->radius() ) {
+            cActors[1]->deleteMe = true;
+            delete_me( cActors[1] );
+
+            reset( challenge );
     }
 }
 
