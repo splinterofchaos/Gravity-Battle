@@ -8,7 +8,7 @@ struct Color : public Vector<float,4>
     typedef Vector<float,4> vector_type;
 
     Color();
-    Color( value_type r, value_type g, value_type b, value_type a );
+    Color( value_type r, value_type g, value_type b, value_type a=1 );
     Color( const vector_type& v );
 
     value_type r();

@@ -347,7 +347,7 @@ void arcade_mode( int dt )
 
         static int difficulty = 1;
         if( spawnDelay > 5000 )
-            difficulty = 2;
+            difficulty = 1;
         else if( spawnDelay > 4000 )
             difficulty = 6;
         else if( spawnDelay > 3000 )
@@ -410,6 +410,9 @@ void challenge( int dt )
         package = spawn<Package>( 100, 100 );
         package->isMovable = false;
         started = false;
+
+        spawn<Obsticle>( 400, 400 );
+        Package::goal = spawn<Goal>( 300, 670 );
     }
 
     if( !started && magnitude(cActors[0]->s - package->s) < 300 ) {
