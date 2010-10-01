@@ -144,15 +144,12 @@ Player::value_type Player::mass() const
 
 void Player::collide_with( CircleActor& collider )
 {
-    if( collider.isMovable ) {
+    if( collider.isDeadly ) {
         deleteMe = true;
 
         if( copy )
             copy->collide_with( *this );
     }
-    
-    // If collider isn't movable, it must be a stopper that is stopped, so
-    // don't die.
 }
 
 Color Player::color()

@@ -9,10 +9,14 @@
 #include "Arena.h"
 #include "Color.h"
 
-struct CircleActor : public Actor
+class CircleActor : public Actor
 {
+    void init();
+
+  public:
     bool isActive;
     bool isMovable;
+    bool isDeadly;
 
     CircleActor();
     CircleActor( const vector_type& position );

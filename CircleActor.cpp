@@ -1,17 +1,22 @@
 
 #include "CircleActor.h"
 
-CircleActor::CircleActor()
+void CircleActor::init()
 {
     isActive = true;
     isMovable = true;
+    isDeadly = true;
+}
+
+CircleActor::CircleActor()
+{
+    init();
 }
 
 CircleActor::CircleActor( const CircleActor::vector_type& position )
     : Actor( position )
 {
-    isActive = true;
-    isMovable = true;
+    init();
 }
 
 void CircleActor::on_off_screen()

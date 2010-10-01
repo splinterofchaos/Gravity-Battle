@@ -361,6 +361,8 @@ void Stopper::move( int dt )
 
     if( isMovable )
         Orbital::move( dt );
+
+    isDeadly = isMovable;
 }
 
 void Stopper::draw()
