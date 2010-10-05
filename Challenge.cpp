@@ -35,7 +35,7 @@ void Package::draw()
         glDisable( GL_TEXTURE_2D );
         glTranslatef( s.x(), s.y(), 0 );
         glColor3f( 1, 1, 1 );
-        draw_loop( RADIUS_TO_START, RADIUS_TO_START-2, 40 );
+        draw_loop( RADIUS_TO_START, RADIUS_TO_START-5, 50 );
         glEnable( GL_TEXTURE_2D );
         glLoadIdentity();
     }

@@ -12,4 +12,6 @@ class MenuOrbital : public Orbital
 
     void move( int dt );
     void draw();
+
+    void collide_with( CircleActor& collider );
 };

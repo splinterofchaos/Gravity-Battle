@@ -149,6 +149,9 @@ void Player::collide_with( CircleActor& collider )
 
         if( copy )
             copy->collide_with( *this );
+    } else {
+        a = vector_type(0,0);
+        v /= 10;
     }
 }
 

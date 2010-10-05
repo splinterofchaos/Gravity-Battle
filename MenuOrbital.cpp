@@ -10,11 +10,20 @@ MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& v )
     time = 0;
     angle = random_angle();
 
-    activationDelay = 1;
+    isActive = false;
+    activationDelay = ACTIVATION_DELAY;
+
+    isDeadly = false;
 }
 
 void MenuOrbital::move( int dt )
 {
+    if( !isActive ) {
+        activationDelay -= dt;
+        if( activationDelay <= 0 )
+            isActive = true;
+    }
+
     time  += float(dt) / 800;
     angle += float(dt) / 1000;
 
@@ -36,4 +45,9 @@ void MenuOrbital::move( int dt )
 void MenuOrbital::draw()
 {
     Orbital::draw();
+}
+
+void MenuOrbital::collide_with( CircleActor& collider )
+{
+    // Do nothing.
 }

@@ -539,13 +539,15 @@ void menu( int dt )
 
     // Enter arcade mode when the orbital reaches the top of the screen.
     for( size_t i=0; i < cActors.size(); i++ ) {
-        if( cActors[i]->s.y() < cActors[i]->radius()  ) {
+        if( !cActors[i]->isActive )
+            continue;
+
+        if( cActors[i]->s.y() < cActors[i]->radius()  )
             reset( arcade_mode );
-        } else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() ) {
+        else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() )
             reset( dual_mode );
-        } else if( Arena::maxX < cActors[i]->s.x() + cActors[i]->radius() ) {
+        else if( Arena::maxX < cActors[i]->s.x() + cActors[i]->radius() )
             reset( challenge );
-        }
     }
 }
 
