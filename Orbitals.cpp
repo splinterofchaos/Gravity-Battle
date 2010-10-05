@@ -27,12 +27,12 @@ Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& v
 
 void Orbital::on_off_screen()
 {
-    if( s.x() - radius() < 0 && v.x() < 0 )
+    if( s.x() - radius() < Arena::minX && v.x() < 0 )
         v.x( -v.x() * BOUNCINESS );
     else if( s.x() + radius() > Arena::maxX && v.x() > 0 )
         v.x( -v.x() * BOUNCINESS );
 
-    if( s.y() - radius() < 0 && v.y() < 0 )
+    if( s.y() - radius() < Arena::minY && v.y() < 0 )
         v.y( -v.y() * BOUNCINESS );
     else if( s.y() + radius() > Arena::maxY && v.y() > 0 )
         v.y( -v.y() * BOUNCINESS );

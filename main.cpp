@@ -37,7 +37,7 @@ int gameTime;
 
 int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
 
-const int VERSION = 5;
+const int VERSION = 6;
 
 // SDL used milliseconds.
 const int SECOND = 1000;
@@ -73,6 +73,9 @@ bool playerIncreasedGravity = false;
 const Config defaultConfig; // Used when no unsure about any config option.
 Config fileConfig( "config.txt" ), config = fileConfig;
 
+const int SCREEN_WIDTH  = 900;
+const int SCREEN_HEIGHT = 700;
+
 // FUNCTIONS //
 void arcade_mode( int dt );
 void dual_mode( int dt );
@@ -92,7 +95,7 @@ float to_float( std::string str )
     float x;
     ss >> x;
     return x;
-}
+} 
 
 void configure( const Config& cfg )
 {
@@ -227,7 +230,7 @@ bool delete_me( CActorPtr& actor )
     {
         // Explode.
         for( int i=0; i < actor->mass()*particleRatio; i++ )
-            spawn_particle( actor->s, actor->v/4, actor->radius()/8, actor->color() );
+            spawn_particle( actor->s, actor->v/6, actor->radius()/8, actor->color() );
 
         // Add to score if player is alive.
         if( Orbital::target )
@@ -270,16 +273,29 @@ bool delete_me( CActorPtr& actor )
 
 void reset( GameLogic logic = 0 )
 {
-    if( logic )
+    Arena::minX = Arena::minY = 0;
+    Arena::maxX = SCREEN_WIDTH;
+    Arena::maxY = SCREEN_HEIGHT;
+
+    if( logic ) {
         gameLogic = logic;
-    else
+
+        // Before clearing the actors, make them explode.
+        for( size_t i=0; i < cActors.size(); i++ )
+            cActors[i]->deleteMe = true;
+        if( Orbital::target )
+            Orbital::target->deleteMe = false;
+        for_each( cActors.begin(), cActors.end(), delete_me );
+    } else {
         particles.clear();
+    }
 
     Actor::vector_type playerPos( 350, 300 );
     if( Orbital::target )
         playerPos = Orbital::target->s;
 
     Orbital::target2 = 0;
+
     cActors.clear();
 
     spawn_player( playerPos.x(), playerPos.y() );
@@ -301,15 +317,33 @@ Spawns spawnSlots[14] = {
     TWISTER, ORBITAL, TWISTER 
 };
 
-void randome_spawn( int difficulty )
+void random_spawn( int difficulty )
 {
-    switch( spawnSlots[ random(0, difficulty) ] )
+    static int recentSpawns[2] = { 0, 1 };
+
+    int newSpawn = 0;
+
+    newSpawn = spawnSlots[ random(0, difficulty) ];
+
+    /* Commented out because setting newSpawn to N_SPAWN_SLOTS just makes more
+     * bugs. */
+    //if( recentSpawns[0] == recentSpawns[1] &&
+    //    recentSpawns[0] == newSpawn )
+    //    // Try just once more. Trying until the new spawn is truly new seems to
+    //    // cause an infinite loop.
+    //    newSpawn = N_SPAWN_SLOTS;
+    
+    recentSpawns[1] = recentSpawns[0];
+    if( newSpawn != N_SPAWN_SLOTS )
+        recentSpawns[0] = newSpawn;
+
+    switch( newSpawn )
     {
       case ORBITAL: spawn<Orbital>(); break;
       case STOPPER: spawn<Stopper>(); break;
       case TWISTER: spawn<Twister>(); break;
       case STICKER: spawn<Sticker>(); break;
-      default: break;// ...
+      default: random_spawn( difficulty ); // This line should never be reached.
     }
 }
 
@@ -353,7 +387,7 @@ void arcade_mode( int dt )
         else if( spawnDelay > 3000 )
             difficulty = N_SPAWN_SLOTS;
 
-        randome_spawn( difficulty );
+        random_spawn( difficulty );
     }
 }
 
@@ -397,37 +431,88 @@ void dual_mode( int dt )
         else if( spawnDelay > 3000 )
             difficulty = 9;
 
-        randome_spawn( difficulty );
+        random_spawn( difficulty );
+    }
+}
+
+void package_delivery( int dt )
+{
+    static Package* package = 0;
+    static bool started = false;
+    static int packageLevel = 0;
+    static std::string tip = "";
+
+    if( cActors.size() == 1 && Orbital::target ) 
+    {
+        std::stringstream filename;
+        filename << "challenge/package/level" << packageLevel;
+
+        std::ifstream level( filename.str() );
+
+        std::string val;
+
+        if( level ) 
+        {
+            started = false;
+            tip = "";
+            Package::goal = 0;
+
+            while( level >> val ) 
+            {
+                if( val == "tip" )
+                {
+                    std::getline( level, tip );
+                }
+                else
+                {
+                    float x,y;
+                    level >> x >> y;
+
+                    if( val == "player" ) 
+                        Orbital::target->s = Actor::vector_type( x, y );
+                    else if( val == "package" )
+                        package = spawn<Package>( x, y );
+                    else if( val == "obsticle" )
+                        spawn<Obsticle>( x, y );
+                    else if( val == "goal" )
+                        Package::goal = spawn<Goal>( x, y );
+                    else if( val == "arenaX" ) {
+                        Arena::minX = x; Arena::maxX = y;
+                    } else if( val == "arenaY" ) {
+                        Arena::minY = x; Arena::maxY = y;
+                    }
+
+                }
+            }
+        }
+        else 
+        {
+            packageLevel--;
+            package_delivery( dt );
+        }
+    }
+
+    if( tip.size() )
+        font->draw( tip, Arena::minX + (Arena::maxX-Arena::minX)/4, 100 );
+
+    if( Orbital::target && package && package->reachedGoal ) {
+        font->draw( "You won!!!", 300, 300 );
+
+        packageLevel++;
+        reset();
     }
 }
 
 void challenge( int dt )
 {
-    static Package* package = 0;
-    static bool started = false;
-
-    if( cActors.size() == 1 ) {
-        package = spawn<Package>( 100, 100 );
-        package->isMovable = false;
-        started = false;
-
-        spawn<Obsticle>( 400, 400 );
-        Package::goal = spawn<Goal>( 300, 670 );
-    }
-
-    if( !started && magnitude(cActors[0]->s - package->s) < 300 ) {
-        package->isMovable = true;
-        started = true;
-    }
-
-    if( started && !package->isMovable )
-        font->draw( "You won!!!", 300, 300 );
+    package_delivery( dt );
 }
 
 void menu( int dt )
 {
     if( cActors.size() == 1 )
-        spawn<MenuOrbital>();
+        for( int i=0; i < 3; i++ )
+            spawn<MenuOrbital>();
 
     const int LINE_HEIGHT = 20;
 
@@ -453,24 +538,14 @@ void menu( int dt )
 
 
     // Enter arcade mode when the orbital reaches the top of the screen.
-    if( cActors[1]->s.y() < cActors[1]->radius()  ) {
-            // Before being deleted, explode--EYE CANDY!
-            // Since delete_me is what spawns the particles, and reset clears
-            // cActors without calling delete_me, do it here.
-            cActors[1]->deleteMe = true;
-            delete_me( cActors[1] );
-
+    for( size_t i=0; i < cActors.size(); i++ ) {
+        if( cActors[i]->s.y() < cActors[i]->radius()  ) {
             reset( arcade_mode );
-    } else if( Arena::maxY < cActors[1]->s.y() + cActors[1]->radius() ) {
-            cActors[1]->deleteMe = true;
-            delete_me( cActors[1] );
-
+        } else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() ) {
             reset( dual_mode );
-    } else if( Arena::maxX < cActors[1]->s.x() + cActors[1]->radius() ) {
-            cActors[1]->deleteMe = true;
-            delete_me( cActors[1] );
-
+        } else if( Arena::maxX < cActors[i]->s.x() + cActors[i]->radius() ) {
             reset( challenge );
+        }
     }
 }
 
@@ -480,11 +555,12 @@ int main( int argc, char** argv )
     const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;
 
     bool quit = false;
+    bool paused = false;
 
     Arena::minX = 0;
-    Arena::maxX = 900;
+    Arena::maxX = SCREEN_WIDTH;
     Arena::minY = 0;
-    Arena::maxY = 700;
+    Arena::maxY = SCREEN_HEIGHT;
 
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
@@ -509,6 +585,8 @@ int main( int argc, char** argv )
               case SDL_KEYDOWN:
                 switch( event.key.keysym.sym )
                 {
+                  case 'p': paused = !paused;    break;
+
                   case 'r': reset();             break;
                   case 'm': reset( menu );       break;
                   case SDLK_ESCAPE: quit = true; break;
@@ -583,6 +661,23 @@ int main( int argc, char** argv )
             cActors.begin(), cActors.end(), 
             std::mem_fn( &Actor::draw ) 
         );
+
+        float boarder[] = {
+            Arena::minX, Arena::minY,
+            Arena::maxX, Arena::minY,
+            Arena::maxX, Arena::maxY,
+            Arena::minX, Arena::maxY
+        };
+
+        glColor3f( 1, 1, 1 );
+        glDisable( GL_TEXTURE_2D );
+        glEnableClientState( GL_VERTEX_ARRAY );
+        {
+            glVertexPointer( 2, GL_FLOAT, 0, boarder );
+            glDrawArrays( GL_LINE_LOOP, 0, 4 );
+        }
+        glDisableClientState( GL_VERTEX_ARRAY );
+        glEnable( GL_TEXTURE_2D );
         
         glLoadIdentity();
 
@@ -610,14 +705,14 @@ int main( int argc, char** argv )
         frameEnd = SDL_GetTicks();
         frameTime = frameEnd - frameStart;
 
+        if( paused )
+            frameTime = 0;
+
         if( frameTime > MAX_FRAME_TIME )
             frameTime = MAX_FRAME_TIME;
 
         gameTime += frameTime;
     }
-
-    particles.clear();
-    cActors.clear();
 
     SDL_Quit();
     glFlush();

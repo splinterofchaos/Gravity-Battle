@@ -20,10 +20,16 @@ CFLAGS  += -Wall
 compile = ${CC} ${CFLAGS} -c -Ivector
 link    = ${CC} ${CFLAGS} -Ivector -o ${OUT}
 
-OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o
+OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o
 
 ${OUT} : ${OBJ} main.cpp makefile
 	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
+
+.glpp.o : glpp.cpp glpp.h
+	${compile} glpp.cpp -o .glpp.o
+
+.draw_shape.o : draw_shape.cpp draw_shape.h
+	${compile} draw_shape.cpp -o .draw_shape.o
 
 .Challenge.o : Challenge.h Challenge.cpp
 	${compile} Challenge.cpp -o .Challenge.o

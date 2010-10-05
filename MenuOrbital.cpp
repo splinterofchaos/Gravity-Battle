@@ -1,5 +1,6 @@
 
 #include "MenuOrbital.h"
+#include "Random.h"
 
 #include <cmath>
 
@@ -7,7 +8,7 @@ MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& v )
     : Orbital( pos, vector_type(0,0) )
 {
     time = 0;
-    angle = 0;
+    angle = random_angle();
 
     activationDelay = 1;
 }

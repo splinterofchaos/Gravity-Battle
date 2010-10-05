@@ -21,15 +21,15 @@ CircleActor::CircleActor( const CircleActor::vector_type& position )
 
 void CircleActor::on_off_screen()
 {
-    if( s.x() - radius() < 0 )
-        s.x( s.x() + (radius()-s.x()) );
+    if( s.x() - radius() < Arena::minX )
+        s.x( Arena::minX + radius() );
     else if( s.x() + radius() > Arena::maxX )
-        s.x( s.x() - ((s.x()+radius()) - Arena::maxX) );
+        s.x( Arena::maxX - radius() );
 
-    if( s.y() - radius() < 0 )
-        s.y( s.y() + (radius()-s.y()) );
+    if( s.y() - radius() < Arena::minY )
+        s.y( Arena::minY + radius() );
     else if( s.y() + radius() > Arena::maxY )
-        s.y( s.y() - ((s.y()+radius()) - Arena::maxY) );
+        s.y( Arena::maxY - radius() );
 }
 
 void CircleActor::move( int dt, value_type maxSpeed )

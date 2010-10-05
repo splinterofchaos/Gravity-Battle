@@ -15,7 +15,7 @@ int cheater = cheat();
 // Postcondition: min <= random(min,max) < max
 int random( int min, int max )
 {
-    return rand()%(max-min) + min;
+    return rand()*rand()%(max-min) + min;
 }
 
 float random( float min, float max )
