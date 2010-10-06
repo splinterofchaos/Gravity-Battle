@@ -37,7 +37,7 @@ int gameTime;
 
 int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
 
-const int VERSION = 6;
+const int VERSION = 7;
 
 // SDL used milliseconds.
 const int SECOND = 1000;
@@ -72,6 +72,8 @@ bool playerIncreasedGravity = false;
 
 const Config defaultConfig; // Used when no unsure about any config option.
 Config fileConfig( "config.txt" ), config = fileConfig;
+
+int packageLevel = 0;
 
 const int SCREEN_WIDTH  = 900;
 const int SCREEN_HEIGHT = 700;
@@ -277,8 +279,10 @@ void reset( GameLogic logic = 0 )
     Arena::maxX = SCREEN_WIDTH;
     Arena::maxY = SCREEN_HEIGHT;
 
-    if( logic ) {
+    if( logic && logic != gameLogic ) {
         gameLogic = logic;
+
+        packageLevel = 0;
 
         // Before clearing the actors, make them explode.
         for( size_t i=0; i < cActors.size(); i++ )
@@ -287,6 +291,7 @@ void reset( GameLogic logic = 0 )
             Orbital::target->deleteMe = false;
         for_each( cActors.begin(), cActors.end(), delete_me );
     } else {
+        // Normal resets clear the screen.
         particles.clear();
     }
 
@@ -367,7 +372,7 @@ void arcade_mode( int dt )
                 nEnemies++;
             }
 
-        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
+        scoreVal += sum / 4 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
     if( spawnWait <= gameTime ) {
@@ -376,12 +381,14 @@ void arcade_mode( int dt )
         spawnDelay -= 300;
         if( spawnDelay <= 3000 )
             spawnDelay -= -500;
-        if( spawnDelay < 1000 )
-            spawnDelay = 1000;
+        if( spawnDelay < 500 )
+            spawnDelay = 500;
 
         static int difficulty = 1;
-        if( spawnDelay > 5000 )
+        if( spawnDelay > 5500 )
             difficulty = 1;
+        else if( spawnDelay > 5300 )
+            difficulty = 3;
         else if( spawnDelay > 4000 )
             difficulty = 6;
         else if( spawnDelay > 3000 )
@@ -439,11 +446,13 @@ void package_delivery( int dt )
 {
     static Package* package = 0;
     static bool started = false;
-    static int packageLevel = 0;
     static std::string tip = "";
+    static int time;
 
     if( cActors.size() == 1 && Orbital::target ) 
     {
+        time = 0;
+
         std::stringstream filename;
         filename << "challenge/package/level" << packageLevel;
 
@@ -453,6 +462,8 @@ void package_delivery( int dt )
 
         if( level ) 
         {
+            static CircleActor* mostRecent;
+
             started = false;
             tip = "";
             Package::goal = 0;
@@ -471,7 +482,7 @@ void package_delivery( int dt )
                     if( val == "player" ) 
                         Orbital::target->s = Actor::vector_type( x, y );
                     else if( val == "package" )
-                        package = spawn<Package>( x, y );
+                        mostRecent = package = spawn<Package>( x, y );
                     else if( val == "obsticle" )
                         spawn<Obsticle>( x, y );
                     else if( val == "goal" )
@@ -492,11 +503,38 @@ void package_delivery( int dt )
         }
     }
 
+    if( !started && package->started ) {
+        started = true;
+    }
+
+    if( started )
+        time += dt;
+
+    // Draw hint.
     if( tip.size() )
         font->draw( tip, Arena::minX + (Arena::maxX-Arena::minX)/4, 100 );
 
+    // If player won the level...
     if( Orbital::target && package && package->reachedGoal ) {
-        font->draw( "You won!!!", 300, 300 );
+        std::stringstream filename;
+        filename << "challenge/package-times/level" << packageLevel << ".txt";
+
+        int previousTime;
+        {
+            float input;
+            std::ifstream scoreIn( filename.str() );
+            if( scoreIn >> input )
+                previousTime = input * SECOND;
+            else
+                previousTime = 0;
+        }
+
+        if( previousTime < time ) {
+            std::ofstream score( filename.str() );
+            score << float(time) / SECOND;
+        }
+
+        time = 0;
 
         packageLevel++;
         reset();

@@ -8,7 +8,7 @@ void gen_texture( GLuint handle, SDL_Surface* surface )
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, surface->w, surface->h, 0, 
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, 
                   GL_BGRA, GL_UNSIGNED_BYTE, surface->pixels );
 }
 
@@ -52,7 +52,7 @@ void Texture::load( const std::string& filaname )
 
     ref = get_ref();
 
-    // If this Item already exists, and is loaded (recount!=0), we're all set.
+    // If this Item already exists, and is loaded (refcount!=0), we're all set.
     if( get_ref() != -1u && registery[ref].refCount++ != 0 ) {
         return;
     } else {

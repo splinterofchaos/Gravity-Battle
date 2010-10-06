@@ -72,7 +72,7 @@ void Orbital::move( int dt )
     CircleActor::move( dt );
 }
 
-void Orbital::draw_impl( float* verts, float zRotation )
+void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 {
     glTranslatef( s.x(), s.y(), 0 );
     glRotatef( zRotation, 0, 0, 1 );
@@ -81,7 +81,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) ) / 2 + 0.5;
+        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) )*0.6 + 0.5;
 
     for( int i=0; i < 8; i++ )
         verts[i] *= activationProgress;
@@ -96,7 +96,8 @@ void Orbital::draw_impl( float* verts, float zRotation )
     Color c = color() * activationProgress;
 
     glEnable( GL_TEXTURE_2D );
-    glColor4f( c.r(), c.g(), c.b(), c.a() );
+
+    glColor4f( c.r(), c.g(), c.b(), 1 );
 
     glBindTexture( GL_TEXTURE_2D, image.handle() );
 
@@ -109,7 +110,7 @@ void Orbital::draw_impl( float* verts, float zRotation )
 
         glLoadIdentity();
 
-        if( target && isMovable )
+        if( extra && target && isMovable )
         {
             if( gravityLine ) {
                 vector_type accelerationLine[] = {
