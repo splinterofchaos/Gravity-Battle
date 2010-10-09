@@ -213,6 +213,11 @@ T* spawn()
         ) 
     );
 
+    if( pos.x() < 0 )
+        pos.x( -pos.x() );
+    if( pos.y() < 0 )
+        pos.y( -pos.y() );
+
     return spawn<T>( pos.x(), pos.y() );
 }
 
@@ -591,7 +596,7 @@ void menu( int dt )
         if( !cActors[i]->isActive )
             continue;
 
-        if( cActors[i]->s.y() < cActors[i]->radius()  )
+        if( cActors[i]->s.y() < Arena::minX + cActors[i]->radius()  )
             reset( arcade_mode );
         else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() )
             reset( dual_mode );
