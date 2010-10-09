@@ -199,7 +199,7 @@ T* spawn()
 {
     int x, y;
 
-    x  = 
+    x = 
         random (
             int(Arena::minX + T::RADIUS*Arena::scale), 
             int(Arena::maxX - T::RADIUS*Arena::scale) 

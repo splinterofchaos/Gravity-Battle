@@ -18,7 +18,7 @@ void Player::move( int dt )
 {
     Uint8* keyStates = SDL_GetKeyState( 0 );
 
-    const value_type ACC   = 0.012;
+    const value_type ACC   = 0.01;
 
     // TODO: The value of SPEED seems not to affect this function. Why?
     const value_type SPEED = 0.0000005;
