@@ -79,12 +79,12 @@ class Stopper : public Orbital
     static const unsigned int N_COLLISIONS_PER_SEC = 5;
     int timesOfCollisions[N_COLLISIONS_PER_SEC]; // In ascending order.
 
-    static const value_type RADIUS = 34;
-    static const value_type STOPPED_RADIUS = 30;
-
     bool cheatOnColor;
 
   public:
+    static const value_type RADIUS = 34;
+    static const value_type STOPPED_RADIUS = 30;
+
     Stopper( const vector_type& pos, const vector_type& v );
 
     vector_type acceleration( const vector_type& r );

@@ -197,10 +197,21 @@ T* spawn( Actor::value_type x, Actor::value_type y )
 template< typename T >
 T* spawn()
 {
-    Actor::vector_type pos(0.0f,0.0f);
+    Actor::vector_type pos;
 
-    pos.x( random( int(Orbital::RADIUS), int(Arena::maxX - Orbital::RADIUS) ) );
-    pos.y( random( int(Orbital::RADIUS), int(Arena::maxY - Orbital::RADIUS) ) );
+    pos.x (
+        random (
+            int(Arena::minX + T::RADIUS*Arena::scale), 
+            int(Arena::maxX - T::RADIUS*Arena::scale) 
+        ) 
+    );
+
+    pos.y (
+        random (
+            int(Arena::minY + T::RADIUS*Arena::scale),
+            int(Arena::maxY - T::RADIUS*Arena::scale) 
+        ) 
+    );
 
     return spawn<T>( pos.x(), pos.y() );
 }
@@ -275,9 +286,9 @@ bool delete_me( CActorPtr& actor )
 
 void reset( GameLogic logic = 0 )
 {
-    Arena::minX = Arena::minY = 0;
-    Arena::maxX = SCREEN_WIDTH;
-    Arena::maxY = SCREEN_HEIGHT;
+    Arena::minX = Arena::minY = 3;
+    Arena::maxX = SCREEN_WIDTH-3;
+    Arena::maxY = SCREEN_HEIGHT-3;
 
     if( logic && logic != gameLogic ) {
         gameLogic = logic;
