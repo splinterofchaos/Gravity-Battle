@@ -81,7 +81,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) )/2 + 0.5;
+        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) )*0.25 + 0.75;
 
     for( int i=0; i < 8; i++ )
         verts[i] *= activationProgress;
@@ -257,7 +257,7 @@ void Orbital::draw()
 
 int Orbital::score_value()
 {
-    return 5;
+    return 2;
 }
 
 Orbital::value_type Orbital::radius() const
@@ -335,7 +335,7 @@ Color Twister::color()
 
 int Twister::score_value()
 {
-    return 10;
+    return 6;
 }
 
 Stopper::Stopper( const vector_type& pos, const vector_type& v )
@@ -346,12 +346,12 @@ Stopper::Stopper( const vector_type& pos, const vector_type& v )
 
 Stopper::vector_type Stopper::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() * (1.0f/250.0f) / magnitude(r) ) * Arena::scale;
+    return magnitude( r, target->mass() * (1.0f/220.0f) / magnitude(r) ) * Arena::scale;
 }
 
 int Stopper::score_value()
 {
-    return 8;
+    return 4;
 }
 
 void Stopper::move( int dt )

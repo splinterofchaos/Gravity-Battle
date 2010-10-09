@@ -179,7 +179,7 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 template< typename T >
 T* spawn( Actor::value_type x, Actor::value_type y )
 {
-    float speed = random( .11f, .40f );
+    float speed = random( .15f, .40f );
     float angle = random_angle();
 
     float vx = std::cos(angle) * speed;
@@ -197,28 +197,27 @@ T* spawn( Actor::value_type x, Actor::value_type y )
 template< typename T >
 T* spawn()
 {
-    Actor::vector_type pos;
+    int x, y;
 
-    pos.x (
+    x  = 
         random (
             int(Arena::minX + T::RADIUS*Arena::scale), 
             int(Arena::maxX - T::RADIUS*Arena::scale) 
-        ) 
-    );
+        );
 
-    pos.y (
+    y =  
         random (
             int(Arena::minY + T::RADIUS*Arena::scale),
             int(Arena::maxY - T::RADIUS*Arena::scale) 
-        ) 
-    );
+        );
 
-    if( pos.x() < 0 )
-        pos.x( -pos.x() );
-    if( pos.y() < 0 )
-        pos.y( -pos.y() );
+    // On Linux, sometimes x or y is negative. Fix that.
+    if( x < 0 )
+        x = -x;
+    if( y < 0 )
+        y = -y;
 
-    return spawn<T>( pos.x(), pos.y() );
+    return spawn<T>( x, y );
 }
 
 void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale, const Color& c )
@@ -368,6 +367,21 @@ void random_spawn( int difficulty )
     }
 }
 
+void standard_spawn()
+{
+    static int difficulty = 1;
+    if( spawnDelay > 5500 )
+        difficulty = 1;
+    else if( spawnDelay > 5300 )
+        difficulty = 3;
+    else if( spawnDelay > 4000 )
+        difficulty = 6;
+    else if( spawnDelay > 3000 )
+        difficulty = N_SPAWN_SLOTS;
+
+    random_spawn( difficulty );
+}
+
 void arcade_mode( int dt )
 {
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
@@ -375,7 +389,7 @@ void arcade_mode( int dt )
     if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
-    // If the player is alive and SCORE_DELAY seconds have passed...
+    // If the player is alive...
     if( Orbital::target ) 
     {
         scoreIncWait = gameTime + SCORE_DELAY;
@@ -400,17 +414,7 @@ void arcade_mode( int dt )
         if( spawnDelay < 500 )
             spawnDelay = 500;
 
-        static int difficulty = 1;
-        if( spawnDelay > 5500 )
-            difficulty = 1;
-        else if( spawnDelay > 5300 )
-            difficulty = 3;
-        else if( spawnDelay > 4000 )
-            difficulty = 6;
-        else if( spawnDelay > 3000 )
-            difficulty = N_SPAWN_SLOTS;
-
-        random_spawn( difficulty );
+        standard_spawn();
     }
 }
 
@@ -446,15 +450,7 @@ void dual_mode( int dt )
         if( spawnDelay < 1000 )
             spawnDelay = 1000;
 
-        static int difficulty = 1;
-        if( spawnDelay > 5000 )
-            difficulty = 1;
-        else if( spawnDelay > 4000 )
-            difficulty = 6;
-        else if( spawnDelay > 3000 )
-            difficulty = 9;
-
-        random_spawn( difficulty );
+        standard_spawn();
     }
 }
 
