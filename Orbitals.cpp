@@ -81,7 +81,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) )*0.6 + 0.5;
+        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) )/2 + 0.5;
 
     for( int i=0; i < 8; i++ )
         verts[i] *= activationProgress;
