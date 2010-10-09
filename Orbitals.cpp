@@ -97,7 +97,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
     glEnable( GL_TEXTURE_2D );
 
-    glColor4f( c.r(), c.g(), c.b(), 1 );
+    glColor4f( c.r(), c.g(), c.b(), c.a() );
 
     glBindTexture( GL_TEXTURE_2D, image.handle() );
 
@@ -368,6 +368,13 @@ void Stopper::move( int dt )
 
 void Stopper::draw()
 {
+    if( isMovable ) {
+        isMovable = false;
+        Orbital::draw();
+        isMovable = true;
+    }
+
+    glTranslatef( 0, 0, 1 );
     Orbital::draw();
 }
 
@@ -423,9 +430,16 @@ void Stopper::collide_with( CircleActor& collider )
 
 Color Stopper::color()
 {
-    Color grey = Color( 0.9, 0.9, 0.9, 0.9 ) * colorIntensity;
-    grey.a( 1 );
-    return grey;
+    Color c;
+
+    if( !isMovable ) {
+        c = Color( 0.9, 0.9, 0.9, 0.9 ) * colorIntensity;
+        c.a( 1 );
+    } else {
+        c = Color( 1, 1, 1, 0.5 );
+    }
+
+    return c;
 }
 
 Sticker::Sticker( const vector_type& pos, const vector_type& v )

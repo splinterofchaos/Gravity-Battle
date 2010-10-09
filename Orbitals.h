@@ -39,7 +39,7 @@ class Orbital : public CircleActor
     virtual vector_type acceleration( const vector_type& r );
     void move( int dt );
 
-    void draw_impl( float* verts, float zRotation=0, bool extra=false );
+    void draw_impl( float* verts, float zRotation=0, bool extra=true );
 
     void draw();
 
@@ -81,6 +81,8 @@ class Stopper : public Orbital
 
     static const value_type RADIUS = 34;
     static const value_type STOPPED_RADIUS = 30;
+
+    bool cheatOnColor;
 
   public:
     Stopper( const vector_type& pos, const vector_type& v );
