@@ -36,6 +36,7 @@ void CircleActor::move( int dt, value_type maxSpeed )
 {
     on_off_screen();
 
+    previousS = s;
     Actor::simple_integration( s, v, a, dt, maxSpeed );
 }
 

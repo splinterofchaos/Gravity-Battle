@@ -37,7 +37,7 @@ int gameTime;
 
 int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
 
-const int VERSION = 7;
+const int VERSION = 8;
 
 // SDL used milliseconds.
 const int SECOND = 1000;
@@ -247,7 +247,7 @@ bool delete_me( CActorPtr& actor )
     {
         // Explode.
         for( int i=0; i < actor->mass()*particleRatio; i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/8, actor->color() );
+            spawn_particle( actor->s, actor->v/6, actor->radius()/4.5, actor->color() );
 
         // Add to score if player is alive.
         if( Orbital::target )
@@ -402,7 +402,7 @@ void arcade_mode( int dt )
                 nEnemies++;
             }
 
-        scoreVal += sum / 4 * nEnemies*nEnemies * (float(dt)/SECOND);
+        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
     if( spawnWait <= gameTime ) {
@@ -638,6 +638,7 @@ int main( int argc, char** argv )
                 switch( event.key.keysym.sym )
                 {
                   case 'p': paused = !paused;    break;
+                  case 'z': spawn<Stopper>();    break;
 
                   case 'r': reset();             break;
                   case 'm': reset( menu );       break;

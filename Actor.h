@@ -85,6 +85,7 @@ class Actor
     // up a simple, generic state integration.
     virtual void move( int dt )
     {
+        previousS = s;
         simple_integration( s, v, a, dt );
     }
 

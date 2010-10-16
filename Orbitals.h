@@ -77,13 +77,15 @@ class Twister : public Orbital
 class Stopper : public Orbital
 {
     static const unsigned int N_COLLISIONS_PER_SEC = 5;
-    int timesOfCollisions[N_COLLISIONS_PER_SEC]; // In ascending order.
+    unsigned int timesOfCollisions[N_COLLISIONS_PER_SEC]; // In ascending order.
 
-    bool cheatOnColor;
+    static const unsigned int N_LAST_COLLIDERS = 8;
+    CircleActor* lastColiders[N_LAST_COLLIDERS];
+    int lastCollisionTime;
 
   public:
     static const value_type RADIUS = 34;
-    static const value_type STOPPED_RADIUS = 30;
+    static const value_type STOPPED_RADIUS = 29;
 
     Stopper( const vector_type& pos, const vector_type& v );
 

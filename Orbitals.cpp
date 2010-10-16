@@ -393,30 +393,32 @@ Stopper::value_type Stopper::mass() const
 
 void Stopper::collide_with( CircleActor& collider )
 {
-	const int COLLISION_DELAY = 16;
-
-    // If the most recent collision was too recent...
-    if( timesOfCollisions[0] < COLLISION_DELAY )
-        return;
+	const int COLLISION_DELAY = 160;
 
     std::copy ( 
         timesOfCollisions, timesOfCollisions+N_COLLISIONS_PER_SEC-1,
         timesOfCollisions+1 
     );
-
     timesOfCollisions[0] = 0;
+
+    CircleActor** thisCollider = std::find( lastColiders, lastColiders+N_LAST_COLLIDERS, &collider );
+    size_t i = thisCollider - lastColiders;
+    bool tooSoon = (thisCollider!=lastColiders+N_LAST_COLLIDERS) && timesOfCollisions[i] < 16;
+    tooSoon = true;
+
+    std::copy ( 
+        lastColiders, lastColiders+N_LAST_COLLIDERS-1,
+        lastColiders+1 
+    );
+    lastColiders[0] = &collider;
 
     if( isMovable ) {
         isMovable = false;
     } else {
-        s -= v * 4 + a * 16;
-
         // If collider is player (only type with radius==25), die.
-        if( &collider == Orbital::target || &collider == Orbital::target2 || 
-            ( 
-                timesOfCollisions[4] < COLLISION_DELAY*5 && this > &collider
-            ) 
-            ) {
+        if( &collider == Orbital::target || &collider == Orbital::target2 ) {
+            deleteMe = true;
+        } else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) && (this > &collider) ) {
             deleteMe = true;
         } else {
             // Non-players will make it go again.
