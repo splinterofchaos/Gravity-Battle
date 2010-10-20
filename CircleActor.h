@@ -11,6 +11,13 @@
 
 class CircleActor : public Actor
 {
+    struct State {
+        vector_type s, v;
+    };
+
+    void state( const State& state );
+    State state();
+
     void init();
 
   public:

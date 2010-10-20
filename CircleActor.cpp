@@ -1,6 +1,17 @@
 
 #include "CircleActor.h"
 
+void CircleActor::state( const State& state )
+{
+    s = state.s;
+    v = state.v;
+}
+
+CircleActor::State CircleActor::state()
+{
+    return { s, v };
+}
+
 void CircleActor::init()
 {
     isActive = true;
