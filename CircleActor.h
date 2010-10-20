@@ -11,14 +11,15 @@
 
 class CircleActor : public Actor
 {
+    void init();
+
+  protected:
     struct State {
         vector_type s, v;
     };
 
     void state( const State& state );
     State state();
-
-    void init();
 
   public:
     bool isActive;
@@ -31,7 +32,7 @@ class CircleActor : public Actor
     virtual value_type radius() const = 0;
     virtual value_type mass()   const = 0;
 
-    virtual void on_off_screen();
+    virtual State on_off_screen( State state );
 
     // Overloads Actor::move to add functionality like staying on the
     // screen.

@@ -25,17 +25,19 @@ Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& v
     colorIntensity = random( 6, 10 ) / 10.0f;
 }
 
-void Orbital::on_off_screen()
+CircleActor::State Orbital::on_off_screen( State state )
 {
-    if( s.x() - radius() < Arena::minX && v.x() < 0 )
-        v.x( -v.x() * BOUNCINESS );
-    else if( s.x() + radius() > Arena::maxX && v.x() > 0 )
-        v.x( -v.x() * BOUNCINESS );
+    if( state.s.x() - radius() < Arena::minX && state.v.x() < 0 )
+        state.v.x( -state.v.x() * BOUNCINESS );
+    else if( state.s.x() + radius() > Arena::maxX && state.v.x() > 0 )
+        state.v.x( -state.v.x() * BOUNCINESS );
 
-    if( s.y() - radius() < Arena::minY && v.y() < 0 )
-        v.y( -v.y() * BOUNCINESS );
-    else if( s.y() + radius() > Arena::maxY && v.y() > 0 )
-        v.y( -v.y() * BOUNCINESS );
+    if( state.s.y() - radius() < Arena::minY && state.v.y() < 0 )
+        state.v.y( -state.v.y() * BOUNCINESS );
+    else if( state.s.y() + radius() > Arena::maxY && state.v.y() > 0 )
+        state.v.y( -state.v.y() * BOUNCINESS );
+
+    return state;
 }
 
 Orbital::vector_type Orbital::acceleration( const vector_type& r )
@@ -290,13 +292,14 @@ Twister::Twister( const Orbital::vector_type& pos, const Orbital::vector_type& v
     angle = random_angle() * (180/3.145);
 }
 
-void Twister::on_off_screen()
+CircleActor::State Twister::on_off_screen( State state )
 {
-    vector_type v0 = v;
-    Orbital::on_off_screen();
+    State st = Orbital::on_off_screen( state );
 
-    if( v0 != v )
+    if( v != st.v )
         angleVel = -angleVel;
+
+    return st;
 }
 
 Twister::vector_type Twister::acceleration( const vector_type& r )
@@ -452,11 +455,6 @@ Sticker::Sticker( const vector_type& pos, const vector_type& v )
 Sticker::vector_type Sticker::acceleration( const vector_type& r )
 {
 	return magnitude( r, r*r / 50000000 );
-}
-
-void Sticker::on_off_screen()
-{
-    Orbital::on_off_screen();
 }
 
 Sticker::value_type Sticker::radius() const

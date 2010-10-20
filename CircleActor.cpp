@@ -9,7 +9,10 @@ void CircleActor::state( const State& state )
 
 CircleActor::State CircleActor::state()
 {
-    return { s, v };
+    State st;
+    st.s = s;
+    st.v = v;
+    return st;
 }
 
 void CircleActor::init()
@@ -30,22 +33,24 @@ CircleActor::CircleActor( const CircleActor::vector_type& position )
     init();
 }
 
-void CircleActor::on_off_screen()
+CircleActor::State CircleActor::on_off_screen( State state )
 {
-    if( s.x() - radius() < Arena::minX )
-        s.x( Arena::minX + radius() );
-    else if( s.x() + radius() > Arena::maxX )
-        s.x( Arena::maxX - radius() );
+    if( state.s.x() - radius() < Arena::minX )
+        state.s.x( Arena::minX + radius() );
+    else if( state.s.x() + radius() > Arena::maxX )
+        state.s.x( Arena::maxX - radius() );
 
-    if( s.y() - radius() < Arena::minY )
-        s.y( Arena::minY + radius() );
-    else if( s.y() + radius() > Arena::maxY )
-        s.y( Arena::maxY - radius() );
+    if( state.s.y() - radius() < Arena::minY )
+        state.s.y( Arena::minY + radius() );
+    else if( state.s.y() + radius() > Arena::maxY )
+        state.s.y( Arena::maxY - radius() );
+
+    return state;
 }
 
 void CircleActor::move( int dt, value_type maxSpeed )
 {
-    on_off_screen();
+    state( on_off_screen( state() ) );;
 
     previousS = s;
     Actor::simple_integration( s, v, a, dt, maxSpeed );

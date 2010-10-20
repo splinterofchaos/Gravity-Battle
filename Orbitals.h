@@ -34,7 +34,7 @@ class Orbital : public CircleActor
 
     Orbital( const vector_type& position, const vector_type& v );
 
-    virtual void on_off_screen();
+    State on_off_screen( State state );
 
     virtual vector_type acceleration( const vector_type& r );
     void move( int dt );
@@ -62,7 +62,7 @@ class Twister : public Orbital
   public:
     Twister( const vector_type& pos, const vector_type& v );
 
-    void on_off_screen();
+    State on_off_screen( State );
 
     vector_type acceleration( const vector_type& r );
 
@@ -111,8 +111,6 @@ struct Sticker : public Orbital
 	Sticker( const vector_type& pos, const vector_type& v );
 
 	vector_type acceleration( const vector_type& r );
-
-	void on_off_screen();
 
 	value_type radius() const;
 

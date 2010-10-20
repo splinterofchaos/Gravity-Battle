@@ -19,7 +19,9 @@ Package::Package( const vector_type& pos, const vector_type& v )
 
 void Package::move( int dt )
 {
-    if( !started && target && magnitude(target->s-s) < RADIUS_TO_START+target->radius() ) {
+    if( !started && target && 
+        magnitude(target->s-s) < RADIUS_TO_START+target->radius() ) 
+    {
         started = true;
         isMovable = true;
     }
