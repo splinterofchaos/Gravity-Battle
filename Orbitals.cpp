@@ -136,9 +136,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
             Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
             Color           pathColors[NUM_PREDICTIONS];
 
-            struct Prediction {
-                vector_type s, v, a;
-            } p;
+            State p; // prediction
 
             p.s = s; p.v = v;
             pathOfOrbit[0] = p.s;
@@ -147,15 +145,17 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
             {
                 for( size_t j=0; j < predictionPrecision; j++ )
                 {
+                    vector_type a;
+
                     vector_type r = target->s - p.s;
-                    vector_type r2 = vector_type(0,0);;
+                    vector_type r2 = vector_type(0,0);
                     if( target2 )
                         r2 = target2->s - p.s;
-                    p.a = acceleration( r );
+                    a = acceleration( r );
                     if( target2 )
-                        p.a += acceleration( r2 );
+                        a += acceleration( r2 );
 
-                    simple_integration( p.s, p.v, p.a, 4 );
+                    simple_integration( p.s, p.v, a, 4 );
 
                     if( true ) 
                     {
@@ -169,12 +169,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                     }
 
                     if( true ) {
-                        if( (p.s.x()-radius() < 0 && p.v.x() < 0 ) || 
-                            (p.s.x()+radius() > Arena::maxX && p.v.x() > 0) )
-                            p.v.x() = -p.v.x() * BOUNCINESS;
-                        if( (p.s.y()-radius() < 0 && p.v.y() < 0 ) || 
-                            (p.s.y()+radius() > Arena::maxY && p.v.y() > 0) )
-                            p.v.y() = -p.v.y() * BOUNCINESS;
+                        p = on_off_screen( p );
                     }
                 }
 
