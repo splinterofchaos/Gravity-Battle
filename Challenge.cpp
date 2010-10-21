@@ -11,7 +11,7 @@ const float Goal::SIZE = 23;
 Package::Package( const vector_type& pos, const vector_type& v )
     : Orbital( pos, vector_type(0,0) )
 {
-    activationDelay = 0;
+    activationDelay = 1;
     started = false;
     isMovable = false;
     reachedGoal = false;
@@ -22,8 +22,9 @@ void Package::move( int dt )
     if( !started && target && 
         magnitude(target->s-s) < RADIUS_TO_START+target->radius() ) 
     {
-        started = true;
+        started   = true;
         isMovable = true;
+        isActive  = true;
     }
 
     Orbital::move( dt );

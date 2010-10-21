@@ -52,6 +52,9 @@ CircleActor::State CircleActor::on_off_screen( State state )
 
 CircleActor::State CircleActor::integrate( State state, int dt, value_type maxSpeed )
 {
+    if( !isMovable )
+        return state;
+
     state = on_off_screen( state );
 
     Actor::simple_integration( state.s, state.v, state.a, dt, maxSpeed );

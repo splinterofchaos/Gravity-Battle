@@ -45,6 +45,28 @@ Orbital::vector_type Orbital::acceleration( const vector_type& r )
     return magnitude( r, target->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale );
 }
 
+CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed )
+{
+    if( !isMovable )
+        return state;
+
+    if( isActive && target )
+    {
+        // Orbit the target.
+        vector_type r = target->s - state.s;
+        state.a = acceleration( r );
+
+        if( target2 )
+            state.a += acceleration( target2->s - state.s );
+    }
+    else
+    {
+        state.a = vector_type( 0, 0 );
+    }
+
+    return CircleActor::integrate( state, dt, maxSpeed );
+}
+
 void Orbital::move( int dt )
 {
     if( !isActive )
@@ -52,23 +74,6 @@ void Orbital::move( int dt )
         activationDelay -= dt;
         if( activationDelay <= 0 )
             isActive = true;
-    }
-
-    if( !isMovable )
-        return;
-
-    if( isActive && target )
-    {
-        // Orbit the target.
-        vector_type r = target->s - s;
-        a = acceleration( r );
-
-        if( target2 )
-            a += acceleration( target2->s - s );
-    }
-    else
-    {
-        a = vector_type( 0, 0 );
     }
 
     CircleActor::move( dt );
@@ -292,7 +297,7 @@ CircleActor::State Twister::on_off_screen( State state )
     State st = Orbital::on_off_screen( state );
 
     if( v != st.v )
-        angleVel = -angleVel;
+        angleVel = -angleVel/3;
 
     return st;
 }
@@ -308,8 +313,9 @@ void Twister::move( int dt )
 
     const float ROTATION_MULTIPLIER =  1.0f / 1.0f;
     angleAcc = cross(a,v) * ROTATION_MULTIPLIER / magnitude(v); 
-    angleVel += angleAcc * dt;
-    angle +=  angleVel*dt + angleAcc*dt*dt;
+
+    angleVel += angleAcc*dt;
+    angle    += angleVel*dt + angleAcc*dt*dt;
 }
 
 void Twister::draw()
