@@ -15,7 +15,7 @@ class CircleActor : public Actor
 
   protected:
     struct State {
-        vector_type s, v;
+        vector_type s, v, a;
     };
 
     void state( const State& state );
@@ -33,6 +33,8 @@ class CircleActor : public Actor
     virtual value_type mass()   const = 0;
 
     virtual State on_off_screen( State state );
+
+    virtual State integrate( State state, int dt, value_type maxSpeed );
 
     // Overloads Actor::move to add functionality like staying on the
     // screen.

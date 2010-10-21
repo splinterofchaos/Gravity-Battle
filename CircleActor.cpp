@@ -5,6 +5,7 @@ void CircleActor::state( const State& state )
 {
     s = state.s;
     v = state.v;
+    a = state.a;
 }
 
 CircleActor::State CircleActor::state()
@@ -12,6 +13,7 @@ CircleActor::State CircleActor::state()
     State st;
     st.s = s;
     st.v = v;
+    st.a = a;
     return st;
 }
 
@@ -48,12 +50,20 @@ CircleActor::State CircleActor::on_off_screen( State state )
     return state;
 }
 
+CircleActor::State CircleActor::integrate( State state, int dt, value_type maxSpeed )
+{
+    state = on_off_screen( state );
+
+    Actor::simple_integration( state.s, state.v, state.a, dt, maxSpeed );
+
+    return state;
+}
+
 void CircleActor::move( int dt, value_type maxSpeed )
 {
-    state( on_off_screen( state() ) );;
-
     previousS = s;
-    Actor::simple_integration( s, v, a, dt, maxSpeed );
+
+    state( integrate(state(), dt, maxSpeed) );
 }
 
 bool collision( const CircleActor& c1, const CircleActor& c2 )
