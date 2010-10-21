@@ -16,6 +16,29 @@ MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& v )
     isDeadly = false;
 }
 
+CircleActor::State MenuOrbital::integrate( State state, int dt, value_type maxSpeed )
+{
+    stateTime  += float(dt) / 800;
+    stateAngle += float(dt) / 1000;
+
+    value_type magnitude = cos( stateTime * 3 );
+    value_type amplitude = 4000 / target->mass();
+
+    vector_type oldS = state.s;
+	vector_type oldV = state.v;
+
+    state.s.x( std::cos(stateAngle) );
+    state.s.y( std::sin(stateAngle) );
+    state.s = state.s*amplitude*magnitude + target->s;
+
+    // v is not needed, but setting it properly enables the velocity
+    // arrow.
+    state.v = (state.s - oldS) / 10;
+	state.a = (state.v - oldV) / 10;
+
+    return state;
+}
+
 void MenuOrbital::move( int dt )
 {
     if( !isActive ) {
@@ -24,22 +47,13 @@ void MenuOrbital::move( int dt )
             isActive = true;
     }
 
-    time  += float(dt) / 800;
-    angle += float(dt) / 1000;
+    stateTime  = time;
+    stateAngle = angle;
 
-    value_type magnitude = cos( time * 3 );
-    value_type amplitude = 4000 / target->mass();
+    state( integrate(state(), dt, maxSpeed) );
 
-    vector_type oldS = s;
-	vector_type oldV = v;
-
-    s.x( std::cos(angle) );
-    s.y( std::sin(angle) );
-    s = s*amplitude*magnitude + target->s;
-
-    // v is not needed, but setting it properly enables the velocity arrow.
-    v = (s - oldS) / 10;
-	a = (v - oldV) / 10;
+    time  = stateTime;
+    angle = stateAngle;
 }
 
 void MenuOrbital::draw()

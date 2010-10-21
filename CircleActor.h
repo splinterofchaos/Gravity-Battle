@@ -34,7 +34,7 @@ class CircleActor : public Actor
 
     virtual State on_off_screen( State state );
 
-    virtual State integrate( State state, int dt, value_type maxSpeed );
+    virtual State integrate( State state, int dt, value_type maxSpeed=0 );
 
     // Overloads Actor::move to add functionality like staying on the
     // screen.

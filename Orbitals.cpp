@@ -150,17 +150,10 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
             {
                 for( size_t j=0; j < predictionPrecision; j++ )
                 {
-                    vector_type a;
+                    p = integrate( p, 4 );
 
                     vector_type r = target->s - p.s;
                     vector_type r2 = vector_type(0,0);
-                    if( target2 )
-                        r2 = target2->s - p.s;
-                    a = acceleration( r );
-                    if( target2 )
-                        a += acceleration( r2 );
-
-                    simple_integration( p.s, p.v, a, 4 );
 
                     if( true ) 
                     {
@@ -314,6 +307,9 @@ void Twister::move( int dt )
     const float ROTATION_MULTIPLIER =  1.0f / 1.0f;
     angleAcc = cross(a,v) * ROTATION_MULTIPLIER / magnitude(v); 
 
+    // Integrate.
+    // Actor::simple_integration does the same thing, but for
+    // vectors. TODO: Make Actor::simple_integration more generic.
     angleVel += angleAcc*dt;
     angle    += angleVel*dt + angleAcc*dt*dt;
 }
