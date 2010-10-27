@@ -119,7 +119,8 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
         if( extra && target && isMovable )
         {
-            if( gravityLine ) {
+            if( gravityLine ) 
+            {
                 vector_type accelerationLine[] = {
                     target->s,
                     s,
