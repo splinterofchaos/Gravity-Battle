@@ -31,8 +31,8 @@ ${OUT} : ${OBJ} main.cpp makefile
 .draw_shape.o : draw_shape.cpp draw_shape.h
 	${compile} draw_shape.cpp -o .draw_shape.o
 
-.Challenge.o : Challenge.h Challenge.cpp
-	${compile} Challenge.cpp -o .Challenge.o
+.Challenge.o : Challenge.h Challenge.cpp Draw.h
+	${compile} -std=c++0x Challenge.cpp -o .Challenge.o
 
 .Config.o : Config.h Config.cpp
 	${compile} Config.cpp -o .Config.o
@@ -49,7 +49,7 @@ ${OUT} : ${OBJ} main.cpp makefile
 .Actor.o : Actor.cpp Actor.h Collision.h 
 	${compile} Actor.cpp -o .Actor.o
 
-.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o .Arena.o .Color.o
+.CircleActor.o : CircleActor.cpp CircleActor.h .Actor.o .Arena.o .Color.o Draw.h
 	${compile} CircleActor.cpp -o .CircleActor.o
 
 .Arena.o : Arena.h Arena.cpp

@@ -1,4 +1,6 @@
  
+#include "Draw.h"
+
 #include "Player.h"
 
 #include <SDL/SDL.h> // For 
@@ -81,37 +83,25 @@ void Player::draw()
     // Transparency used for drawing body on to of shield.
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    //glDisable( GL_DEPTH_TEST );
 
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-    {
-        glTexCoordPointer( 2, GL_INT, 0, texCoords );
+    draw::draw( shieldVerts, 4, shield.handle(), texCoords );
+    draw::draw( bodyVerts,   4, body.handle(),   texCoords );
 
-        // Draw the shield first.
-        glVertexPointer( 2, GL_FLOAT, 0, shieldVerts );
-        glBindTexture( GL_TEXTURE_2D, shield.handle() );
-        glDrawArrays( GL_QUADS, 0, 4 );
+    glLoadIdentity();
 
-        // Draw the body.
-        glVertexPointer( 2, GL_FLOAT, 0, bodyVerts );
-        glBindTexture( GL_TEXTURE_2D, body.handle() );
-        glDrawArrays( GL_QUADS, 0, 4 );
+    if( this==original && copy ) {
+        vector_type connectingLine[] = { s, copy->s };
+        c = ( c + copy->color() ) / 2; // Average the color.
 
-        glLoadIdentity();
+        glColor3f( c.r(), c.g(), c.b() );
 
-        if( this==original && copy ) {
-            vector_type connectingLine[] = { s, copy->s };
-            c = ( c + copy->color() ) / 2;
-
-            glColor3f( c.r(), c.g(), c.b() );
-            glVertexPointer( 2, GL_FLOAT, 0, connectingLine );
-            glDrawArrays( GL_LINES, 0, 2 );
-        }
-
+        // This draws a line, but the texture makes it more
+        // faint.
+        draw::draw (
+            &connectingLine[0][0], 2, 
+            body.handle(), texCoords, GL_LINES 
+        );
     }
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-    glDisableClientState( GL_VERTEX_ARRAY );
 
     glEnable( GL_DEPTH_TEST );
 

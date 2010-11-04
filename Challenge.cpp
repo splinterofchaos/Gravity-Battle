@@ -2,6 +2,7 @@
 #include "Challenge.h"
 
 #include "draw_shape.h"
+#include "Draw.h"
 
 Goal* Package::goal = 0;
 
@@ -30,6 +31,7 @@ void Package::move( int dt )
     Orbital::move( dt );
 }
 
+#include <fstream>
 void Package::draw()
 {
     Orbital::draw();
@@ -38,7 +40,25 @@ void Package::draw()
         glDisable( GL_TEXTURE_2D );
         glTranslatef( s.x(), s.y(), 0 );
         glColor3f( 1, 1, 1 );
-        draw_loop( RADIUS_TO_START, RADIUS_TO_START-5, 50 );
+
+        std::ofstream out("debug.txt");
+
+        out << "Before circle1." << std::endl;
+        std::vector<float> circle1( 25 * 2 );
+        out << "After circle1." << std::endl;
+
+        // Static initialization of loop.
+        auto end1 = draw::circle ( 
+            circle1.begin(), circle1.end(), 
+            RADIUS_TO_START
+        );
+
+        out << "After draw::circle" << std::endl;
+
+        draw::draw( circle1.data(), end1-circle1.begin(), GL_LINE_STRIP );
+        out << "After draw." << std::endl;
+
+
         glEnable( GL_TEXTURE_2D );
         glLoadIdentity();
     }

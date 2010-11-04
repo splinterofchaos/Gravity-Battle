@@ -6,6 +6,7 @@
 namespace glpp
 {
 
+
 // opengl_traits code from
 // http://www.gamedev.net/reference/programming/features/ogltypetraits/
 template< class T > struct opengl_traits {};
@@ -24,7 +25,6 @@ template<> struct opengl_traits< float >
 {
     enum { GL_TYPE = GL_FLOAT };
 };
-
 #define COLOR_FUNC4( type, t ) \
     void color( GL##type r, GL##type g, GL##type, GL##type b, \
                 GL##type a = GL##type(1) ); 

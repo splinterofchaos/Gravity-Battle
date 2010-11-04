@@ -1,6 +1,7 @@
 
 #include "Particle.h"
 #include "Random.h"
+#include "Draw.h"
 
 #include <cmath>
 
@@ -23,8 +24,6 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
 
 void Particle::draw()
 {
-    glTranslatef( s.x(), s.y(), 1 );
-
     float verts[] = { 
         -scale, -scale,
          scale, -scale,
@@ -39,20 +38,11 @@ void Particle::draw()
         0, 1
     };
 
+    glTranslatef( s.x(), s.y(), 1 );
+
     glColor4f( c.r(), c.g(), c.b(), c.a() );
 
-    glBindTexture( GL_TEXTURE_2D, 1 );
-
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-    {
-        glTexCoordPointer( 2, GL_INT, 0, texCoords );
-        glVertexPointer( 2, GL_FLOAT, 0, verts );
-        glDrawArrays( GL_QUADS, 0, 4 );
-
-    }
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-    glDisableClientState( GL_VERTEX_ARRAY );
+    draw::draw( verts, 4, 1, texCoords );
 
     glDisable( GL_DEPTH_TEST );
     glLoadIdentity();

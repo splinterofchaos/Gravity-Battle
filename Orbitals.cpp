@@ -1,6 +1,7 @@
  
 #include "Orbitals.h"
 #include "Random.h"
+#include "Draw.h"
 
 #include <algorithm>
 #include <cmath>
@@ -108,12 +109,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
     glBindTexture( GL_TEXTURE_2D, image.handle() );
 
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-    {
-        glTexCoordPointer( 2, GL_FLOAT, 0, texCoords );
-        glVertexPointer(   2, GL_FLOAT, 0, verts     );
-        glDrawArrays( GL_QUADS, 0, 4 );
+        draw::draw( verts, 4, image.handle(), texCoords );
 
         glLoadIdentity();
 
@@ -127,14 +123,8 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                     target2? target2->s : target->s
                 };
 
-                glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
-                glDrawArrays( GL_LINE_STRIP, 0, 3 );
+                draw::draw( &accelerationLine[0][0], 3, image.handle(), texCoords, GL_LINE_STRIP );
 
-                if( target2 ) {
-                    accelerationLine[2] = target2->s;
-                    glVertexPointer( 2, GL_FLOAT, 0, accelerationLine );
-                    glDrawArrays( GL_LINES, 0, 2 );
-                }
             }
 
             const unsigned int NUM_PREDICTIONS = predictionLength;
@@ -183,9 +173,8 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
             glDisable( GL_TEXTURE_2D );
             glEnableClientState( GL_COLOR_ARRAY );
-                glVertexPointer( 2, GL_FLOAT, 0, pathOfOrbit );
                 glColorPointer( 4, GL_FLOAT, 0, pathColors );
-                glDrawArrays( GL_LINES, 0, actualPredictions );
+                draw::draw( &pathOfOrbit[0][0], actualPredictions, GL_LINES );
             glDisableClientState( GL_COLOR_ARRAY );
 
 
@@ -205,8 +194,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                 Color c = color() / 1.5;
                 glColor4f( c.r(), c.g(), c.b(), 0.5 );
 
-                glVertexPointer( 2, GL_FLOAT, 0, velocityLine );
-                glDrawArrays( GL_POLYGON, 0, 4 );
+                draw::draw( &velocityLine[0][0], 4, GL_POLYGON );
 
                 glLoadIdentity();
             }
@@ -218,8 +206,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                     s,
                     s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(a)*WIDTH_MULT,
                     s + magnitude( a, magnitude(a*LENGTH_MULT) ),
-                    s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) - clockwise_tangent(a)*WIDTH_MULT,
-                    velocityLine[ 0 ]
+                    s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) - clockwise_tangent(a)*WIDTH_MULT
                 };
                 // Draw arrow over this.
                 glTranslatef( 0, 0, 1 );
@@ -227,16 +214,12 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                 Color c = color() * 4;
                 glColor4f( c.r(), c.g(), c.b(), 0.5 );
 
-                glVertexPointer( 2, GL_FLOAT, 0, velocityLine );
-                glDrawArrays( GL_LINE_STRIP, 0, 5 );
+                draw::draw( &velocityLine[0][0], 4, GL_LINE_LOOP );
 
                 glLoadIdentity();
 			}
         } // if target
 
-    }
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 void Orbital::draw()
@@ -396,6 +379,7 @@ void Stopper::collide_with( CircleActor& collider )
 {
 	const int COLLISION_DELAY = 160;
 
+    // Rotate the times.
     std::copy ( 
         timesOfCollisions, timesOfCollisions+N_COLLISIONS_PER_SEC-1,
         timesOfCollisions+1 
@@ -420,6 +404,7 @@ void Stopper::collide_with( CircleActor& collider )
         if( &collider == Orbital::target || &collider == Orbital::target2 ) {
             deleteMe = true;
         } else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) && (this > &collider) ) {
+            // Must be colliding over and over with another stopper.
             deleteMe = true;
         } else {
             // Non-players will make it go again.
