@@ -1,0 +1,7 @@
+tip Get the package to the goal
+
+arenaY 300 600
+
+player 200 450
+package 50 275
+goal 800 450

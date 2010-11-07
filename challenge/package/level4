@@ -1,0 +1,23 @@
+tip Bounce off the walls to get through tight passages.
+
+player   250 125
+package  -10 100
+
+obsticle 050 300   
+obsticle 100 300
+obsticle 150 300
+obsticle 200 300   
+obsticle 250 300
+obsticle 350 300
+obsticle 300 300
+
+obsticle 375 350  
+obsticle 375 400  
+obsticle 350 450  
+obsticle 300 450  
+
+
+arenaX 3 550
+arenaY 10 650
+
+goal     325 370

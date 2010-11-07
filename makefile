@@ -1,4 +1,4 @@
-
+ 
 # NOTE:
 # LDFLAGS are flags sent to the linker.
 # CFLAGS are sent to the C compiler.
@@ -13,7 +13,7 @@ else
 endif
 
  
-CC = g++
+CC = g++ 
 
 CFLAGS  += -Wall 
 

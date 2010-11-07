@@ -41,23 +41,23 @@ void Package::draw()
         glTranslatef( s.x(), s.y(), 0 );
         glColor3f( 1, 1, 1 );
 
-        std::ofstream out("debug.txt");
+        const int N_VERTS = 4;
 
-        out << "Before circle1." << std::endl;
-        std::vector<float> circle1( 25 * 2 );
-        out << "After circle1." << std::endl;
+        std::vector<float> circle1( N_VERTS*2 + 2 );
+
+        // TODO: The fallowing just plain doesn't work. A circle is supposed to
+        // be drawn, but instead... just run the code as-is to see. Either the
+        // bug is in Draw.h's draw::circle or draw::draw. To remove the bug,
+        // call draw_shape.h's draw_circle instead. However, i am migrating to
+        // Draw.h, so the bug stays until Draw.h is bug free.
 
         // Static initialization of loop.
         auto end1 = draw::circle ( 
-            circle1.begin(), circle1.end(), 
+            circle1.begin(), circle1.size(), 
             RADIUS_TO_START
         );
 
-        out << "After draw::circle" << std::endl;
-
-        draw::draw( circle1.data(), end1-circle1.begin(), GL_LINE_STRIP );
-        out << "After draw." << std::endl;
-
+        draw::draw( circle1.data(), N_VERTS, GL_LINE_STRIP );
 
         glEnable( GL_TEXTURE_2D );
         glLoadIdentity();
