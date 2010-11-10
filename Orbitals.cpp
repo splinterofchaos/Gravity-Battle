@@ -12,7 +12,7 @@ unsigned int Orbital::gravityLine         = 0;
 bool         Orbital::velocityArrow       = false;
 bool         Orbital::accelerationArrow   = false;
 
-Player*  Orbital::target  = 0;
+Orbital::WeakPlayerPtr  Orbital::target;
 Player2* Orbital::target2 = 0;
 
 Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& vel )
@@ -42,7 +42,8 @@ CircleActor::State Orbital::on_off_screen( State state )
 
 Orbital::vector_type Orbital::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale );
+
+    return magnitude( r, target.lock()->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale );
 }
 
 CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed )
@@ -50,7 +51,8 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
     if( !isMovable )
         return state;
 
-    if( isActive && target )
+    SharedPlayerPtr target;
+    if( isActive && ( target = Orbital::target.lock() ) )
     {
         // Orbit the target.
         vector_type r = target->s - state.s;
@@ -117,6 +119,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
         glLoadIdentity();
 
+        SharedPlayerPtr target = Orbital::target.lock();
         if( extra && target && isMovable )
         {
             if( gravityLine ) 
@@ -298,7 +301,7 @@ CircleActor::State Twister::on_off_screen( State state )
 
 Twister::vector_type Twister::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() / (r*r) ) * Arena::scale;
+    return magnitude( r, target.lock()->mass() / (r*r) ) * Arena::scale;
 }
 
 void Twister::move( int dt )
@@ -347,7 +350,7 @@ Stopper::Stopper( const vector_type& pos, const vector_type& v )
 
 Stopper::vector_type Stopper::acceleration( const vector_type& r )
 {
-    return magnitude( r, target->mass() * (1.0f/220.0f) / magnitude(r) ) * Arena::scale;
+    return magnitude( r, target.lock()->mass() * (1.0f/220.0f) / magnitude(r) ) * Arena::scale;
 }
 
 int Stopper::score_value()
@@ -417,7 +420,7 @@ void Stopper::collide_with( CircleActor& collider )
         isMovable = false;
     } else {
         // If collider is player (only type with radius==25), die.
-        if( &collider == Orbital::target || &collider == Orbital::target2 ) {
+        if( &collider == Orbital::target.lock().get() || &collider == Orbital::target2 ) {
             deleteMe = true;
         } else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) && (this > &collider) ) {
             deleteMe = true;

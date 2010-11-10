@@ -21,6 +21,8 @@ CircleActor::State MenuOrbital::integrate( State state, int dt, value_type maxSp
     stateTime  += float(dt) / 800;
     stateAngle += float(dt) / 1000;
 
+    Orbital::SharedPlayerPtr target = Orbital::target.lock();
+
     value_type magnitude = cos( stateTime * 3 );
     value_type amplitude = 4000 / target->mass();
 

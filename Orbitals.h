@@ -1,14 +1,23 @@
 
 #pragma once
 
-#ifdef _WIN32
-    #include <Windows.h>
-#endif
-
 #include "CircleActor.h"
 #include "Texture.h"
 
 #include "Player.h"
+
+#ifdef _WIN32
+    #include <Windows.h>
+#endif
+
+// include shared ptr.
+#if defined( __GNUC__ )
+    // tr1/memory is required to include tr1/shared_ptr.h... Dunno why.
+    #include <tr1/memory> 
+    //#include <tr1/weak_ptr.h>
+#elif defined( __MSVC__ )
+    #error "Insert whatever you have to to use shared_ptr here!"
+#endif
 
 class Orbital : public CircleActor
 {
@@ -20,8 +29,11 @@ class Orbital : public CircleActor
     static const int ACTIVATION_DELAY = 2000;
     static const float BOUNCINESS = 0.8;
 
+    typedef std::tr1::weak_ptr<Player>   WeakPlayerPtr;
+    typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;
+
     static Texture  image;
-    static Player*  target;
+    static WeakPlayerPtr  target;
     static Player2* target2;
 
     static unsigned int predictionLength;
