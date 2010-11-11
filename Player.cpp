@@ -6,8 +6,8 @@
 Texture Player::shield;
 Texture Player::body;
 
-Player * Player::original = 0;
-Player2* Player::copy = 0;
+Player::WeakPlayerPtr Player::original;
+Player::WeakPlayerPtr Player::copy;
 
 Player::Player( const Player::vector_type& position )
     : CircleActor( position ), isVisible( true )
@@ -100,7 +100,8 @@ void Player::draw()
 
         glLoadIdentity();
 
-        if( this==original && copy ) {
+        SharedPlayerPtr copy = Player::copy.lock();
+        if( this==original.lock().get() && copy ) {
             vector_type connectingLine[] = { s, copy->s };
             c = ( c + copy->color() ) / 2;
 
@@ -125,7 +126,7 @@ int Player::score_value()
 
 Player::value_type Player::radius() const 
 {
-    return RADIUS / (1 + 0.5*!!copy) * Arena::scale;
+    return RADIUS / (1 + 0.5*!copy.expired()) * Arena::scale;
 }
 
 Player::value_type Player::mass() const
@@ -136,7 +137,7 @@ Player::value_type Player::mass() const
     else
         g = 18;
 
-    if( copy )
+    if( !copy.expired() )
         return g / 2;
     else
         return g;
@@ -147,6 +148,7 @@ void Player::collide_with( CircleActor& collider )
     if( collider.isDeadly ) {
         deleteMe = true;
 
+        SharedPlayerPtr copy = Player::copy.lock();
         if( copy )
             copy->collide_with( *this );
     } else {
@@ -193,6 +195,7 @@ void Player2::collide_with( CircleActor& collider )
         deleteMe = true;
 
         // One can't survive without the other.
+        SharedPlayerPtr original = Player::original.lock();
         if( !original->deleteMe )
             original->collide_with( *this );
     }

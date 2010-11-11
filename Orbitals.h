@@ -12,9 +12,7 @@
 
 // include shared ptr.
 #if defined( __GNUC__ )
-    // tr1/memory is required to include tr1/shared_ptr.h... Dunno why.
-    #include <tr1/memory> 
-    //#include <tr1/weak_ptr.h>
+    #include <memory> 
 #elif defined( __MSVC__ )
     #error "Insert whatever you have to to use shared_ptr here!"
 #endif
@@ -33,8 +31,8 @@ class Orbital : public CircleActor
     typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;
 
     static Texture  image;
-    static WeakPlayerPtr  target;
-    static Player2* target2;
+    static WeakPlayerPtr target;
+    static WeakPlayerPtr target2;
 
     static unsigned int predictionLength;
     static unsigned int predictionPrecision;

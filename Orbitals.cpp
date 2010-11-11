@@ -12,8 +12,8 @@ unsigned int Orbital::gravityLine         = 0;
 bool         Orbital::velocityArrow       = false;
 bool         Orbital::accelerationArrow   = false;
 
-Orbital::WeakPlayerPtr  Orbital::target;
-Player2* Orbital::target2 = 0;
+Orbital::WeakPlayerPtr Orbital::target;
+Orbital::WeakPlayerPtr Orbital::target2;
 
 Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& vel )
     : CircleActor( pos )
@@ -58,7 +58,8 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
         vector_type r = target->s - state.s;
         state.a = acceleration( r );
 
-        if( target2 )
+        SharedPlayerPtr target2;
+        if( target2 = Orbital::target2.lock() )
             state.a += acceleration( target2->s - state.s );
     }
     else
@@ -119,7 +120,8 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
         glLoadIdentity();
 
-        SharedPlayerPtr target = Orbital::target.lock();
+        SharedPlayerPtr target  = Orbital::target.lock();
+        SharedPlayerPtr target2 = Orbital::target2.lock();
         if( extra && target && isMovable )
         {
             if( gravityLine ) 
@@ -420,7 +422,7 @@ void Stopper::collide_with( CircleActor& collider )
         isMovable = false;
     } else {
         // If collider is player (only type with radius==25), die.
-        if( &collider == Orbital::target.lock().get() || &collider == Orbital::target2 ) {
+        if( &collider == Orbital::target.lock().get() || &collider == Orbital::target2.lock().get() ) {
             deleteMe = true;
         } else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) && (this > &collider) ) {
             deleteMe = true;

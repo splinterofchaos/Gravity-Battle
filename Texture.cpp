@@ -77,7 +77,7 @@ void Texture::load( const std::string& filaname )
 void Texture::reset()
 {
     Ref ref = get_ref();
-    if( ref != -1u && --registery[ ref ].refCount == 0 ) {
+    if( ref != -1u && --registery[ ref ].refCount <= 0 ) {
         glDeleteTextures( 1, &registery[ ref ].glHandle );
     }
 }

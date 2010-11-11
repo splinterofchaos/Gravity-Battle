@@ -53,11 +53,11 @@ bool motionBlur = false;
 typedef void(*GameLogic)(int dt );
 GameLogic gameLogic;
 
-typedef std::shared_ptr< CircleActor > CActorPtr;
+typedef std::tr1::shared_ptr< CircleActor > CActorPtr;
 typedef std::vector< CActorPtr > CActors;
 CActors cActors;
 
-typedef Particle* ParticlePtr;
+typedef std::shared_ptr<Particle> ParticlePtr;
 typedef std::vector< ParticlePtr > Particles;
 Particles particles;
 
@@ -156,23 +156,23 @@ void update_screen()
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
     if( gameLogic != dual_mode ) {
-        Player* player = new Player( Actor::vector_type(x,y) );
-        cActors.push_back( CActorPtr( player ) );
+        CActorPtr player(  new Player( Actor::vector_type(x,y) ) );
+        cActors.push_back( player );
 
-        Orbital::target = player;
-        Player::original = player;
-        Player::copy = 0;
+        Orbital::target = std::tr1::static_pointer_cast<Player>( player );
+        Player::original = Orbital::target;
     } else {
-        Player* player = new Player( Actor::vector_type(x-50,y) );
-        cActors.push_back( CActorPtr( player ) );
-        Orbital::target = player;
+        CActorPtr player(  new Player( Actor::vector_type(x-50,y) ) );
+        cActors.push_back( player );
+        Orbital::target = std::tr1::static_pointer_cast<Player>( player );
 
-        Player2* player2 = new Player2( Actor::vector_type(x+50,y) );
+        CActorPtr player2(  new Player2( Actor::vector_type(x+50,y) ) );
         cActors.push_back( CActorPtr( player2 ) );
-        Orbital::target2 = player2;
+        Orbital::target2 = std::tr1::static_pointer_cast<Player>( player2 );
+ 
 
-        Player::copy = player2;
-        Player2::original = player;
+        Player::copy = Orbital::target2;
+        Player2::original = Orbital::target;
     }
 }
 
@@ -220,17 +220,18 @@ T* spawn()
     return spawn<T>( x, y );
 }
 
+#include <fstream>
 void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale, const Color& c )
 {
     typedef Actor::vector_type V;
 
     scale = random( 0.75f, scale );
 
-    ParticlePtr particle = new Particle ( 
+    Particle* particle = new Particle ( 
 		pos, v, 0, 1, scale, c
     );
 
-    particles.push_back( particle );
+    particles.push_back( ParticlePtr(particle) );
 }
 
 bool is_off_screen( ParticlePtr p )
@@ -250,14 +251,12 @@ bool delete_me( CActorPtr& actor )
             spawn_particle( actor->s, actor->v/6, actor->radius()/4.5, actor->color() );
 
         // Add to score if player is alive.
-        if( Orbital::target )
+        if( !Orbital::target.expired() )
             scoreVal += actor->score_value();
 
         // If this player's what just died...
-        if( actor.get() == Orbital::target ) 
+        if( actor.get() == Orbital::target.lock().get() ) 
         {
-            Orbital::target = 0;
-
             timePlayerDied = gameTime;
 
             int version;
@@ -294,6 +293,8 @@ void reset( GameLogic logic = 0 )
     Arena::maxX = SCREEN_WIDTH-3;
     Arena::maxY = SCREEN_HEIGHT-3;
 
+    Player::SharedPlayerPtr target = Orbital::target.lock();
+
     if( logic && logic != gameLogic ) {
         gameLogic = logic;
 
@@ -302,8 +303,8 @@ void reset( GameLogic logic = 0 )
         // Before clearing the actors, make them explode.
         for( size_t i=0; i < cActors.size(); i++ )
             cActors[i]->deleteMe = true;
-        if( Orbital::target )
-            Orbital::target->deleteMe = false;
+        if( target )
+            target->deleteMe = false;
         for_each( cActors.begin(), cActors.end(), delete_me );
     } else {
         // Normal resets clear the screen.
@@ -311,10 +312,8 @@ void reset( GameLogic logic = 0 )
     }
 
     Actor::vector_type playerPos( 350, 300 );
-    if( Orbital::target )
-        playerPos = Orbital::target->s;
-
-    Orbital::target2 = 0;
+    if( target )
+        playerPos = target->s;
 
     cActors.clear();
 
@@ -390,7 +389,7 @@ void arcade_mode( int dt )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
     // If the player is alive...
-    if( Orbital::target ) 
+    if( Orbital::target.lock() ) 
     {
         scoreIncWait = gameTime + SCORE_DELAY;
 
@@ -426,7 +425,7 @@ void dual_mode( int dt )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
     // If the player is alive and SCORE_DELAY seconds have passed...
-    if( Orbital::target ) 
+    if( !Orbital::target.expired() ) 
     {
         scoreIncWait = gameTime + SCORE_DELAY;
 
@@ -461,7 +460,9 @@ void package_delivery( int dt )
     static std::string tip = "";
     static int time;
 
-    if( cActors.size() == 1 && Orbital::target ) 
+    Orbital::SharedPlayerPtr target = Orbital::target.lock();
+
+    if( cActors.size() == 1 && target ) 
     {
         time = 0;
 
@@ -492,7 +493,7 @@ void package_delivery( int dt )
                     level >> x >> y;
 
                     if( val == "player" ) 
-                        Orbital::target->s = Actor::vector_type( x, y );
+                        target->s = Actor::vector_type( x, y );
                     else if( val == "package" )
                         mostRecent = package = spawn<Package>( x, y );
                     else if( val == "obsticle" )
@@ -527,7 +528,7 @@ void package_delivery( int dt )
         font->draw( tip, Arena::minX + (Arena::maxX-Arena::minX)/4, 100 );
 
     // If player won the level...
-    if( Orbital::target && package && package->reachedGoal ) {
+    if( target && package && package->reachedGoal ) {
         std::stringstream filename;
         filename << "challenge/package-times/level" << packageLevel << ".txt";
 
