@@ -177,7 +177,7 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
 }
 
 template< typename T >
-T* spawn( Actor::value_type x, Actor::value_type y )
+std::tr1::weak_ptr<T> spawn( Actor::value_type x, Actor::value_type y )
 {
     float speed = random( .15f, .40f );
     float angle = random_angle();
@@ -185,17 +185,17 @@ T* spawn( Actor::value_type x, Actor::value_type y )
     float vx = std::cos(angle) * speed;
     float vy = std::sin(angle) * speed;
 
-    T* newActor = new T(
-        Actor::vector_type(x,y), Actor::vector_type(vx,vy) 
+    std::tr1::shared_ptr<T> newActor ( 
+        new T( Actor::vector_type(x,y), Actor::vector_type(vx,vy) )
     );
 
-    cActors.push_back( CActorPtr( newActor ) );
+    cActors.push_back( newActor );
 
     return newActor;
 }
 
 template< typename T >
-T* spawn()
+std::tr1::weak_ptr<T> spawn()
 {
     int x, y;
 
@@ -455,12 +455,15 @@ void dual_mode( int dt )
 
 void package_delivery( int dt )
 {
-    static Package* package = 0;
+    static std::tr1::weak_ptr<Package> weakPackage;
     static bool started = false;
     static std::string tip = "";
     static int time;
 
     Orbital::SharedPlayerPtr target = Orbital::target.lock();
+
+    // Will get reinitialized if loading new level.
+    std::tr1::shared_ptr<Package> package = weakPackage.lock();
 
     if( cActors.size() == 1 && target ) 
     {
@@ -475,11 +478,10 @@ void package_delivery( int dt )
 
         if( level ) 
         {
-            static CircleActor* mostRecent;
-
             started = false;
             tip = "";
-            Package::goal = 0;
+            // TODO: Delete me. But may be needed still.
+            //Package::goal = 0;
 
             while( level >> val ) 
             {
@@ -495,11 +497,11 @@ void package_delivery( int dt )
                     if( val == "player" ) 
                         target->s = Actor::vector_type( x, y );
                     else if( val == "package" )
-                        mostRecent = package = spawn<Package>( x, y );
+                        package = spawn<Package>( x, y ).lock();
                     else if( val == "obsticle" )
                         spawn<Obsticle>( x, y );
                     else if( val == "goal" )
-                        Package::goal = spawn<Goal>( x, y );
+                        Package::goal = spawn<Goal>( x, y ).lock();
                     else if( val == "arenaX" ) {
                         Arena::minX = x; Arena::maxX = y;
                     } else if( val == "arenaY" ) {
@@ -516,7 +518,7 @@ void package_delivery( int dt )
         }
     }
 
-    if( !started && package->started ) {
+    if( !started && package && package->started ) {
         started = true;
     }
 
@@ -552,6 +554,9 @@ void package_delivery( int dt )
         packageLevel++;
         reset();
     }
+
+    // Keep the static pointer up-to-date.
+    weakPackage = package;
 }
 
 void challenge( int dt )

@@ -3,7 +3,7 @@
 
 #include "draw_shape.h"
 
-Goal* Package::goal = 0;
+Package::WeakGoalPtr Package::goal;
 
 const float Obsticle::SIZE = 15;
 const float Goal::SIZE = 23;
@@ -19,6 +19,7 @@ Package::Package( const vector_type& pos, const vector_type& v )
 
 void Package::move( int dt )
 {
+    std::tr1::shared_ptr<Player> target = Orbital::target.lock();
     if( !started && target && 
         magnitude(target->s-s) < RADIUS_TO_START+target->radius() ) 
     {
@@ -51,7 +52,7 @@ Color Package::color()
 
 void Package::collide_with( CircleActor& collider )
 {
-    if( &collider == goal ) {
+    if( &collider == goal.lock().get() ) {
         isMovable = false;
         reachedGoal = true;
     } else {
