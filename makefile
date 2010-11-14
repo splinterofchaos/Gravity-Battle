@@ -13,7 +13,7 @@ else
 endif
 
  
-CC = g++
+CC = g++ -g
 
 CFLAGS  += -Wall 
 

@@ -57,9 +57,13 @@ typedef std::tr1::shared_ptr< CircleActor > CActorPtr;
 typedef std::vector< CActorPtr > CActors;
 CActors cActors;
 
-typedef std::shared_ptr<Particle> ParticlePtr;
+typedef std::tr1::shared_ptr<Particle> ParticlePtr;
 typedef std::vector< ParticlePtr > Particles;
 Particles particles;
+
+typedef std::tr1::weak_ptr<Actor> ActorPtr;
+typedef std::vector<ActorPtr> Actors;
+Actors actors;
 
 std::shared_ptr<BitmapFont> font;
 
@@ -174,6 +178,10 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
         Player::copy = Orbital::target2;
         Player2::original = Orbital::target;
     }
+
+    actors.push_back( Orbital::target.lock() );
+    if( gameLogic == dual_mode )
+        actors.push_back( Orbital::target2.lock() );
 }
 
 template< typename T >
@@ -190,6 +198,7 @@ std::tr1::weak_ptr<T> spawn( Actor::value_type x, Actor::value_type y )
     );
 
     cActors.push_back( newActor );
+    actors.push_back(  newActor );
 
     return newActor;
 }
@@ -227,11 +236,14 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
 
     scale = random( 0.75f, scale );
 
-    Particle* particle = new Particle ( 
-		pos, v, 0, 1, scale, c
+    ParticlePtr particle ( 
+        new Particle ( 
+            pos, v, 0, 1, scale, c
+        )
     );
 
-    particles.push_back( ParticlePtr(particle) );
+    particles.push_back( particle );
+    actors.push_back(    particle );
 }
 
 bool is_off_screen( ParticlePtr p )
@@ -241,6 +253,11 @@ bool is_off_screen( ParticlePtr p )
 }
 
 float scoreVal = 0;
+
+bool is_null( Actors::value_type a )
+{
+    return a.expired();
+}
 
 bool delete_me( CActorPtr& actor )
 {
@@ -711,15 +728,12 @@ int main( int argc, char** argv )
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
-        for_each ( 
-            particles.begin(), particles.end(), 
-            std::mem_fn( &Actor::draw ) 
-        );
-
-        for_each ( 
-            cActors.begin(), cActors.end(), 
-            std::mem_fn( &Actor::draw ) 
-        );
+        // Draw everything.
+        for( auto it=actors.begin(); it < actors.end() ; it++ ) {
+            auto lock = it->lock();
+            if( lock )
+                lock->draw();
+        }
 
         float boarder[] = {
             Arena::minX, Arena::minY,
@@ -752,6 +766,13 @@ int main( int argc, char** argv )
                 particles.begin(), particles.end(), is_off_screen
             ), 
             particles.end() 
+        );
+
+        actors.erase (
+            remove_if (
+                actors.begin(), actors.end(), is_null
+            ),
+            actors.end()
         );
 
         static int lastUpdate = gameTime;
