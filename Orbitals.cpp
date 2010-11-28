@@ -105,125 +105,127 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
     };
 
     Color c = color() * activationProgress;
-
-    glEnable( GL_TEXTURE_2D );
-
     glColor4f( c.r(), c.g(), c.b(), c.a() );
 
     glBindTexture( GL_TEXTURE_2D, image.handle() );
 
-        draw::draw( verts, 4, image.handle(), texCoords );
+    draw::draw( verts, 4, image.handle(), texCoords );
 
-        glLoadIdentity();
+    glLoadIdentity();
 
-        SharedPlayerPtr target  = Orbital::target.lock();
-        SharedPlayerPtr target2 = Orbital::target2.lock();
-        if( extra && target && isMovable )
+    SharedPlayerPtr target  = Orbital::target.lock();
+    SharedPlayerPtr target2 = Orbital::target2.lock();
+    if( extra && target && isMovable )
+    {
+        if( gravityLine ) 
         {
-            if( gravityLine ) 
+            vector_type accelerationLine[] = {
+                target->s,
+                s,
+                target2? target2->s : target->s
+            };
+
+            draw::draw( &accelerationLine[0][0], 3, image.handle(), texCoords,
+                        GL_LINE_STRIP );
+
+        }
+
+        const unsigned int NUM_PREDICTIONS = predictionLength;
+        unsigned int actualPredictions = 0;
+        Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
+        Color           pathColors[NUM_PREDICTIONS];
+
+        State p; // prediction
+
+        p.s = s; p.v = v;
+        pathOfOrbit[0] = p.s;
+
+        for( size_t i=1; i < NUM_PREDICTIONS; i++, actualPredictions++ ) 
+        {
+            for( size_t j=0; j < predictionPrecision; j++ )
             {
-                vector_type accelerationLine[] = {
-                    target->s,
-                    s,
-                    target2? target2->s : target->s
-                };
+                p = integrate( p, 4 );
 
-                draw::draw( &accelerationLine[0][0], 3, image.handle(), texCoords, GL_LINE_STRIP );
+                vector_type r = target->s - p.s;
+                vector_type r2 = vector_type(0,0);
 
-            }
-
-            const unsigned int NUM_PREDICTIONS = predictionLength;
-            unsigned int actualPredictions = 0;
-            Vector<float,2> pathOfOrbit[NUM_PREDICTIONS];
-            Color           pathColors[NUM_PREDICTIONS];
-
-            State p; // prediction
-
-            p.s = s; p.v = v;
-            pathOfOrbit[0] = p.s;
-
-            for( size_t i=1; i < NUM_PREDICTIONS; i++, actualPredictions++ ) 
-            {
-                for( size_t j=0; j < predictionPrecision; j++ )
+                if( true ) 
                 {
-                    p = integrate( p, 4 );
+                    // Combined radii.
+                    float combRad = target->radius() + radius();
 
-                    vector_type r = target->s - p.s;
-                    vector_type r2 = vector_type(0,0);
-
-                    if( true ) 
+                    if( magnitude(r) < combRad || 
+                        (target2 && magnitude(r2) < combRad) )
                     {
-                        if( magnitude(r) < target->radius() + radius() || 
-                            (target2 && magnitude(r2) < target->radius() + radius()) ) 
-                        {
-                            i = NUM_PREDICTIONS;
-                            actualPredictions--;
-                            break;
-                        } 
-                    }
-
-                    if( true ) {
-                        p = on_off_screen( p );
-                    }
+                        // Exit both inner and outer loops.
+                        i = NUM_PREDICTIONS;
+                        actualPredictions--;
+                        break;
+                    } 
                 }
 
-                pathOfOrbit[i] = p.s;
-                if( false ) {
-                    pathColors[i] = c * magnitude(p.v) * 4;
-                } else {
-                    pathColors[i] = c * (float(NUM_PREDICTIONS-i)/NUM_PREDICTIONS) * 4;
-                    pathColors[i].a( 0.7 );
+                if( true ) {
+                    p = on_off_screen( p );
                 }
-            } // For( i = (0,NUM_PREDICTIONS] )
-
-            glDisable( GL_TEXTURE_2D );
-            glEnableClientState( GL_COLOR_ARRAY );
-                glColorPointer( 4, GL_FLOAT, 0, pathColors );
-                draw::draw( &pathOfOrbit[0][0], actualPredictions, GL_LINES );
-            glDisableClientState( GL_COLOR_ARRAY );
-
-
-            if( velocityArrow ) {
-                const float LENGTH_MULT = 300;
-                const float WIDTH_MULT  = 20;
-                vector_type velocityLine[] = {
-                    s,
-                    s + magnitude( v, magnitude(v*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
-                    s + magnitude( v, magnitude(v*LENGTH_MULT) ),
-                    s + magnitude( v, magnitude(v*LENGTH_MULT) )*(4.0/5) - clockwise_tangent(v)*WIDTH_MULT,
-                    velocityLine[ 1 ]
-                };
-                // Draw arrow over this.
-                glTranslatef( 0, 0, 1 );
-
-                Color c = color() / 1.5;
-                glColor4f( c.r(), c.g(), c.b(), 0.5 );
-
-                draw::draw( &velocityLine[0][0], 4, GL_POLYGON );
-
-                glLoadIdentity();
             }
 
-			if( accelerationArrow ) {
-                const float LENGTH_MULT = 220000;
-                const float WIDTH_MULT  = 20000;
-                vector_type velocityLine[] = {
-                    s,
-                    s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(a)*WIDTH_MULT,
-                    s + magnitude( a, magnitude(a*LENGTH_MULT) ),
-                    s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) - clockwise_tangent(a)*WIDTH_MULT
-                };
-                // Draw arrow over this.
-                glTranslatef( 0, 0, 1 );
+            pathOfOrbit[i] = p.s;
+            if( false ) {
+                pathColors[i] = c * magnitude(p.v) * 4;
+            } else {
+                pathColors[i] = 
+                    c * (float(NUM_PREDICTIONS-i)/NUM_PREDICTIONS) * 4;
+                pathColors[i].a( 0.7 );
+            }
+        } // For( i = (0,NUM_PREDICTIONS] )
 
-                Color c = color() * 4;
-                glColor4f( c.r(), c.g(), c.b(), 0.5 );
+        glDisable( GL_TEXTURE_2D );
+        glEnableClientState( GL_COLOR_ARRAY );
+        glColorPointer( 4, GL_FLOAT, 0, pathColors );
+        draw::draw( &pathOfOrbit[0][0], actualPredictions, GL_LINES );
+        glDisableClientState( GL_COLOR_ARRAY );
 
-                draw::draw( &velocityLine[0][0], 4, GL_LINE_LOOP );
 
-                glLoadIdentity();
-			}
-        } // if target
+        if( velocityArrow ) {
+            const float LENGTH_MULT = 300;
+            const float WIDTH_MULT  = 20;
+            vector_type velocityLine[] = {
+                s,
+                s + magnitude( v, magnitude(v*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
+                s + magnitude( v, magnitude(v*LENGTH_MULT) ),
+                velocityLine[1] - clockwise_tangent(v)*WIDTH_MULT*2
+            };
+            // Draw arrow over this.
+            glTranslatef( 0, 0, 1 );
+
+            Color c = color() / 1.5;
+            glColor4f( c.r(), c.g(), c.b(), 0.5 );
+
+            draw::draw( &velocityLine[0][0], 4, GL_POLYGON );
+
+            glLoadIdentity();
+        }
+
+        if( accelerationArrow ) {
+            const float LENGTH_MULT = 220000;
+            const float WIDTH_MULT  = 20000;
+            vector_type accelerationLine[] = {
+                s,
+                s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(a)*WIDTH_MULT,
+                s + magnitude( a, magnitude(a*LENGTH_MULT) ),
+                accelerationLine[1] - clockwise_tangent(a)*WIDTH_MULT*2
+            };
+            // Draw arrow over this.
+            glTranslatef( 0, 0, 1 );
+
+            Color c = color() * 4;
+            glColor4f( c.r(), c.g(), c.b(), 0.5 );
+
+            draw::draw( &accelerationLine[0][0], 4, GL_LINE_LOOP );
+
+            glLoadIdentity();
+        }
+    } // if target
 
 }
 
@@ -231,8 +233,8 @@ void Orbital::draw()
 {
     float verts[] = { 
         -radius(), -radius(),
-         radius(), -radius(),
-         radius(),  radius(),        
+        radius(), -radius(),
+        radius(),  radius(),        
         -radius(),  radius(),
     };
 
@@ -266,8 +268,8 @@ void Orbital::collide_with( CircleActor& collider )
     deleteMe = true;;
 }
 
-Twister::Twister( const Orbital::vector_type& pos, const Orbital::vector_type& v )
-    : Orbital( pos, v )
+    Twister::Twister( const Orbital::vector_type& pos, const Orbital::vector_type& v )
+: Orbital( pos, v )
 {
     angleAcc = 0;
     angleVel = random( 0.1f, 0.9f );
@@ -307,8 +309,8 @@ void Twister::draw()
 {
     float verts[] = { 
         -radius(), -radius()/2,
-         radius(), -radius()/2,
-         radius(),  radius()/2,        
+        radius(), -radius()/2,
+        radius(),  radius()/2,        
         -radius(),  radius()/2,
     };
 
@@ -327,8 +329,8 @@ int Twister::score_value()
     return 6;
 }
 
-Stopper::Stopper( const vector_type& pos, const vector_type& v )
-    : Orbital( pos, v )
+    Stopper::Stopper( const vector_type& pos, const vector_type& v )
+: Orbital( pos, v )
 {
     std::fill_n( timesOfCollisions, N_COLLISIONS_PER_SEC, 101 );
 }

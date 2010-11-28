@@ -38,7 +38,6 @@ void Package::draw()
     Orbital::draw();
 
     if( !started ) {
-        glDisable( GL_TEXTURE_2D );
         glTranslatef( s.x(), s.y(), 0 );
         glColor3f( 1, 1, 1 );
 
@@ -58,9 +57,10 @@ void Package::draw()
             RADIUS_TO_START
         );
 
-        draw::draw( circle1.data(), N_VERTS, GL_LINE_STRIP );
-
+        glDisable( GL_TEXTURE_2D );
+            draw::draw( circle1.data(), N_VERTS, GL_LINE_STRIP );
         glEnable( GL_TEXTURE_2D );
+
         glLoadIdentity();
     }
 }

@@ -74,16 +74,10 @@ void Player::draw()
         0, 1
     };
 
-    glEnable( GL_TEXTURE_2D );
-    glDisable( GL_DEPTH_TEST );
-
     Color c = color();
     glColor3f( c.r(), c.g(), c.b() );
 
-    // Transparency used for drawing body on to of shield.
-    glEnable( GL_BLEND );
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
+    // Shield MUST be drawn before body. Body overwrites shield.
     draw::draw( shieldVerts, 4, shield.handle(), texCoords );
     draw::draw( bodyVerts,   4, body.handle(),   texCoords );
 
@@ -92,19 +86,16 @@ void Player::draw()
     SharedPlayerPtr copy = Player::copy.lock();
     if( this==original.lock().get() && copy ) {
         vector_type connectingLine[] = { s, copy->s };
-        c = ( c + copy->color() ) / 2;
 
+        c = ( c + copy->color() ) / 2;
         glColor3f( c.r(), c.g(), c.b() );
 
-        // This draws a line, but the texture makes it more
-        // faint.
+        // This draws a line, but the texture makes it more faint.
         draw::draw (
             &connectingLine[0][0], 2, 
             body.handle(), texCoords, GL_LINES 
         );
     }
-
-    glEnable( GL_DEPTH_TEST );
 
     glLoadIdentity();
 }
