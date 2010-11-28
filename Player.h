@@ -20,8 +20,11 @@ class Player : public CircleActor
     static const float RADIUS = 25;
 
   public:
-    static Player*  original; // A pointer to self.
-    static Player2* copy;
+    typedef std::tr1::weak_ptr<Player>   WeakPlayerPtr;
+    typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;
+
+    static WeakPlayerPtr original; // A pointer to self.
+    static WeakPlayerPtr copy;
 
     static Texture shield;
     static Texture body;

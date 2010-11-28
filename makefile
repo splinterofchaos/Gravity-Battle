@@ -4,11 +4,11 @@
 # CFLAGS are sent to the C compiler.
 
 ifeq "$(OS)" "Windows_NT"
-	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lSDL_ttf -lopengl32 -lgdi32
+	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lopengl32 -lgdi32
 	OUT     = run.exe
 else
 	# Linux
-	LDFLAGS = -lGL -lX11 -lSDL -lSDL_ttf
+	LDFLAGS = -lGL -lX11 -lSDL 
 	OUT     = run
 endif
 
