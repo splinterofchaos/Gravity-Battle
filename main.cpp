@@ -21,6 +21,8 @@
 
 #include "Config.h"
 
+#include "Draw.h"
+
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 
@@ -729,14 +731,7 @@ int main( int argc, char** argv )
         };
 
         glColor3f( 1, 1, 1 );
-        glDisable( GL_TEXTURE_2D );
-        glEnableClientState( GL_VERTEX_ARRAY );
-        {
-            glVertexPointer( 2, GL_FLOAT, 0, boarder );
-            glDrawArrays( GL_LINE_LOOP, 0, 4 );
-        }
-        glDisableClientState( GL_VERTEX_ARRAY );
-        glEnable( GL_TEXTURE_2D );
+        draw::draw( boarder, 4, GL_LINE_LOOP );
         
         glLoadIdentity();
 
