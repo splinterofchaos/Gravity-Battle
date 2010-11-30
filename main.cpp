@@ -4,6 +4,7 @@
     #include <ctime>
 #endif
 
+// Local includes.
 #include "Actor.h"
 #include "Player.h"
 #include "Orbitals.h"
@@ -23,50 +24,54 @@
 
 #include "Draw.h"
 
+// 3rd party includes.
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 
+// std::includes.
 #include <algorithm> // For for_each().
 #include <functional> // For mem_fun_ptr.
 #include <fstream>    // For debugging.
 
 #include <sstream> // For int -> string conversions.
 
-// GLOBALS //
 int spawnDelay;
 int spawnWait;
 int gameTime;
 
-int particleRatio = 200; // How many particles to create compared to CircleActor::mass.
+// How many particles to create proportionate to CircleActor::mass.
+int particleRatio = 200; 
 
+// Used for high score consistency. Increment when a change may effect scoring
+// in any way--pretty much any game rule change at all.
 const int VERSION = 8;
 
-// SDL used milliseconds.
+// SDL uses milliseconds so i will too.
 const int SECOND = 1000;
-
-const int SCORE_DELAY = SECOND;
-int scoreIncWait;
 
 std::ofstream loggit( "log" );
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
 
 bool motionBlur = false;
 
+// Every frame, all actors are drawn and moved. This points to what decides how
+// they are created, how the player scores, and highscore generation. 
 typedef void(*GameLogic)(int dt );
 GameLogic gameLogic;
 
 typedef std::tr1::shared_ptr< CircleActor > CActorPtr;
-typedef std::vector< CActorPtr > CActors;
-CActors cActors;
+typedef std::tr1::shared_ptr<Particle>      ParticlePtr;
+typedef std::tr1::weak_ptr<Actor>           ActorPtr;
 
-typedef std::tr1::shared_ptr<Particle> ParticlePtr;
+typedef std::vector< CActorPtr >   CActors;
 typedef std::vector< ParticlePtr > Particles;
+typedef std::vector<ActorPtr>      Actors;
+
+CActors   cActors;
 Particles particles;
+Actors    actors;
 
-typedef std::tr1::weak_ptr<Actor> ActorPtr;
-typedef std::vector<ActorPtr> Actors;
-Actors actors;
-
+// Used everywhere to write text on the screen.
 std::shared_ptr<BitmapFont> font;
 
 int timePlayerDied = -1000;
@@ -76,7 +81,7 @@ bool playerHasMoved = false;
 // True if the player has pressed spacebar.
 bool playerIncreasedGravity = false;
 
-const Config defaultConfig; // Used when no unsure about any config option.
+const Config defaultConfig; // Used when unsure about any config option.
 Config fileConfig( "config.txt" ), config = fileConfig;
 
 int packageLevel = 0;
@@ -344,8 +349,6 @@ void reset( GameLogic logic = 0 )
     timePlayerDied = 0;
 
     scoreVal = 0;
-
-    scoreIncWait = gameTime + SCORE_DELAY;
 }
 
 enum Spawns { ORBITAL, STOPPER, TWISTER, STICKER, N_SPAWN_SLOTS=9 };
@@ -410,8 +413,6 @@ void arcade_mode( int dt )
     // If the player is alive...
     if( Orbital::target.lock() ) 
     {
-        scoreIncWait = gameTime + SCORE_DELAY;
-
         float sum = 0;
         unsigned int nEnemies = 0;
         for( size_t i=1; i < cActors.size(); i++ )
@@ -443,11 +444,8 @@ void dual_mode( int dt )
     if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
-    // If the player is alive and SCORE_DELAY seconds have passed...
     if( !Orbital::target.expired() ) 
     {
-        scoreIncWait = gameTime + SCORE_DELAY;
-
         float sum = 0;
         unsigned int nEnemies = 0;
         for( size_t i=1; i < cActors.size(); i++ )
