@@ -267,11 +267,6 @@ bool is_off_screen( ParticlePtr p )
 
 float scoreVal = 0;
 
-bool is_null( Actors::value_type a )
-{
-    return a.expired();
-}
-
 std::ofstream& operator << ( std::ofstream& of, HighScoreTable& table )
 {
     typedef HighScoreTable::reverse_iterator Rit;
@@ -349,7 +344,8 @@ bool delete_me( CActorPtr& actor )
     {
         // Explode.
         for( int i=0; i < actor->mass()*particleRatio; i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/4.5, actor->color() );
+            spawn_particle( actor->s, actor->v/6, actor->radius()/4.5,
+                            actor->color() );
 
         // Add to score if player is alive.
         if( !Orbital::target.expired() )
@@ -419,14 +415,6 @@ void random_spawn( int difficulty )
     int newSpawn = 0;
 
     newSpawn = spawnSlots[ random(0, difficulty) ];
-
-    /* Commented out because setting newSpawn to N_SPAWN_SLOTS just makes more
-     * bugs. */
-    //if( recentSpawns[0] == recentSpawns[1] &&
-    //    recentSpawns[0] == newSpawn )
-    //    // Try just once more. Trying until the new spawn is truly new seems to
-    //    // cause an infinite loop.
-    //    newSpawn = N_SPAWN_SLOTS;
     
     recentSpawns[1] = recentSpawns[0];
     if( newSpawn != N_SPAWN_SLOTS )
@@ -786,11 +774,20 @@ int main( int argc, char** argv )
         );
 
         // Draw everything.
+        // Since some of actors' elements may be expired at this point, clean
+        // it out. The other lists are cleaned later.
+        actors.erase (
+            remove_if (
+                actors.begin(), actors.end(), 
+                [](ActorPtr& p) { return p.expired(); }
+            ),
+            actors.end()
+        );
+
         for( auto it=actors.begin(); it < actors.end() ; it++ ) {
-            auto lock = it->lock();
-            if( lock )
-                lock->draw();
+            it->lock()->draw();
         }
+
 
         float boarder[] = {
             Arena::minX, Arena::minY,
@@ -816,13 +813,6 @@ int main( int argc, char** argv )
                 particles.begin(), particles.end(), is_off_screen
             ), 
             particles.end() 
-        );
-
-        actors.erase (
-            remove_if (
-                actors.begin(), actors.end(), is_null
-            ),
-            actors.end()
         );
 
         static int lastUpdate = gameTime;
