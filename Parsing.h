@@ -2,18 +2,18 @@
 #include <sstream>
 #include <string>
 
-// All these functions take references and modify their arguments. This is for
-// internal use only.
+// I am using the convention of passing pointers instead of
+// non-const references here.
 
 // Remove prefixed or postfixed whitespace; return true if there was any.
-bool rm_whitespace_pref( std::string& str );
-bool rm_whitespace_post( std::string& str );
+bool rm_whitespace_pref( std::string* str );
+bool rm_whitespace_post( std::string* str );
 
 // rm_whitespace(s) is equivalent to rm_whitespace_pref(rm_whitespace_post(s))
-void rm_whitespace( std::string& str ); 
+void rm_whitespace( std::string* str ); 
 
 // Removes everything after a # character.
-void rm_comments( std::string& str );
+void rm_comments( std::string* str );
 
 struct Variable
 {

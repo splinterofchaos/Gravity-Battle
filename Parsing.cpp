@@ -4,33 +4,33 @@
 #include <cctype>
 #include <sstream> // for sstream.
 
-bool rm_whitespace_pref( std::string& str )
+bool rm_whitespace_pref( std::string* str )
 {
-    std::string::size_type beginPos = str.find_first_not_of( " " );
+    std::string::size_type beginPos = str->find_first_not_of( " " );
     if( beginPos )
-        str.erase( 0, beginPos );
+        str->erase( 0, beginPos );
     return beginPos;
 }
 
-bool rm_whitespace_post( std::string& str )
+bool rm_whitespace_post( std::string* str )
 {
-    std::string::size_type endPos = str.find_last_not_of( " " );
+    std::string::size_type endPos = str->find_last_not_of( " " );
     if( endPos != std::string::npos )
-        str.erase( endPos, str.size() );
+        str->erase( endPos, str->size() );
     return endPos != std::string::npos;
 }
 
-void rm_whitespace( std::string& str )
+void rm_whitespace( std::string* str )
 {
     rm_whitespace_pref( str );
     rm_whitespace_post( str );
 }
 
-void rm_comments( std::string& str )
+void rm_comments( std::string* str )
 {
-    std::string::size_type commentStart = str.find('#');
+    std::string::size_type commentStart = str->find('#');
     if( commentStart != std::string::npos )
-        str.erase( commentStart, str.size() );
+        str->erase( commentStart, str->size() );
 }
 
 Variable evaluate_expression( const std::string& str )

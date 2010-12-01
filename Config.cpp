@@ -40,8 +40,8 @@ bool Config::reload( const std::string& filename )
     std::string line;
     while( std::getline( cfg, line ) ) 
     {
-        rm_comments( line );
-        rm_whitespace( line );
+        rm_comments(   &line );
+        rm_whitespace( &line );
 
         if( line.size() == 0 )
             continue;
