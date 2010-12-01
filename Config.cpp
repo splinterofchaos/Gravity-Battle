@@ -1,7 +1,7 @@
 
 #include "Config.h"
+#include "Parsing.h"
 
-#include <sstream>
 #include <fstream>
 #include <algorithm>
 
@@ -40,39 +40,41 @@ bool Config::reload( const std::string& filename )
     std::string line;
     while( std::getline( cfg, line ) ) 
     {
-        if( line.size() == 0 || line[0] == '#' )
+        rm_comments( line );
+        rm_whitespace( line );
+
+        if( line.size() == 0 )
             continue;
 
-        std::string::iterator it = std::find( line.begin(), line.end(), ' ' );
-        std::string valName( line.begin(), it );
-        it += 3;
+        // Check for errors in var after checking it against the possible
+        // choices. That way, bad expression and unknown handle errors 
+        // can be handled together.
+        Variable var = evaluate_expression( line );
 
         float value;
+        sstream_convert( var.value, &value );
 
-        if( it < line.end() ) {
-            std::stringstream ss;
-            ss << std::string( it, line.end() );
-            ss >> value;
-        } else {
-            continue;
-        }
-
-        if( valName == "particleRatio" )
+        if( var.handle == "particleRatio" )
             particleRatio = value;
-        else if( valName == "predictionLength" )
+        else if( var.handle == "predictionLength" )
             predictionLength = value;
-        else if( valName == "predictionPrecision" )
+        else if( var.handle == "predictionPrecision" )
             predictionPrecision = value;
-        else if( valName == "gravityLine" )
+        else if( var.handle == "gravityLine" )
             gravityLine = value;
-        else if( valName == "velocityArrow" )
+        else if( var.handle == "velocityArrow" )
             velocityArrow = value;
-        else if( valName == "motionBlur" )
+        else if( var.handle == "motionBlur" )
             motionBlur = value;
-        else if( valName == "scale" )
+        else if( var.handle == "scale" )
             scale = value;
-		else if( valName == "accelerationArrow" )
+		else if( var.handle == "accelerationArrow" )
 			accelerationArrow = value;
+        else {
+            static std::ofstream out( "config.error" );
+            out << "Unknown valName (" << var.handle << "}\n";
+            out << "Line: \"" << line << "\"\n\n";
+        }
     }
 
     return cfg;

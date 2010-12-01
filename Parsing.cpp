@@ -2,7 +2,7 @@
 #include "Parsing.h"
 
 #include <cctype>
-#include <iostream> // for sstream.
+#include <sstream> // for sstream.
 
 bool rm_whitespace_pref( std::string& str )
 {
@@ -22,20 +22,26 @@ bool rm_whitespace_post( std::string& str )
 
 void rm_whitespace( std::string& str )
 {
-    rm_whitespace_post( rm_whitespace_pref( str ) );
+    rm_whitespace_pref( str );
+    rm_whitespace_post( str );
 }
 
-Variable evaluate_expression( std::string& str )
+void rm_comments( std::string& str )
+{
+    std::string::size_type commentStart = str.find('#');
+    if( commentStart != std::string::npos )
+        str.erase( commentStart, str.size() );
+}
+
+Variable evaluate_expression( const std::string& str )
 {
     Variable ret;
     
-    rm_whitespace( str );
-
     // Lazy, but easy solution.
-    std::ostringstream ss( str );
+    std::stringstream ss( str );
     char c;
 
-    ss << ret.handle << c << ret.value;
+    ss >> ret.handle >> c >> ret.value;
 
     // I could check that handle and value are proper alphanum, or that nothing
     // is after the expression besides comments, i don't think it's currently
