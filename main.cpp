@@ -93,6 +93,9 @@ const int SCREEN_HEIGHT = 700;
 
 typedef std::map< float, std::string > HighScoreTable;
 unsigned int nHighScores;
+const size_t HANDLE_SIZE = 4;
+std::string highScoreHandle( HANDLE_SIZE, 'x' );
+bool newHighScore = false;
 
 // FUNCTIONS //
 void arcade_mode( int dt );
@@ -326,17 +329,21 @@ void update_high_score()
     }
 
     // Add the new score to the table.
-    const size_t HANDLE_SIZE = 4;
-    std::string handle( HANDLE_SIZE, ' ' );
     for( size_t i=0; i < HANDLE_SIZE; i++ )
-        handle[i] = std::rand()%('z'-'a') + 'a';
+        highScoreHandle[i] = std::rand()%('z'-'a') + 'a';
 
-    oldTable[ scoreVal ] = handle;
+    oldTable[ scoreVal ] = highScoreHandle;
+
+    newHighScore = true;
 
     // The table is sorted by score, so table.begin() must be the
     // lowest. But only remove if the table's too large.
-    while( oldTable.size() > nHighScores )
+    while( oldTable.size() > nHighScores ) {
+        if( oldTable.begin()->second == highScoreHandle )
+            newHighScore = false;
+
         oldTable.erase( oldTable.begin() );
+    }
 
     std::ofstream out( "Highscores.txt" );
     out << "version = " << VERSION << '\n';
@@ -372,6 +379,8 @@ void reset( GameLogic logic = 0 )
     Arena::maxY = SCREEN_HEIGHT-3;
 
     Player::SharedPlayerPtr target = Orbital::target.lock();
+
+    newHighScore = false;
 
     if( logic && logic != gameLogic ) {
         gameLogic = logic;
@@ -461,8 +470,16 @@ void arcade_mode( int dt )
 {
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
+    if( timePlayerDied && gameTime < timePlayerDied + 15*SECOND ) {
         font->draw( "Press r to reset, m for menu", 600, 200 );
+
+        if( newHighScore ) {
+            std::stringstream ss;
+            ss << "Your score has been saved to Highscores.txt ";
+            ss << "under the name " << highScoreHandle << '.';
+            font->draw( ss.str(), 470, 250 );
+        }
+    }
 
     // If the player is alive...
     if( Orbital::target.lock() ) 
