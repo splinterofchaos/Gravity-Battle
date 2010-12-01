@@ -21,6 +21,7 @@
 #include "Font.h"
 
 #include "Config.h"
+#include "Parsing.h" // For high score table generation.
 
 #include "Draw.h"
 
@@ -88,6 +89,8 @@ int packageLevel = 0;
 
 const int SCREEN_WIDTH  = 900;
 const int SCREEN_HEIGHT = 700;
+
+typedef std::map< std::string, std::string > HighScoreTable;
 
 // FUNCTIONS //
 void arcade_mode( int dt );
@@ -266,6 +269,14 @@ bool is_null( Actors::value_type a )
     return a.expired();
 }
 
+std::ofstream& operator << ( std::ofstream& of, HighScoreTable& table )
+{
+    for( HighScoreTable::iterator it=table.begin(); it!=table.end(); it++ )
+        of << it->first << " = " << it->second << '\n';
+
+    return of;
+}
+
 bool delete_me( CActorPtr& actor )
 {
     if( actor->deleteMe )
@@ -283,28 +294,70 @@ bool delete_me( CActorPtr& actor )
         {
             timePlayerDied = gameTime;
 
+            // Update the high score.
             int version;
             int score;
 
+            // Get the old scores first.
+            HighScoreTable oldTable;
+            float lowestOldScore = 9999999999;
+            std::string lowestHandle(9,' ');
             {
                 std::ifstream scoresIn( "Highscore.txt" );
-                scoresIn >> version >> score;
+                if( scoresIn ) 
+                {
+                    std::string line;
+                    while( std::getline( scoresIn, line ) )
+                    {
+                        // Comments and whitespace shouldn't appear in this
+                        // file, but they shouldn't break this code either.
+                        rm_comments(   &line );
+                        rm_whitespace( &line );
+                        if( line.size() == 0 )
+                            continue;
+
+                        Variable var = evaluate_expression( line );
+                        oldTable[ var.handle ] = var.value;
+
+                        if( to_float(var.value) < lowestOldScore ) {
+                            lowestOldScore = to_float(var.value);
+                            lowestHandle = var.handle;
+                        }
+                    }
+                }
+                
             }
 
-            if( version != VERSION ) {
-                // Preserve the old high scores in another file.
-                std::string filename = "Highscore (" + to_string(version) + ").txt";
+            // Don't clobber out-dated high scores, back them up.
+            if( !oldTable.size() || oldTable["version"][0]-'0' == VERSION ) {
+                std::string filename = "Highscores (" + oldTable["version"] + ").txt";
                 std::ofstream out( filename );
-                out << version << ' ' << score;
 
-                // Make sure the new score, no matter how low, is put into
-                // Highscore.txt.
-                score = -100; 
+                out << "version = " << oldTable["version"] << '\n';
+                out << oldTable;
             }
 
-            if( scoreVal > score ) {
-                std::ofstream scoresOut( "Highscore.txt" );
-                scoresOut << VERSION << ' ' << scoreVal;
+            // version is no longer needed in the table. It will be added
+            // directly to the file.
+            HighScoreTable::iterator v = oldTable.find("version");
+            if( v != oldTable.end() )
+                oldTable.erase( v );
+
+            if( oldTable.size() < 9 || scoreVal > lowestOldScore ) {
+                HighScoreTable::iterator lh = oldTable.find(lowestHandle);
+                // We know this exists. Skip the comparison with the end.
+                oldTable.erase( lh );
+
+                const size_t HANDLE_SIZE = 9;
+                std::string handle( HANDLE_SIZE, ' ' );
+                for( size_t i=0; i < HANDLE_SIZE; i++ )
+                    handle[i] = std::rand()%('z'-'a') + 'a';
+
+                oldTable[ handle ] = to_string(scoreVal);
+
+                std::ofstream out( "Highscore.txt" );
+                out << "version = " << to_string(VERSION) << '\n';
+                out << oldTable;
             }
         }
     }
