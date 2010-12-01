@@ -112,14 +112,14 @@ float to_float( std::string str )
 
 void configure( const Config& cfg )
 {
-    particleRatio                = cfg.particleRatio;
-    Orbital::predictionLength    = cfg.predictionLength;
-    Orbital::predictionPrecision = cfg.predictionPrecision;
-    Orbital::gravityLine         = cfg.gravityLine;
-    Orbital::velocityArrow       = cfg.velocityArrow;
-    Orbital::accelerationArrow   = cfg.accelerationArrow;
-    motionBlur                   = cfg.motionBlur;
-    Arena::scale                 = cfg.scale;
+    cfg.get( "particleRatio",       &particleRatio );
+    cfg.get( "predictionLength",    &Orbital::predictionLength );
+    cfg.get( "predictionPrecision", &Orbital::predictionPrecision );
+    cfg.get( "gravityLine",         &Orbital::gravityLine );
+    cfg.get( "velocityArrow",       &Orbital::velocityArrow );
+    cfg.get( "accelerationArrow",   &Orbital::accelerationArrow );
+    cfg.get( "motionBlur",          &motionBlur );
+    cfg.get( "scale",               &Arena::scale );
 }
 
 
@@ -671,27 +671,30 @@ int main( int argc, char** argv )
                     // Do this in case the user updated prediction- Length or Precision.
                     fileConfig.reload( "config.txt" );
 
-                    if( ! config.predictionLength )
-                        if( fileConfig.predictionLength )
-                            config.predictionLength = fileConfig.predictionLength;
+                    bool tmp;
+                    if( config.get("predictionLength",&tmp), ! tmp )
+                        if( fileConfig.get("predictionLength",&tmp), tmp )
+                            config["predictionLength"] = fileConfig["predictionLength"];
                         else
-                            config.predictionLength = defaultConfig.predictionLength;
+                            config["predictionLength"] = defaultConfig["predictionLength"];
                     else
-                        config.predictionLength = 0;
+                        config["predictionLength"] = "0";
 
-                    config.predictionPrecision = fileConfig.predictionPrecision;
+                    config["predictionPrecision"] = fileConfig["predictionPrecision"];
 
                     break;
 
-                  case '2': config.gravityLine   = ! config.gravityLine;   break;
-                  case '3': config.velocityArrow = ! config.velocityArrow; break;
-                  case '4': config.accelerationArrow = ! config.accelerationArrow; break;
+#define FLIP_VALUE(handle) config[#handle] = (config[#handle]=="1")? "0" : "1"
+                  case '2': FLIP_VALUE(gravityLine);   break;
+                  case '3': FLIP_VALUE(velocityArrow); break;
+                  case '4': FLIP_VALUE(accelerationArrow); break;
 
-                  case '5': 
-                            config.motionBlur = ! config.motionBlur;                         
-                            if( config.motionBlur )
+                  case '5': FLIP_VALUE(motionBlur);                         
+                            if( config["motionBlur"]=="1" )
                                 glAccum( GL_LOAD, 1 );
                   break;
+
+#undef FLIP_VALUE
 
                   case 'w': case 'a': case 's': case 'd': playerHasMoved = true; break;
                   case SDLK_SPACE: playerIncreasedGravity = true;

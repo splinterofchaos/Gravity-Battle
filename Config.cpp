@@ -7,17 +7,18 @@
 
 void Config::set_defaults()
 {
-    particleRatio = 200;
-    predictionLength = 100;
-    predictionPrecision = 10;
+    vars["particleRatio"] = "200";
 
-    gravityLine = true;
-    velocityArrow = false;
-	accelerationArrow = false;
+    vars["predictionLength"]    = "100";
+    vars["predictionPrecision"] =  "10";
 
-    motionBlur = false;
+    vars["gravityLine"]       = "1";
+    vars["velocityArrow"]     = "0";
+	vars["accelerationArrow"] = "0";
 
-    scale = 1;
+    vars["motionBlur"] = "0";
+
+    vars["scale"] = "1";
 }
 
 Config::Config()
@@ -51,26 +52,9 @@ bool Config::reload( const std::string& filename )
         // can be handled together.
         Variable var = evaluate_expression( line );
 
-        float value;
-        sstream_convert( var.value, &value );
-
-        if( var.handle == "particleRatio" )
-            particleRatio = value;
-        else if( var.handle == "predictionLength" )
-            predictionLength = value;
-        else if( var.handle == "predictionPrecision" )
-            predictionPrecision = value;
-        else if( var.handle == "gravityLine" )
-            gravityLine = value;
-        else if( var.handle == "velocityArrow" )
-            velocityArrow = value;
-        else if( var.handle == "motionBlur" )
-            motionBlur = value;
-        else if( var.handle == "scale" )
-            scale = value;
-		else if( var.handle == "accelerationArrow" )
-			accelerationArrow = value;
-        else {
+        if( vars.find(var.handle) != vars.end() ) {
+            vars[ var.handle ] = var.value;
+        } else {
             static std::ofstream out( "config.error" );
             out << "Unknown valName (" << var.handle << "}\n";
             out << "Line: \"" << line << "\"\n\n";
@@ -78,4 +62,19 @@ bool Config::reload( const std::string& filename )
     }
 
     return cfg;
+}
+
+std::string& Config::operator [] ( const std::string& handle )
+{
+    return vars[ handle ];
+}
+
+const std::string& Config::operator [] ( const std::string& handle ) const
+{
+    static const std::string ZILCH = "";
+    Vars::const_iterator it = vars.find( handle );
+    if( it != vars.end() )
+        return it->second;
+    else
+        return ZILCH;
 }
