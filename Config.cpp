@@ -19,6 +19,8 @@ void Config::set_defaults()
     vars["motionBlur"] = "0";
 
     vars["scale"] = "1";
+
+    vars["nHighScores"] = "10";
 }
 
 Config::Config()

@@ -30,9 +30,10 @@
 #include <SDL/SDL_opengl.h>
 
 // std::includes.
-#include <algorithm> // For for_each().
+#include <algorithm>  // For for_each().
 #include <functional> // For mem_fun_ptr.
 #include <fstream>    // For debugging.
+#include <cstdio>     // For file renaming, used by highscore generation.
 
 #include <sstream> // For int -> string conversions.
 
@@ -45,7 +46,7 @@ int particleRatio = 200;
 
 // Used for high score consistency. Increment when a change may effect scoring
 // in any way--pretty much any game rule change at all.
-const int VERSION = 8;
+const int VERSION = 9;
 
 // SDL uses milliseconds so i will too.
 const int SECOND = 1000;
@@ -90,7 +91,8 @@ int packageLevel = 0;
 const int SCREEN_WIDTH  = 900;
 const int SCREEN_HEIGHT = 700;
 
-typedef std::map< std::string, std::string > HighScoreTable;
+typedef std::map< float, std::string > HighScoreTable;
+unsigned int nHighScores;
 
 // FUNCTIONS //
 void arcade_mode( int dt );
@@ -123,6 +125,7 @@ void configure( const Config& cfg )
     cfg.get( "accelerationArrow",   &Orbital::accelerationArrow );
     cfg.get( "motionBlur",          &motionBlur );
     cfg.get( "scale",               &Arena::scale );
+    cfg.get( "nHighScores",         &nHighScores );
 }
 
 
@@ -271,10 +274,73 @@ bool is_null( Actors::value_type a )
 
 std::ofstream& operator << ( std::ofstream& of, HighScoreTable& table )
 {
-    for( HighScoreTable::iterator it=table.begin(); it!=table.end(); it++ )
-        of << it->first << " = " << it->second << '\n';
+    typedef HighScoreTable::reverse_iterator Rit;
+    for( Rit it=table.rbegin(); it!=table.rend(); it++ )
+        of << it->second << " = " << it->first << '\n';
 
     return of;
+}
+
+void update_high_score()
+{
+    // Get the old scores first.
+    HighScoreTable oldTable;
+    std::string oldVersion = "1";
+    {
+        std::ifstream scoresIn( "Highscores.txt" );
+        if( scoresIn ) 
+        {
+            std::string line;
+            while( std::getline( scoresIn, line ) )
+            {
+                // Comments and whitespace shouldn't appear in this
+                // file, but they shouldn't break this code either.
+                rm_comments(   &line );
+                rm_whitespace( &line );
+                if( line.size() == 0 )
+                    continue;
+
+                Variable var = evaluate_expression( line );
+
+                if( var.handle == "version" ) {
+                    oldVersion = var.value;
+                    continue;
+                }
+
+                float key;
+                sstream_convert( var.value, &key );
+                oldTable[ key ] = var.handle;
+            }
+        }
+
+    }
+
+    // Don't clobber out-dated high scores, back them up.
+    int oldVersionInt;
+    sstream_convert( oldVersion, &oldVersionInt );
+    if( oldTable.size() && oldVersionInt != VERSION ) {
+        std::stringstream filename;
+        filename << "Highscores (" << oldVersion << ").txt";
+        std::rename( "Highscores.txt", filename.str().c_str() );
+        oldTable.clear();
+    }
+
+    // Add the new score to the table.
+    const size_t HANDLE_SIZE = 4;
+    std::string handle( HANDLE_SIZE, ' ' );
+    for( size_t i=0; i < HANDLE_SIZE; i++ )
+        handle[i] = std::rand()%('z'-'a') + 'a';
+
+    oldTable[ scoreVal ] = handle;
+
+    // The table is sorted by score, so table.begin() must be the
+    // lowest. But only remove if the table's too large.
+    while( oldTable.size() > nHighScores )
+        oldTable.erase( oldTable.begin() );
+
+    std::ofstream out( "Highscores.txt" );
+    out << "version = " << VERSION << '\n';
+    out << oldTable;
 }
 
 bool delete_me( CActorPtr& actor )
@@ -289,76 +355,11 @@ bool delete_me( CActorPtr& actor )
         if( !Orbital::target.expired() )
             scoreVal += actor->score_value();
 
-        // If this player's what just died...
+        // If the player's what just died...
         if( actor.get() == Orbital::target.lock().get() ) 
         {
             timePlayerDied = gameTime;
-
-            // Update the high score.
-            int version;
-            int score;
-
-            // Get the old scores first.
-            HighScoreTable oldTable;
-            float lowestOldScore = 9999999999;
-            std::string lowestHandle(9,' ');
-            {
-                std::ifstream scoresIn( "Highscore.txt" );
-                if( scoresIn ) 
-                {
-                    std::string line;
-                    while( std::getline( scoresIn, line ) )
-                    {
-                        // Comments and whitespace shouldn't appear in this
-                        // file, but they shouldn't break this code either.
-                        rm_comments(   &line );
-                        rm_whitespace( &line );
-                        if( line.size() == 0 )
-                            continue;
-
-                        Variable var = evaluate_expression( line );
-                        oldTable[ var.handle ] = var.value;
-
-                        if( to_float(var.value) < lowestOldScore ) {
-                            lowestOldScore = to_float(var.value);
-                            lowestHandle = var.handle;
-                        }
-                    }
-                }
-                
-            }
-
-            // Don't clobber out-dated high scores, back them up.
-            if( !oldTable.size() || oldTable["version"][0]-'0' == VERSION ) {
-                std::string filename = "Highscores (" + oldTable["version"] + ").txt";
-                std::ofstream out( filename );
-
-                out << "version = " << oldTable["version"] << '\n';
-                out << oldTable;
-            }
-
-            // version is no longer needed in the table. It will be added
-            // directly to the file.
-            HighScoreTable::iterator v = oldTable.find("version");
-            if( v != oldTable.end() )
-                oldTable.erase( v );
-
-            if( oldTable.size() < 9 || scoreVal > lowestOldScore ) {
-                HighScoreTable::iterator lh = oldTable.find(lowestHandle);
-                // We know this exists. Skip the comparison with the end.
-                oldTable.erase( lh );
-
-                const size_t HANDLE_SIZE = 9;
-                std::string handle( HANDLE_SIZE, ' ' );
-                for( size_t i=0; i < HANDLE_SIZE; i++ )
-                    handle[i] = std::rand()%('z'-'a') + 'a';
-
-                oldTable[ handle ] = to_string(scoreVal);
-
-                std::ofstream out( "Highscore.txt" );
-                out << "version = " << to_string(VERSION) << '\n';
-                out << oldTable;
-            }
+            update_high_score();
         }
     }
     return actor->deleteMe;

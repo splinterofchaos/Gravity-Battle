@@ -14,10 +14,12 @@ bool rm_whitespace_pref( std::string* str )
 
 bool rm_whitespace_post( std::string* str )
 {
-    std::string::size_type endPos = str->find_last_not_of( " " );
-    if( endPos != std::string::npos )
-        str->erase( endPos, str->size() );
-    return endPos != std::string::npos;
+    std::string::size_type lastAlpha = str->find_last_not_of( " " );
+    if( lastAlpha != std::string::npos ) {
+        str->erase( lastAlpha+1, str->size() );
+        return true;
+    }
+    return false;
 }
 
 void rm_whitespace( std::string* str )
