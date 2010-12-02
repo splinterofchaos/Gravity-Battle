@@ -1,10 +1,6 @@
 
 #include "Vector.h"
 
-#ifdef _WIN32
-    #include <Windows.h>
-#endif
-
 #include <iterator>
 #include <GL/gl.h>
 

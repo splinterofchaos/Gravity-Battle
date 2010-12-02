@@ -1,9 +1,4 @@
 
-#ifdef _WIN32
-    #include <Windows.h>
-    #include <ctime>
-#endif
-
 // Local includes.
 #include "Actor.h"
 #include "Player.h"
@@ -470,7 +465,7 @@ void arcade_mode( int dt )
     }
 
     // If the player is alive...
-    if( Orbital::target.lock() ) 
+    if( !Orbital::target.expired() ) 
     {
         float sum = 0;
         unsigned int nEnemies = 0;

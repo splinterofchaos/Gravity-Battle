@@ -1,8 +1,4 @@
 
-#ifdef _WIN32
-    #include <Windows.h>
-#endif
-
 #include "Actor.h"
 #include "Color.h"
 

@@ -6,10 +6,6 @@
 
 #include "Player.h"
 
-#ifdef _WIN32
-    #include <Windows.h>
-#endif
-
 // include shared ptr.
 #if defined( __GNUC__ )
     #include <memory> 
