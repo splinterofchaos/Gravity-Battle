@@ -246,7 +246,8 @@ std::tr1::weak_ptr<T> spawn()
 }
 
 #include <fstream>
-void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v, float scale, const Color& c )
+void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
+                     float scale, const Color& c )
 {
     typedef Actor::vector_type V;
 
@@ -356,7 +357,8 @@ bool delete_me( CActorPtr& actor )
     {
         // Explode.
         for( int i=0; i < actor->mass()*particleRatio; i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/4.5, actor->color() );
+            spawn_particle( actor->s, actor->v/6, actor->radius()/4.5, 
+                            actor->color() );
 
         // Add to score if player is alive.
         if( !Orbital::target.expired() )
@@ -428,14 +430,6 @@ void random_spawn( int difficulty )
     int newSpawn = 0;
 
     newSpawn = spawnSlots[ random(0, difficulty) ];
-
-    /* Commented out because setting newSpawn to N_SPAWN_SLOTS just makes more
-     * bugs. */
-    //if( recentSpawns[0] == recentSpawns[1] &&
-    //    recentSpawns[0] == newSpawn )
-    //    // Try just once more. Trying until the new spawn is truly new seems to
-    //    // cause an infinite loop.
-    //    newSpawn = N_SPAWN_SLOTS;
     
     recentSpawns[1] = recentSpawns[0];
     if( newSpawn != N_SPAWN_SLOTS )
@@ -447,7 +441,7 @@ void random_spawn( int difficulty )
       case STOPPER: spawn<Stopper>(); break;
       case TWISTER: spawn<Twister>(); break;
       case STICKER: spawn<Sticker>(); break;
-      default: random_spawn( difficulty ); // This line should never be reached.
+      default: random_spawn( difficulty ); // Should never be reached.
     }
 }
 
@@ -747,19 +741,23 @@ int main( int argc, char** argv )
                   case SDLK_ESCAPE: quit = true; break;
 
                   case '1': 
-                    // Do this in case the user updated prediction- Length or Precision.
+                    // Do this in case the user updated prediction- Length or
+                    // Precision.
                     fileConfig.reload( "config.txt" );
 
                     bool tmp;
                     if( config.get("predictionLength",&tmp), ! tmp )
                         if( fileConfig.get("predictionLength",&tmp), tmp )
-                            config["predictionLength"] = fileConfig["predictionLength"];
+                            config["predictionLength"] = 
+                                fileConfig["predictionLength"];
                         else
-                            config["predictionLength"] = defaultConfig["predictionLength"];
+                            config["predictionLength"] = 
+                                defaultConfig["predictionLength"];
                     else
                         config["predictionLength"] = "0";
 
-                    config["predictionPrecision"] = fileConfig["predictionPrecision"];
+                    config["predictionPrecision"] = 
+                        fileConfig["predictionPrecision"];
 
                     break;
 
@@ -775,10 +773,11 @@ int main( int argc, char** argv )
 
 #undef FLIP_VALUE
 
-                  case 'w': case 'a': case 's': case 'd': playerHasMoved = true; break;
+                  case 'w': case 'a': case 's': case 'd': 
+                            playerHasMoved = true; break;
                   case SDLK_SPACE: playerIncreasedGravity = true;
 
-                  default:                       break;
+                  default: break;
                 }
                 break;
 
