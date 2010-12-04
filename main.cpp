@@ -288,7 +288,7 @@ std::ofstream& operator << ( std::ofstream& of, HighScoreTable& table )
 void update_high_score()
 {
     // Get the old scores first.
-    HighScoreTable oldTable;
+    HighScoreTable table;
     std::string oldVersion = "1";
     {
         std::ifstream scoresIn( "Highscores.txt" );
@@ -313,7 +313,7 @@ void update_high_score()
 
                 float key;
                 sstream_convert( var.value, &key );
-                oldTable[ key ] = var.handle;
+                table[ key ] = var.handle;
             }
         }
 
@@ -322,33 +322,33 @@ void update_high_score()
     // Don't clobber out-dated high scores, back them up.
     int oldVersionInt;
     sstream_convert( oldVersion, &oldVersionInt );
-    if( oldTable.size() && oldVersionInt != VERSION ) {
+    if( table.size() && oldVersionInt != VERSION ) {
         std::stringstream filename;
         filename << "Highscores (" << oldVersion << ").txt";
         std::rename( "Highscores.txt", filename.str().c_str() );
-        oldTable.clear();
+        table.clear();
     }
 
     // Add the new score to the table.
     for( size_t i=0; i < HANDLE_SIZE; i++ )
         highScoreHandle[i] = std::rand()%('z'-'a') + 'a';
 
-    oldTable[ scoreVal ] = highScoreHandle;
+    table[ scoreVal ] = highScoreHandle;
 
     newHighScore = true;
 
     // The table is sorted by score, so table.begin() must be the
     // lowest. But only remove if the table's too large.
-    while( oldTable.size() > nHighScores ) {
-        if( oldTable.begin()->second == highScoreHandle )
+    while( table.size() > nHighScores ) {
+        if( table.begin()->second == highScoreHandle )
             newHighScore = false;
 
-        oldTable.erase( oldTable.begin() );
+        table.erase( table.begin() );
     }
 
     std::ofstream out( "Highscores.txt" );
     out << "version = " << VERSION << '\n';
-    out << oldTable;
+    out << table;
 }
 
 bool delete_me( CActorPtr& actor )
@@ -473,6 +473,8 @@ void arcade_mode( int dt )
             ss << "under the name " << highScoreHandle << '.';
             font->draw( ss.str(), 470, 250 );
         }
+
+        
     }
 
     // If the player is alive...
