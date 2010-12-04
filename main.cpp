@@ -658,28 +658,36 @@ void menu( int dt )
         for( int i=0; i < 3; i++ )
             spawn<MenuOrbital>();
 
-    const int LINE_HEIGHT = 20;
-
-    int y = 350;
     if( ! playerHasMoved ) {
-        font->draw( "WASD to move.", 270, 350 );
+        glColor3f( 1, 1, 0 );
+
+        TextBox b( *font, 270, 350 );
+        b.writeln( "WASD to move." );
+
+        if( ! playerIncreasedGravity )
+            b.writeln( "SPACEBAR to increase gravity." );
     } else {
-        y = 350; 
-        font->draw( "Press 1 to switch on/off prediction lines.", 500, y );
-        font->draw( "Press 2 to switch on/off gravity lines.", 500, y += LINE_HEIGHT );
-        font->draw( "Press 3 to switch on/off velocity arrows.", 500, y += LINE_HEIGHT );
-        font->draw( "Press 4 to switch on/off acceleration arrows.", 500, y += LINE_HEIGHT );
-        font->draw( "Press 5 to switch on/off motion blur.", 500, y += LINE_HEIGHT );
-        font->draw( "To permanently change, edit config.txt", 500, y += 2*LINE_HEIGHT );
+        glColor3f( 0.5, 0.5, 1 );
 
+        // Use a box for config prints.
+        TextBox b( *font, 500, 350 );
+        b.writeln( "Press 1 to switch on/off prediction lines.");
+        b.writeln( "Press 2 to switch on/off gravity lines." );
+        b.writeln( "Press 3 to switch on/off velocity arrows." );
+        b.writeln( "Press 4 to switch on/off acceleration arrows." );
+        b.writeln( "Press 5 to switch on/off motion blur." );
+        b.writeln( "To permanently change, edit config.txt" );
+
+        glColor3f( 1, 0.5, 0.5 );
+
+        // Misc prints.
         font->draw( "^^ Move up here for arcade mode! ^^", 350, 50 );
-        font->draw( "Move down here for dual mode! (use WASD and arrow keys)", 350, Arena::maxY - 50 );
         font->draw( "To the left for challenge mode. >>>", 650, 300 );
+        font->draw ( 
+            "Move down here for dual mode! (use WASD and arrow keys)", 
+            350, Arena::maxY - 50 
+        );
     }
-
-    if( ! playerIncreasedGravity )
-        font->draw( "SPACEBAR to increase gravity.", 270, 350 + LINE_HEIGHT );
-
 
     // Enter arcade mode when the orbital reaches the top of the screen.
     for( size_t i=0; i < cActors.size(); i++ ) {
