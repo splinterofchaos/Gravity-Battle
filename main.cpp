@@ -21,7 +21,7 @@
 #include "Font.h"
 
 #include "Config.h"
-#include "Parsing.h" // For high score table generation.
+#include "Parsing.h" // For high score highScoreTable generation.
 
 #include "Draw.h"
 
@@ -30,10 +30,10 @@
 #include <SDL/SDL_opengl.h>
 
 // std::includes.
-#include <algorithm>  // For for_each().
-#include <functional> // For mem_fun_ptr.
-#include <fstream>    // For debugging.
-#include <cstdio>     // For file renaming, used by highscore generation.
+#include <algorithm>  // For for_each.
+#include <functional> // For mem_fun_ref   in main.
+#include <cstdio>     // For file renaming in update_high_score.
+#include <iomanip>    // For setw          in arcade_mode.
 
 #include <sstream> // For int -> string conversions.
 
@@ -92,10 +92,11 @@ const int SCREEN_WIDTH  = 900;
 const int SCREEN_HEIGHT = 700;
 
 typedef std::map< float, std::string > HighScoreTable;
-unsigned int nHighScores;
-const size_t HANDLE_SIZE = 4;
-std::string highScoreHandle( HANDLE_SIZE, 'x' );
-bool newHighScore = false;
+unsigned int   nHighScores;
+const size_t   HANDLE_SIZE  = 4;
+bool           newHighScore = false;
+std::string    highScoreHandle( HANDLE_SIZE, 'x' );
+HighScoreTable highScoreTable; 
 
 // FUNCTIONS //
 void arcade_mode( int dt );
@@ -276,10 +277,10 @@ bool is_null( Actors::value_type a )
     return a.expired();
 }
 
-std::ofstream& operator << ( std::ofstream& of, HighScoreTable& table )
+std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
 {
     typedef HighScoreTable::reverse_iterator Rit;
-    for( Rit it=table.rbegin(); it!=table.rend(); it++ )
+    for( Rit it=highScoreTable.rbegin(); it!=highScoreTable.rend(); it++ )
         of << it->second << " = " << it->first << '\n';
 
     return of;
@@ -288,10 +289,10 @@ std::ofstream& operator << ( std::ofstream& of, HighScoreTable& table )
 void update_high_score()
 {
     // Get the old scores first.
-    HighScoreTable table;
     std::string oldVersion = "1";
     {
         std::ifstream scoresIn( "Highscores.txt" );
+        highScoreTable.clear();
         if( scoresIn ) 
         {
             std::string line;
@@ -313,7 +314,7 @@ void update_high_score()
 
                 float key;
                 sstream_convert( var.value, &key );
-                table[ key ] = var.handle;
+                highScoreTable[ key ] = var.handle;
             }
         }
 
@@ -322,33 +323,33 @@ void update_high_score()
     // Don't clobber out-dated high scores, back them up.
     int oldVersionInt;
     sstream_convert( oldVersion, &oldVersionInt );
-    if( table.size() && oldVersionInt != VERSION ) {
+    if( highScoreTable.size() && oldVersionInt != VERSION ) {
         std::stringstream filename;
         filename << "Highscores (" << oldVersion << ").txt";
         std::rename( "Highscores.txt", filename.str().c_str() );
-        table.clear();
+        highScoreTable.clear();
     }
 
-    // Add the new score to the table.
+    // Add the new score to the highScoreTable.
     for( size_t i=0; i < HANDLE_SIZE; i++ )
         highScoreHandle[i] = std::rand()%('z'-'a') + 'a';
 
-    table[ scoreVal ] = highScoreHandle;
+    highScoreTable[ scoreVal ] = highScoreHandle;
 
     newHighScore = true;
 
-    // The table is sorted by score, so table.begin() must be the
-    // lowest. But only remove if the table's too large.
-    while( table.size() > nHighScores ) {
-        if( table.begin()->second == highScoreHandle )
+    // The highScoreTable is sorted by score, so highScoreTable.begin() must be the
+    // lowest. But only remove if the highScoreTable's too large.
+    while( highScoreTable.size() > nHighScores ) {
+        if( highScoreTable.begin()->second == highScoreHandle )
             newHighScore = false;
 
-        table.erase( table.begin() );
+        highScoreTable.erase( highScoreTable.begin() );
     }
 
     std::ofstream out( "Highscores.txt" );
     out << "version = " << VERSION << '\n';
-    out << table;
+    out << highScoreTable;
 }
 
 bool delete_me( CActorPtr& actor )
@@ -462,19 +463,44 @@ void standard_spawn()
 
 void arcade_mode( int dt )
 {
+    glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 15*SECOND ) {
+    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) {
+        glColor3f( 1, 1, 1 );
+
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
-        if( newHighScore ) {
-            std::stringstream ss;
-            ss << "Your score has been saved to Highscores.txt ";
-            ss << "under the name " << highScoreHandle << '.';
-            font->draw( ss.str(), 470, 250 );
-        }
+        // Draw high scores to screen.
+        TextBox b( *font, 470, 250 );
+        b.writeln( "Scores stored in Highscores.txt:" );
+        b.writeln( "" );
 
-        
+        std::stringstream ss;
+        ss.precision( 3 );
+
+        // To draw text with a gradient, keep track of these:
+        float color = 1;
+        float dcolor = ( .1 - 1 ) / highScoreTable.size();
+
+        // Assume highScoreTable is newly initialized by update_high_score. 
+        for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
+             it!=highScoreTable.rend(); it++ ) 
+        {
+            ss.str( "" );
+            ss << it->second << std::setw(15) << std::fixed << it->first;
+
+            glColor3f( color, color, 0 );
+            color += dcolor;
+
+            // Let the player know his/hew awesome score.
+            if( it->second == highScoreHandle ) {
+                glColor3f( 1, 0, 0 );
+                ss << " ** NEW HIGH SCORE";
+            }
+
+            b.writeln( ss.str() );
+        }
     }
 
     // If the player is alive...
