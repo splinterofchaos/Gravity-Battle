@@ -15,7 +15,11 @@ BitmapFont::BitmapFont()
 #else
     base = glGenLists( 256 );
     Display* display = XOpenDisplay(0);
-    XFontStruct* fontInfo = XLoadQueryFont( display, "-adobe-helvsetica-medium-r-normal--18-*-*-*-p-*-iso8859-1" );
+    XFontStruct* fontInfo = 
+        XLoadQueryFont ( 
+            display, 
+            "-adobe-helvsetica-medium-r-normal--18-*-*-*-p-*-iso8859-1" 
+        );
 
     if( ! fontInfo ) {
         fontInfo = XLoadQueryFont( display, "fixed" );
@@ -44,14 +48,25 @@ void BitmapFont::draw( const std::string& text, float x, float y )
 {
     glDisable( GL_TEXTURE_2D );
 
-    glPushAttrib(GL_LIST_BIT);                  // alert that we're about to offset the display lists with glListBase
+    // Alert that we're about to offset the display lists with glListBase
+    glPushAttrib(GL_LIST_BIT);                  
 
-    glColor3f( 1, 1, 1 ); // Must be before glRasterPos() ti taje effect,
     glRasterPos2f( x, y );
     glListBase( base );
     glCallLists( text.size(), GL_UNSIGNED_BYTE, text.c_str() );
 
     glEnable( GL_TEXTURE_2D );
 
-    glPopAttrib();                              // undoes the glPushAttrib(GL_LIST_BIT);
+    glPopAttrib();
+}
+
+TextBox::TextBox( BitmapFont& font, float x, float y )
+    : font(font), x(x), y(y), line(0)
+{
+}
+
+void TextBox::writeln( const std::string& text )
+{
+     font.draw( text, x, y );
+     y += BitmapFont::LINE_HEIGHT;
 }
