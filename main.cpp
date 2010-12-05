@@ -466,19 +466,46 @@ void arcade_mode( int dt )
         b.writeln( "Scores stored in Highscores.txt:" );
         b.writeln( "" );
 
-        std::stringstream ss;
-        ss.precision( 3 );
-
         // To draw text with a gradient, keep track of these:
         float color = 1;
-        float dcolor = ( .1 - 1 ) / highScoreTable.size();
+        float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
+
+        // Find the largest handle and score for to make nice
+        // columns for printing.
+        size_t largestHandleSize = 0;
+        size_t largestScoreSize = 0;
+        for( HighScoreTable::iterator it=highScoreTable.begin();
+             it != highScoreTable.end(); it++ )
+        {
+            if( it->second.size() > largestHandleSize )
+                largestHandleSize = it->second.size();
+
+            unsigned int nDigits = std::log10( it->first );
+            
+            if( nDigits > largestScoreSize )
+                largestScoreSize = nDigits;
+        }
+
+        // Use this to format the text.
+        std::stringstream ss;
+        ss.precision( 3 );
+        ss.fill( '.' );
+
+        const int HANDLE_WIDTH = largestHandleSize + 2;
+        const int SCORE_WIDTH  = largestScoreSize  + 5;
 
         // Assume highScoreTable is newly initialized by update_high_score. 
         for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
              it!=highScoreTable.rend(); it++ ) 
         {
             ss.str( "" );
-            ss << it->second << std::setw(15) << std::fixed << it->first;
+
+            ss << std::setw(HANDLE_WIDTH) << std::left << it->second;
+
+            // internal is the only iostream object that seems to work here.
+            // The obvious fixed << right did not work.
+            ss << std::setw(SCORE_WIDTH) << std::fixed << std::internal <<
+                it->first;
 
             glColor3f( color, color, 0 );
             color += dcolor;
