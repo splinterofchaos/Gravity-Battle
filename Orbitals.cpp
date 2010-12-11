@@ -16,7 +16,8 @@ bool         Orbital::accelerationArrow   = false;
 Orbital::WeakPlayerPtr Orbital::target;
 Orbital::WeakPlayerPtr Orbital::target2;
 
-Orbital::Orbital( const Orbital::vector_type& pos, const Orbital::vector_type& vel )
+Orbital::Orbital( const Orbital::vector_type& pos,
+                  const Orbital::vector_type& vel )
     : CircleActor( pos )
 {
     v = vel;
@@ -44,7 +45,9 @@ CircleActor::State Orbital::on_off_screen( State state )
 Orbital::vector_type Orbital::acceleration( const vector_type& r )
 {
 
-    return magnitude( r, target.lock()->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale );
+    return magnitude ( 
+        r, target.lock()->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale 
+    );
 }
 
 CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed )
@@ -92,7 +95,9 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress =  std::cos( (float)activationDelay * (3.14/ACTIVATION_DELAY) )*0.25 + 0.75;
+        activationProgress =  std::cos ( 
+            (float)activationDelay * (3.14/ACTIVATION_DELAY) 
+        ) * 0.25 + 0.75;
 
     for( int i=0; i < 8; i++ )
         verts[i] *= activationProgress;
@@ -189,12 +194,17 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
         if( velocityArrow ) {
             const float LENGTH_MULT = 300;
             const float WIDTH_MULT  = 20;
+            
+            // Vector with magnitude/direction of the head of the arrow.
+            const vector_type HEAD = magnitude( v, magnitude(v*LENGTH_MULT) );
+
             vector_type velocityLine[] = {
                 s,
-                s + magnitude( v, magnitude(v*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
-                s + magnitude( v, magnitude(v*LENGTH_MULT) ),
+                s + HEAD*(4.0/5) + clockwise_tangent(v)*WIDTH_MULT,
+                s + HEAD,
                 velocityLine[1] - clockwise_tangent(v)*WIDTH_MULT*2
             };
+
             // Draw arrow over this.
             glTranslatef( 0, 0, 1 );
 
@@ -209,10 +219,11 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
         if( accelerationArrow ) {
             const float LENGTH_MULT = 220000;
             const float WIDTH_MULT  = 20000;
+            const vector_type HEAD = magnitude( a, magnitude(a*LENGTH_MULT) );
             vector_type accelerationLine[] = {
                 s,
-                s + magnitude( a, magnitude(a*LENGTH_MULT) )*(4.0/5) + clockwise_tangent(a)*WIDTH_MULT,
-                s + magnitude( a, magnitude(a*LENGTH_MULT) ),
+                s + HEAD*(4.0/5) + clockwise_tangent(a)*WIDTH_MULT,
+                s + HEAD,
                 accelerationLine[1] - clockwise_tangent(a)*WIDTH_MULT*2
             };
             // Draw arrow over this.
@@ -268,8 +279,9 @@ void Orbital::collide_with( CircleActor& collider )
     deleteMe = true;;
 }
 
-    Twister::Twister( const Orbital::vector_type& pos, const Orbital::vector_type& v )
-: Orbital( pos, v )
+Twister::Twister( const Orbital::vector_type& pos, 
+                  const Orbital::vector_type& v )
+    : Orbital( pos, v )
 {
     angleAcc = 0;
     angleVel = random( 0.1f, 0.9f );
@@ -329,15 +341,17 @@ int Twister::score_value()
     return 6;
 }
 
-    Stopper::Stopper( const vector_type& pos, const vector_type& v )
-: Orbital( pos, v )
+Stopper::Stopper( const vector_type& pos, const vector_type& v )
+    : Orbital( pos, v )
 {
     std::fill_n( timesOfCollisions, N_COLLISIONS_PER_SEC, 101 );
 }
 
 Stopper::vector_type Stopper::acceleration( const vector_type& r )
 {
-    return magnitude( r, target.lock()->mass() * (1.0f/220.0f) / magnitude(r) ) * Arena::scale;
+    return magnitude (
+        r, target.lock()->mass() * (1.0f/220.0f) / magnitude(r) 
+    ) * Arena::scale;
 }
 
 int Stopper::score_value()
@@ -393,10 +407,8 @@ void Stopper::collide_with( CircleActor& collider )
     );
     timesOfCollisions[0] = 0;
 
-    CircleActor** thisCollider = std::find( lastColiders, lastColiders+N_LAST_COLLIDERS, &collider );
-    size_t i = thisCollider - lastColiders;
-    bool tooSoon = (thisCollider!=lastColiders+N_LAST_COLLIDERS) && timesOfCollisions[i] < 16;
-    tooSoon = true;
+    CircleActor** thisCollider = 
+        std::find( lastColiders, lastColiders+N_LAST_COLLIDERS, &collider );
 
     std::copy ( 
         lastColiders, lastColiders+N_LAST_COLLIDERS-1,
@@ -404,16 +416,26 @@ void Stopper::collide_with( CircleActor& collider )
     );
     lastColiders[0] = &collider;
 
-    if( isMovable ) {
+    if( isMovable ) 
+    {
         isMovable = false;
-    } else {
+    }
+    else
+    {
         // If collider is player (only type with radius==25), die.
-        if( &collider == Orbital::target.lock().get() || &collider == Orbital::target2.lock().get() ) {
+        if( &collider == Orbital::target.lock().get() || 
+            &collider == Orbital::target2.lock().get() ) 
+        {
             deleteMe = true;
-        } else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) && (this > &collider) ) {
+        } 
+        else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) &&
+                   (this > &collider) ) 
+        {
             // Must be colliding over and over with another stopper.
             deleteMe = true;
-        } else {
+        }
+        else 
+        {
             // Non-players will make it go again.
             isMovable = true;
 
