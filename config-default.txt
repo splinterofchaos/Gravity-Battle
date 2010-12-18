@@ -1,0 +1,43 @@
+# How many particles to spawn, proportionate to the exploder's mass.
+# It the game runs slowly after a collision, this is the variable to turn down.
+particleRatio = 150
+
+# A prediction line, showing the path enemies will fallow assuming the player
+# stands still, can be drawn to help beginners learn how to play and manipulate
+# enemies. This option is recommended as off because it creates visual
+# distractions making you less likely to notice an enemy about to hit you. Keep
+# it on until you feel comfortable without it.
+
+# How far into the future to predict. To turn the prediction line off, set this
+# to 0.  Setting it high may cause slow down or crash, but it can look pretty
+# interesting if you set it high, like 1000.
+predictionLength = 0
+
+# Lower value equals higher precision and a shorter, but smoother prediction
+# line. In physics terms: this game runs on a "fixed-time-step" meaning that
+# the physics is integrated with a constant change in time. Instead of
+# predicting every singe state the object could be in for each time-step, i
+# skip an arbitrary number of them. This is the number of skipped states.
+predictionPrecision = 10
+
+# A line can be drawn from the enemy to the player to help you understand when
+# direction the enemies are accelerating. This is recommended for intermediate
+# player who do not need the prediction line.
+gravityLine = 0
+
+# This option sets whether or not to draw an arrow representing the
+# velocities of accelerations of your enemies. 0 for off, non-zero for on.
+velocityArrow = 1
+accelerationArrow = 1
+
+# Add motion blur; 0 for off, non-zero for on. This is mostly eye candy and can
+# make it harder to play.
+motionBlur = 0
+
+# FOR TESTING PURPOSES ONLY, you may set the scale of the game. This changes
+# the size of everything on screen except text and the size of the screen.
+# Set to 1 for normal size, 0.5 for half size, 2 for double, etc.
+scale = 0.7
+
+# How many high scores should be saved.
+nHighScores = 10

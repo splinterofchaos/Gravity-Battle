@@ -1,0 +1,90 @@
+
+TOC:
+    HOW TO PLAY
+    ENEMIES
+    HIGH SCORE
+    SCORING (arcade and dual modes)
+    CHALLENGE MODE
+
+HOW TO PLAY
+
+When you first start up, you will be in the center of the screen (press WASD to
+move). If you go to the top of the screen, arcade mode will start, the bottom
+will start dual mode, and to the right is challenge mode. Nothing is to the
+left.
+
+In arcade mode, you spawn at the center of the screen, then enemies spawn so
+that they may kill you. They will orbit around you, like the earth orbits the
+sun. If they hit you, you die. If they hit each other, they die. 
+
+It may be difficult to understand how they move for beginners. Edit config.txt
+to permanently add prediction lines, or fallow the in-game instructions on the
+menu screen to temporarily enable them. Intermediate players may want to trade
+the prediction line for the gravity line. 
+
+If you have performance troubles, especially after collisions, edit config.txt
+and change the variable "particleRatio".
+
+ENEMIES
+
+The blue enemies are orbitals. The red ovals are twisters. The big grey ones are stoppers.
+
+When a stopper collides with another enemy is will enter stopped mode, and when
+it is hit again it leave stopped mode and start moving again. If the player
+collides with it while in stopped mode, it will explode, but if it's not in
+stopped mode, the player will die.
+
+HIGH SCORE
+
+High scores are kept in Highscores.txt. It is easily edited, so scores are
+based on the honor system. A randomized name is assigned to your score if it
+makes it into Highscores.txt, and all high scores will be printed when you die.
+At the time of this writing, they will remain on screen for 20 seconds. If you
+made a new high score, that score will be highlighted and you can edit
+Highscores.txt to replace the name for that score with your own. There is no
+restriction on length, but there should be no spaces in the name.
+
+SCORING (arcade and dual modes)
+
+You are rewarded mostly for keeping enemies alive. Each enemy will give a
+certain number of points per second (PPS), as well as a certain number of
+points on death. The points per second is multiplied by the number of enemies
+on screen squared. The full equation is
+    PPS = (sum of each enemy's PPS) * (number of enemies)^2
+Note that stoppers in stopped mode do not accumulate points.
+
+ ENEMY  | Per second | At death
+-------------------------------
+Stopper |    1.0     |   4
+Orbital |    0.5     |   2
+Twister |    1.5     |   6
+
+Note that stoppers are more valuable than orbitals. If you have a stopped
+stopper and an orbital on screen, sacrificing the orbital to start the stopper
+will increase your PPS.
+
+Examples:
+If there is one orbital on screen:
+    PPS = 0.5 * 1^2 = 0.5
+If there is one orbital and one twister:
+    PPS = (0.5+1.5) * 2^2 = 2*4 = 8
+
+CHALLENGE MODE
+
+As of this moment, challenge mode consists only of a package delivery
+mini-game, where you guide a package to a goal. Challenge mode is intended to
+teach the player how orbits work and how to control them. It may be difficult,
+but each level demonstrates a different technique that must be mastered and the
+lessons learned carry over to arcade and dual mode.
+
+None of the levels are impossible, but they are all challenging.
+
+You can modify the existing levels by editing any of the files in
+challenge\package\. The game will start at level0, then level1, 2, 3, and so
+on. When it reaches a number for which there is no level, currently, it will
+repeat the last level; but rest assured: if you add a higher level, it WILL be
+in the game.
+
+As of this writing, fasted times are kept, but not displayed in-game. To view
+your fastest times, look at the files in challenge\package-times\. Most levels
+can be as short as a second, but some can take over ten.
