@@ -583,9 +583,16 @@ void dual_mode( int dt )
 void package_delivery( int dt )
 {
     static std::tr1::weak_ptr<Package> weakPackage;
-    static bool started = false;
+    static bool started    = false; // Has the round started?
+    static bool scoreSaved = false; // (At end:) Was the score saved?
     static std::string tip = "";
     static int time;
+
+    // The conditions for winning are: (1) Be alive, (2) the package is alive,
+    // (3) package reached goal. Worst case scenario is the player wins, then
+    // runs into the package meaning (1) and (2) are false. We must remember if
+    // the player won, instead of just testing the conditions.
+    static bool playerWon = false; 
 
     Orbital::SharedPlayerPtr target = Orbital::target.lock();
 
@@ -594,26 +601,30 @@ void package_delivery( int dt )
 
     if( cActors.size() == 1 && target ) 
     {
-        time = 0;
+        // Initialize.
 
         std::stringstream filename;
         filename << "challenge/package/level" << packageLevel;
 
         std::ifstream level( filename.str() );
 
-        std::string val;
-
         if( level ) 
         {
-            started = false;
-            tip = "";
-            // TODO: Delete me. But may be needed still.
-            //Package::goal = 0;
+            // Construct level.
+            started    = false;
+            playerWon  = false;
+            scoreSaved = false;
+            tip  = "";
+            time = 0;
 
+            std::string val;
+
+            // Parse file.
             while( level >> val ) 
             {
                 if( val == "tip" )
                 {
+                    // Only the text after "tip" will go into the string.
                     std::getline( level, tip );
                 }
                 else
@@ -640,6 +651,7 @@ void package_delivery( int dt )
         }
         else 
         {
+            // Under increment from finishing previous level.
             packageLevel--;
             package_delivery( dt );
         }
@@ -653,33 +665,50 @@ void package_delivery( int dt )
         time += dt;
 
     // Draw hint.
-    if( tip.size() )
+    if( tip.size() ) {
+        glColor3f( 0.3, 0.8, 0.3 );
         font->draw( tip, Arena::minX + (Arena::maxX-Arena::minX)/4, 100 );
+    }
+        
+    if( target && package && package->reachedGoal )
+        playerWon = true;
 
-    // If player won the level...
-    if( target && package && package->reachedGoal ) {
-        std::stringstream filename;
-        filename << "challenge/package-times/level" << packageLevel << ".txt";
+    if( playerWon )
+    {
+        glColor3f( 0.5, 0.9, 0.7 );
+        font->draw( "Press space to advance, r to try again.", 270, 150 );
 
-        int previousTime;
+        if( ! scoreSaved ) 
         {
-            float input;
-            std::ifstream scoreIn( filename.str() );
-            if( scoreIn >> input )
-                previousTime = input * SECOND;
-            else
-                previousTime = 0;
+            std::stringstream filename;
+            filename << "challenge/package-times/level" << packageLevel << ".txt";
+
+            int previousTime;
+            {
+                float input;
+                std::ifstream scoreIn( filename.str() );
+                if( scoreIn >> input )
+                    previousTime = input * SECOND;
+                else
+                    previousTime = 0;
+            }
+
+            if( previousTime < time ) {
+                std::ofstream score( filename.str() );
+                score << float(time) / SECOND;
+            }
+
+            scoreSaved = true;
         }
 
-        if( previousTime < time ) {
-            std::ofstream score( filename.str() );
-            score << float(time) / SECOND;
+        // Advance when the player presses spacebar.
+        Uint8* keyStates = SDL_GetKeyState( 0 );
+        if( keyStates[ SDLK_SPACE ] ) {
+            time = 0;
+
+            packageLevel++;
+            reset();
         }
-
-        time = 0;
-
-        packageLevel++;
-        reset();
     }
 
     // Keep the static pointer up-to-date.
