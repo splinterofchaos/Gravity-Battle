@@ -877,10 +877,16 @@ int main( int argc, char** argv )
             // Accumulate gravities.
             for( size_t i=0; i < attractors.size(); i++ )
             {
-                SharedCActorPtr attr = attractors[i].lock();
-                for( size_t j=0; j < cActors.size(); j++ )
-                    if( attr->isActive && attr.get() != cActors[j].get() )
-                        cActors[j]->register_attractor( *attr );
+                if( SharedCActorPtr attr = attractors[i].lock() )
+                {
+                    for( size_t j=0; j < cActors.size(); j++ )
+                        if( attr->isActive && attr.get() != cActors[j].get() )
+                            cActors[j]->register_attractor( *attr );
+                }
+                else
+                {
+                    attractors.erase( attractors.begin() + i );
+                }
             }
 
 
@@ -943,14 +949,6 @@ int main( int argc, char** argv )
                 particles.begin(), particles.end(), is_off_screen
             ), 
             particles.end() 
-        );
-
-        attractors.erase (
-            remove_if (
-                attractors.begin(), attractors.end(), 
-                [](WeakCActorPtr& p) { return p.expired(); }
-            ),
-            attractors.end()
         );
 
         static int lastUpdate = gameTime;
