@@ -60,8 +60,6 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
     if( isActive )
         state.a = g;
 
-    g = vector_type( 0, 0 );
-
     return CircleActor::integrate( state, dt, maxSpeed );
 }
 
@@ -76,6 +74,8 @@ void Orbital::move( int dt )
 
     // Will call Orbital::integrate.
     CircleActor::move( dt );
+
+    g = vector_type( 0, 0 );
 }
 
 void Orbital::draw_impl( float* verts, float zRotation, bool extra )
