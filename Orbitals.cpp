@@ -59,7 +59,27 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
         return state;
 
     if( isActive )
+    {
+        g *= 0;
+
+        for( size_t i=0; i < attractors.size(); i++ )
+        {
+            std::tr1::shared_ptr<CircleActor> attr = attractors[i].lock();
+            if( attr && attr->isActive && attr.get() != this ) 
+            {
+                vector_type r = attr->s - state.s;
+                g += magnitude ( 
+                    r, attr->mass() * g_multiplier() / g_dist(r) * Arena::scale
+                );
+            }
+        }
+
         state.a = g;
+    }
+    else
+    {
+        state.a *= 0;
+    }
 
     return CircleActor::integrate( state, dt, maxSpeed );
 }
@@ -75,8 +95,6 @@ void Orbital::move( int dt )
 
     // Will call Orbital::integrate.
     CircleActor::move( dt );
-
-    g = vector_type( 0, 0 );
 }
 
 void Orbital::draw_impl( float* verts, float zRotation, bool extra )

@@ -873,19 +873,19 @@ int main( int argc, char** argv )
         for( time += frameTime; time >= DT; time -= DT ) 
         {
             // Accumulate gravities.
-            for( size_t i=0; i < Orbital::attractors.size(); i++ )
-            {
-                if( SharedCActorPtr attr = Orbital::attractors[i].lock() )
-                {
-                    for( size_t j=0; j < cActors.size(); j++ )
-                        if( attr->isActive && attr.get() != cActors[j].get() )
-                            cActors[j]->register_attractor( *attr );
-                }
-                else
-                {
-                    Orbital::attractors.erase( Orbital::attractors.begin() + i );
-                }
-            }
+            //for( size_t i=0; i < Orbital::attractors.size(); i++ )
+            //{
+            //    if( SharedCActorPtr attr = Orbital::attractors[i].lock() )
+            //    {
+            //        for( size_t j=0; j < cActors.size(); j++ )
+            //            if( attr->isActive && attr.get() != cActors[j].get() )
+            //                cActors[j]->register_attractor( *attr );
+            //    }
+            //    else
+            //    {
+            //        Orbital::attractors.erase( Orbital::attractors.begin() + i );
+            //    }
+            //}
 
 
             for_each_ptr ( 
