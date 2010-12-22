@@ -64,15 +64,8 @@ class Orbital : public CircleActor
 
     Color color();
 
-    virtual value_type g_multiplier()
-    {
-        return 1.0f / 90.0f;
-    }
-
-    virtual value_type g_dist( const vector_type& r )
-    {
-        return magnitude( r );
-    }
+    virtual value_type g_multiplier();
+    virtual value_type g_dist( const vector_type& r );
 };
 
 class Twister : public Orbital
@@ -95,15 +88,8 @@ class Twister : public Orbital
 
     Color color();
 
-    value_type g_dist( const vector_type& r )
-    {
-        return r*r;
-    }
-
-    value_type g_multiplier()
-    {
-        return 1;
-    }
+    value_type g_dist( const vector_type& r );
+    value_type g_multiplier();
 };
 
 class Stopper : public Orbital
@@ -135,10 +121,7 @@ class Stopper : public Orbital
 
     Color color();
 
-    value_type g_multiplier()
-    {
-        return 1.0f / 220.0f;
-    }
+    value_type g_multiplier();
 };
 
 struct Sticker : public Orbital

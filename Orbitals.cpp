@@ -285,6 +285,16 @@ Color Orbital::color()
     return c;
 }
 
+Orbital::value_type Orbital::g_multiplier()
+{
+    return 1.0f / 90.0f;
+}
+
+Orbital::value_type Orbital::g_dist( const vector_type& r )
+{
+    return magnitude( r );
+}
+
 void Orbital::collide_with( CircleActor& collider )
 {
     deleteMe = true;;
@@ -345,6 +355,16 @@ Color Twister::color()
     Color c = Color( 1.0f, 0.1f, 0.1f, 1.0f ) * colorIntensity;
     c.a( 1 );
     return c;
+}
+
+Twister::value_type Twister::g_dist( const vector_type& r )
+{
+    return r*r;
+}
+
+Twister::value_type Twister::g_multiplier()
+{
+    return 1;
 }
 
 int Twister::score_value()
@@ -468,6 +488,11 @@ Color Stopper::color()
     }
 
     return c;
+}
+
+Stopper::value_type Stopper::g_multiplier()
+{
+    return 1.0f / 220.0f;
 }
 
 Sticker::Sticker( const vector_type& pos, const vector_type& v )
