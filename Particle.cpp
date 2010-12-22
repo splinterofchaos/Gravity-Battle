@@ -28,8 +28,8 @@ void Particle::draw()
     float angle = std::atan2( v.y(), v.x() ) * (180/3.145f);
 
     float verts[] = { 
-        -scale, -scale,
-         scale, -scale,
+        -scale, -scale * heightRatio,
+         scale, -scale * heightRatio,
          scale,  scale * heightRatio,        
         -scale,  scale * heightRatio,
     };
