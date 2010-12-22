@@ -886,7 +886,7 @@ int main( int argc, char** argv )
             {
                 Vector<float,2> r = cActors[j]->s - particles[i]->s;
                 if( magnitude(r) > cActors[j]->radius() )
-                    particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/90.0f) / std::pow(magnitude(r),1.05f) ) * Arena::scale;
+                    particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/100.0f) / std::pow(magnitude(r),1.05f) ) * Arena::scale;
                 else
                     particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/1000.0f) / std::pow(magnitude(r),3.25f) ) * Arena::scale;
             }
