@@ -109,12 +109,6 @@ class Twister : public Orbital
     {
         return 1;
     }
-
-    void register_attractor( const CircleActor& attr )
-    {
-        vector_type r = attr.s - s;
-        g += magnitude( r, attr.mass() / g_dist(r) ) * Arena::scale;
-    }
 };
 
 class Stopper : public Orbital
@@ -149,14 +143,6 @@ class Stopper : public Orbital
     value_type g_multiplier()
     {
         return 1.0f / 220.0f;
-    }
-
-    void register_attractor( const CircleActor& attr )
-    {
-        vector_type r = attr.s - s;
-        g += magnitude ( 
-            r, attr.mass() * g_multiplier() / g_dist(r) * Arena::scale
-        );
     }
 };
 
