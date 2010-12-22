@@ -878,6 +878,17 @@ int main( int argc, char** argv )
                         }
         }
 
+        // MAKE PARTICLES ORBIT CACTORS!
+        for( size_t i=0; i < particles.size(); i++ )
+        {
+            particles[i]->a = 0;
+            for( size_t j=0; j < cActors.size(); j++ )
+            {
+                Vector<float,2> r = cActors[j]->s - particles[i]->s;
+                particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/100.0f) / std::pow(magnitude(r),1.25f) ) * Arena::scale;
+            }
+        };
+
         for_each_ptr ( 
             particles.begin(), particles.end(), 
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
