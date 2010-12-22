@@ -71,7 +71,7 @@ class Orbital : public CircleActor
         return magnitude( r );
     }
 
-    virtual void register_attractor( const CircleActor& attr )
+    void register_attractor( const CircleActor& attr )
     {
         vector_type r = attr.s - s;
         g += magnitude ( 

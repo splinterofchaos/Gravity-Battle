@@ -218,6 +218,7 @@ std::tr1::weak_ptr<T> spawn( Actor::value_type x, Actor::value_type y )
 
     cActors.push_back( newActor );
     actors.push_back(  newActor );
+    attractors.push_back( newActor );
 
     return newActor;
 }
@@ -871,15 +872,15 @@ int main( int argc, char** argv )
         // Update cActors.
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
-        for( time += frameTime; time >= DT; time -= DT ) {
+        for( time += frameTime; time >= DT; time -= DT ) 
+        {
             // Accumulate gravities.
             for( size_t i=0; i < attractors.size(); i++ )
             {
-                auto attr = attractors[i].lock();
+                SharedCActorPtr attr = attractors[i].lock();
                 for( size_t j=0; j < cActors.size(); j++ )
-                {
-                    cActors[j]->register_attractor( *attr );
-                }
+                    if( attr.get() != cActors[j].get() )
+                        cActors[j]->register_attractor( *attr );
             }
 
 
