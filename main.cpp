@@ -247,7 +247,7 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
 {
     typedef Actor::vector_type V;
 
-    scale = random( 0.75f, scale );
+    scale = random( 2.f, scale );
 
     ParticlePtr particle ( 
         new Particle ( 
@@ -348,7 +348,7 @@ bool delete_me( CActorPtr& actor )
     {
         // Explode.
         for( int i=0; i < actor->mass()*particleRatio; i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/4.5,
+            spawn_particle( actor->s, actor->v/6, actor->radius()/2.5,
                             actor->color() );
 
         // Add to score if player is alive.
