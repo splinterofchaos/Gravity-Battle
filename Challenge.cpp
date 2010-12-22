@@ -9,7 +9,7 @@ Package::WeakGoalPtr Package::goal;
 const float Obsticle::SIZE = 15;
 const float Goal::SIZE = 23;
 
-Package::Package( const vector_type& pos, const vector_type& v )
+Package::Package( const vector_type& pos, const vector_type& )
     : Orbital( pos, vector_type(0,0) )
 {
     activationDelay = 1;
@@ -80,7 +80,7 @@ void Package::collide_with( CircleActor& collider )
     }
 }
 
-Obsticle::Obsticle( const vector_type& pos, const vector_type& v )
+Obsticle::Obsticle( const vector_type& pos, const vector_type& )
     : Orbital( pos, vector_type(0,0) )
 {
     isMovable = false;
@@ -98,12 +98,12 @@ Obsticle::value_type Obsticle::radius() const
     return SIZE;
 }
 
-void Obsticle::collide_with( CircleActor& collider )
+void Obsticle::collide_with( CircleActor& )
 {
     // This is not a stub. Do nothing on collision.
 }
 
-Goal::Goal( const vector_type& pos, const vector_type& v )
+Goal::Goal( const vector_type& pos, const vector_type& )
     : Orbital( pos, vector_type(0,0) )
 {
     isMovable = false;
@@ -120,7 +120,7 @@ Goal::value_type Goal::radius() const
     return SIZE;
 }
 
-void Goal::collide_with( CircleActor& collider )
+void Goal::collide_with( CircleActor& )
 {
     // This is not a stub. Do nothing on collision.
 }

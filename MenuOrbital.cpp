@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& v )
+MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& )
     : Orbital( pos, vector_type(0,0) )
 {
     time = 0;
@@ -16,7 +16,7 @@ MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& v )
     isDeadly = false;
 }
 
-CircleActor::State MenuOrbital::integrate( State state, int dt, value_type maxSpeed )
+CircleActor::State MenuOrbital::integrate( State state, int dt, value_type )
 {
     stateTime  += float(dt) / 800;
     stateAngle += float(dt) / 1000;
@@ -63,7 +63,7 @@ void MenuOrbital::draw()
     Orbital::draw();
 }
 
-void MenuOrbital::collide_with( CircleActor& collider )
+void MenuOrbital::collide_with( CircleActor& )
 {
     // Do nothing.
 }

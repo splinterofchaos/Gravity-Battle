@@ -720,7 +720,7 @@ void challenge( int dt )
     package_delivery( dt );
 }
 
-void menu( int dt )
+void menu( int )
 {
     if( cActors.size() == 1 )
         for( int i=0; i < 3; i++ )
@@ -771,7 +771,7 @@ void menu( int dt )
     }
 }
 
-int main( int argc, char** argv )
+int main()
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
     const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;

@@ -274,7 +274,7 @@ Color Orbital::color()
     return c;
 }
 
-void Orbital::collide_with( CircleActor& collider )
+void Orbital::collide_with( CircleActor& )
 {
     deleteMe = true;;
 }
@@ -407,8 +407,8 @@ void Stopper::collide_with( CircleActor& collider )
     );
     timesOfCollisions[0] = 0;
 
-    CircleActor** thisCollider = 
-        std::find( lastColiders, lastColiders+N_LAST_COLLIDERS, &collider );
+    // CircleActor** thisCollider = 
+    //     std::find( lastColiders, lastColiders+N_LAST_COLLIDERS, &collider );
 
     std::copy ( 
         lastColiders, lastColiders+N_LAST_COLLIDERS-1,

@@ -38,7 +38,7 @@ bool Config::reload( const std::string& filename )
     // To ensure nothing is left uninitialized.
     set_defaults();
 
-    std::ifstream cfg( "config.txt" );
+    std::ifstream cfg( filename.c_str() );
 
     std::string line;
     while( std::getline( cfg, line ) ) 

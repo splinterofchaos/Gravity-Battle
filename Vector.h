@@ -75,16 +75,16 @@ public:
 #if defined( USE_VARIADIC_TEMPLATES )
 private:
     template< typename U >
-    void variadic_construct( size_t i, const U x )
+    void variadic_construct( const U x )
     {
         values[ static_size-1 ] = x;
     }
 
     template< typename U, typename... W >
-    void variadic_construct( size_t i, const U x, const W... args )
+    void variadic_construct( const U x, const W... args )
     {
         values[ static_size - (sizeof...(W)+1) ] = x;
-        variadic_construct( i++, args... );
+        variadic_construct( args... );
     }
 
 public:
@@ -96,7 +96,7 @@ public:
                 throw "Wrong number of variadic arguments in Vector ctor."
         #endif
 
-        variadic_construct( 0, args... );
+        variadic_construct( args... );
     }
 
 #else

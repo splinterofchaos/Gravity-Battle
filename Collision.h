@@ -30,7 +30,7 @@ struct LoopCollisionData : CollisionData
         return x.collide_with( *this );
     }
 
-    virtual bool collide_with( LoopCollisionData& x )
+    virtual bool collide_with( LoopCollisionData& )
     {
         // Thus far, loops don't collide.
         return false;
@@ -54,7 +54,7 @@ struct PointCollisionData : CollisionData
         return x.collide_with( *this );
     }
 
-    virtual bool collide_with( PointCollisionData& x )
+    virtual bool collide_with( PointCollisionData& )
     {
         return false; // This'd be practically impossible, anyway.
     }
