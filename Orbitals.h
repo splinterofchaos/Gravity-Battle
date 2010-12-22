@@ -73,14 +73,6 @@ class Orbital : public CircleActor
     {
         return magnitude( r );
     }
-
-    void register_attractor( const CircleActor& attr )
-    {
-        vector_type r = attr.s - s;
-        g += magnitude ( 
-            r, attr.mass() * g_multiplier() / g_dist(r) * Arena::scale
-        );
-    }
 };
 
 class Twister : public Orbital
