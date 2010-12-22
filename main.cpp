@@ -879,7 +879,7 @@ int main( int argc, char** argv )
             {
                 SharedCActorPtr attr = attractors[i].lock();
                 for( size_t j=0; j < cActors.size(); j++ )
-                    if( attr.get() != cActors[j].get() )
+                    if( attr->isActive && attr.get() != cActors[j].get() )
                         cActors[j]->register_attractor( *attr );
             }
 
