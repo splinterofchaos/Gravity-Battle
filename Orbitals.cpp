@@ -7,6 +7,7 @@
 #include <cmath>
 
 Texture Orbital::image;
+Orbital::Attractors Orbital::attractors;
 unsigned int Orbital::predictionLength    = 0;
 unsigned int Orbital::predictionPrecision = 17;
 unsigned int Orbital::gravityLine         = 0;

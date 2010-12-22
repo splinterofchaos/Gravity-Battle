@@ -62,14 +62,12 @@ typedef std::tr1::shared_ptr<Particle>      ParticlePtr;
 typedef std::tr1::weak_ptr<Actor>           ActorPtr;
 
 typedef std::vector< SharedCActorPtr > CActors;
-typedef std::vector< WeakCActorPtr >   Attractors;
 typedef std::vector< ParticlePtr > Particles;
 typedef std::vector<ActorPtr>      Actors;
 
-CActors    cActors;
-Attractors attractors;
-Particles  particles;
-Actors     actors;
+CActors   cActors;
+Particles particles;
+Actors    actors;
 
 // Used everywhere to write text on the screen.
 std::shared_ptr<BitmapFont> font;
@@ -195,11 +193,11 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
     }
 
     actors.push_back( Orbital::target.lock() );
-    attractors.push_back( Orbital::target );
+    Orbital::attractors.push_back( Orbital::target );
 
     if( gameLogic == dual_mode ) {
         actors.push_back( Orbital::target2.lock() );
-        attractors.push_back( Orbital::target2.lock() );
+        Orbital::attractors.push_back( Orbital::target2.lock() );
     }
 }
 
@@ -218,7 +216,7 @@ std::tr1::weak_ptr<T> spawn( Actor::value_type x, Actor::value_type y )
 
     cActors.push_back( newActor );
     actors.push_back(  newActor );
-    attractors.push_back( newActor );
+    Orbital::attractors.push_back( newActor );
 
     return newActor;
 }
@@ -875,9 +873,9 @@ int main( int argc, char** argv )
         for( time += frameTime; time >= DT; time -= DT ) 
         {
             // Accumulate gravities.
-            for( size_t i=0; i < attractors.size(); i++ )
+            for( size_t i=0; i < Orbital::attractors.size(); i++ )
             {
-                if( SharedCActorPtr attr = attractors[i].lock() )
+                if( SharedCActorPtr attr = Orbital::attractors[i].lock() )
                 {
                     for( size_t j=0; j < cActors.size(); j++ )
                         if( attr->isActive && attr.get() != cActors[j].get() )
@@ -885,7 +883,7 @@ int main( int argc, char** argv )
                 }
                 else
                 {
-                    attractors.erase( attractors.begin() + i );
+                    Orbital::attractors.erase( Orbital::attractors.begin() + i );
                 }
             }
 

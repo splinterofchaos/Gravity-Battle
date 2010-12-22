@@ -19,6 +19,9 @@ class Orbital : public CircleActor
     GLfloat colorIntensity;
 
   public:
+    typedef std::vector< std::tr1::weak_ptr<CircleActor> > Attractors;
+    static Attractors attractors;
+
     static const value_type RADIUS = 18;
     static const int ACTIVATION_DELAY = 2000;
     static const float BOUNCINESS = 0.8;
