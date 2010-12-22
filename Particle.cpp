@@ -8,7 +8,7 @@
 Particle::Particle( const vector_type& pos, const vector_type& v, 
                     value_type minSpeed, value_type maxSpeed, float scale,
                     const Color& c )   
-    : Actor( pos ), c( c ), scale( scale )
+    : Actor( pos ), c( c ), scale( scale ), maxSpeed( maxSpeed )
 {
     value_type speed = random( minSpeed, maxSpeed );
     float angle = random_angle();
@@ -24,11 +24,14 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
 
 void Particle::draw()
 {
+    float heightRatio = magnitude(v) / maxSpeed;
+    float angle = std::atan2( v.y(), v.x() ) * (180/3.145f);
+
     float verts[] = { 
         -scale, -scale,
          scale, -scale,
-         scale,  scale,        
-        -scale,  scale,
+         scale,  scale * heightRatio,        
+        -scale,  scale * heightRatio,
     };
 
     int texCoords[] = {
@@ -39,8 +42,8 @@ void Particle::draw()
     };
 
     glTranslatef( s.x(), s.y(), 1 );
-
     glColor4f( c.r(), c.g(), c.b(), c.a() );
+    glRotatef( angle, 0, 0, 1 );
 
     draw::draw( verts, 4, 1, texCoords );
 
