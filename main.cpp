@@ -216,7 +216,6 @@ std::tr1::weak_ptr<T> spawn( Actor::value_type x, Actor::value_type y )
 
     cActors.push_back( newActor );
     actors.push_back(  newActor );
-    Orbital::attractors.push_back( newActor );
 
     return newActor;
 }
@@ -420,7 +419,7 @@ Spawns spawnSlots[14] = {
     TWISTER, ORBITAL, TWISTER 
 };
 
-void random_spawn( int difficulty )
+WeakCActorPtr random_spawn( int difficulty )
 {
     static int recentSpawns[2] = { 0, 1 };
 
@@ -432,17 +431,21 @@ void random_spawn( int difficulty )
     if( newSpawn != N_SPAWN_SLOTS )
         recentSpawns[0] = newSpawn;
 
+    WeakCActorPtr s; // The new spawn.
+
     switch( newSpawn )
     {
-      case ORBITAL: spawn<Orbital>(); break;
-      case STOPPER: spawn<Stopper>(); break;
-      case TWISTER: spawn<Twister>(); break;
-      case STICKER: spawn<Sticker>(); break;
+      case ORBITAL: s = spawn<Orbital>(); break;
+      case STOPPER: s = spawn<Stopper>(); break;
+      case TWISTER: s = spawn<Twister>(); break;
+      case STICKER: s = spawn<Sticker>(); break;
       default: random_spawn( difficulty ); // Should never be reached.
     }
+
+    return s;
 }
 
-void standard_spawn()
+WeakCActorPtr standard_spawn()
 {
     static int difficulty = 1;
     if( spawnDelay > 5500 )
@@ -454,7 +457,103 @@ void standard_spawn()
     else if( spawnDelay > 3000 )
         difficulty = N_SPAWN_SLOTS;
 
-    random_spawn( difficulty );
+    return random_spawn( difficulty );
+}
+
+void chaos_mode( int dt )
+{
+    glColor3f( 1, 1, 0 );
+    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+
+    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) {
+        glColor3f( 1, 1, 1 );
+
+        font->draw( "Press r to reset, m for menu", 600, 200 );
+
+        // Draw high scores to screen.
+        TextBox b( *font, 470, 250 );
+        b.writeln( "Scores stored in Highscores.txt:" );
+        b.writeln( "" );
+
+        // To draw text with a gradient, keep track of these:
+        float color = 1;
+        float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
+
+        // Find the largest handle and score for to make nice
+        // columns for printing.
+        size_t largestHandleSize = 0;
+        size_t largestScoreSize = 0;
+        for( HighScoreTable::iterator it=highScoreTable.begin();
+             it != highScoreTable.end(); it++ )
+        {
+            if( it->second.size() > largestHandleSize )
+                largestHandleSize = it->second.size();
+
+            unsigned int nDigits = std::log10( it->first );
+            
+            if( nDigits > largestScoreSize )
+                largestScoreSize = nDigits;
+        }
+
+        // Use this to format the text.
+        std::stringstream ss;
+        ss.precision( 3 );
+        ss.fill( '.' );
+
+        const int HANDLE_WIDTH = largestHandleSize + 2;
+        const int SCORE_WIDTH  = largestScoreSize  + 5;
+
+        // Assume highScoreTable is newly initialized by update_high_score. 
+        for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
+             it!=highScoreTable.rend(); it++ ) 
+        {
+            ss.str( "" );
+
+            ss << std::setw(HANDLE_WIDTH) << std::left << it->second;
+
+            // internal is the only iostream object that seems to work here.
+            // The obvious fixed << right did not work.
+            ss << std::setw(SCORE_WIDTH) << std::fixed << std::internal <<
+                it->first;
+
+            glColor3f( color, color, 0 );
+            color += dcolor;
+
+            // Let the player know his/hew awesome score.
+            if( it->second == highScoreHandle ) {
+                glColor3f( 1, 0, 0 );
+                ss << " ** NEW HIGH SCORE";
+            }
+
+            b.writeln( ss.str() );
+        }
+    }
+
+    // If the player is alive...
+    if( !Orbital::target.expired() ) 
+    {
+        float sum = 0;
+        unsigned int nEnemies = 0;
+        for( size_t i=1; i < cActors.size(); i++ )
+            if( cActors[i]->isActive && cActors[i]->isMovable ) {
+                sum += cActors[i]->score_value();
+                nEnemies++;
+            }
+
+        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
+    }
+
+    if( spawnWait <= gameTime ) {
+        spawnWait = gameTime + spawnDelay;
+
+        spawnDelay -= 300;
+        if( spawnDelay <= 3000 )
+            spawnDelay -= -500;
+        if( spawnDelay < 500 )
+            spawnDelay = 500;
+
+        Orbital::attractors.push_back( standard_spawn() );
+    }
 }
 
 void arcade_mode( int dt )
@@ -768,12 +867,14 @@ void menu( int dt )
         if( !cActors[i]->isActive )
             continue;
 
-        if( cActors[i]->s.y() < Arena::minX + cActors[i]->radius()  )
+        if(      cActors[i]->s.y() < Arena::minX + cActors[i]->radius()  )
             reset( arcade_mode );
         else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() )
             reset( dual_mode );
         else if( Arena::maxX < cActors[i]->s.x() + cActors[i]->radius() )
             reset( challenge );
+        else if( Arena::minX > cActors[i]->s.x() - cActors[i]->radius() )
+            reset( chaos_mode );
     }
 }
 
@@ -872,22 +973,6 @@ int main( int argc, char** argv )
         static int time = 0;
         for( time += frameTime; time >= DT; time -= DT ) 
         {
-            // Accumulate gravities.
-            //for( size_t i=0; i < Orbital::attractors.size(); i++ )
-            //{
-            //    if( SharedCActorPtr attr = Orbital::attractors[i].lock() )
-            //    {
-            //        for( size_t j=0; j < cActors.size(); j++ )
-            //            if( attr->isActive && attr.get() != cActors[j].get() )
-            //                cActors[j]->register_attractor( *attr );
-            //    }
-            //    else
-            //    {
-            //        Orbital::attractors.erase( Orbital::attractors.begin() + i );
-            //    }
-            //}
-
-
             for_each_ptr ( 
                 cActors.begin(), cActors.end(), 
                 std::bind2nd( std::mem_fun_ref(&Actor::move), DT )
