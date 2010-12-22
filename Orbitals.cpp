@@ -25,6 +25,8 @@ Orbital::Orbital( const Orbital::vector_type& pos,
     isActive = false;
 
     colorIntensity = random( 6, 10 ) / 10.0f;
+
+    g = vector_type( 0, 0 );
 }
 
 CircleActor::State Orbital::on_off_screen( State state )
@@ -55,21 +57,10 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
     if( !isMovable )
         return state;
 
-    SharedPlayerPtr target;
-    if( isActive && ( target = Orbital::target.lock() ) )
-    {
-        // Orbit the target.
-        vector_type r = target->s - state.s;
-        state.a = acceleration( r );
+    if( isActive )
+        state.a = g;
 
-        SharedPlayerPtr target2;
-        if( target2 = Orbital::target2.lock() )
-            state.a += acceleration( target2->s - state.s );
-    }
-    else
-    {
-        state.a = vector_type( 0, 0 );
-    }
+    g = vector_type( 0, 0 );
 
     return CircleActor::integrate( state, dt, maxSpeed );
 }
@@ -83,6 +74,7 @@ void Orbital::move( int dt )
             isActive = true;
     }
 
+    // Will call Orbital::integrate.
     CircleActor::move( dt );
 }
 

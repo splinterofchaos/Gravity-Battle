@@ -56,17 +56,20 @@ bool motionBlur = false;
 typedef void(*GameLogic)(int dt );
 GameLogic gameLogic;
 
-typedef std::tr1::shared_ptr< CircleActor > CActorPtr;
+typedef std::tr1::shared_ptr< CircleActor > SharedCActorPtr;
+typedef std::tr1::weak_ptr< CircleActor >   WeakCActorPtr;
 typedef std::tr1::shared_ptr<Particle>      ParticlePtr;
 typedef std::tr1::weak_ptr<Actor>           ActorPtr;
 
-typedef std::vector< CActorPtr >   CActors;
+typedef std::vector< SharedCActorPtr > CActors;
+typedef std::vector< WeakCActorPtr >   Attractors;
 typedef std::vector< ParticlePtr > Particles;
 typedef std::vector<ActorPtr>      Actors;
 
-CActors   cActors;
-Particles particles;
-Actors    actors;
+CActors    cActors;
+Attractors attractors;
+Particles  particles;
+Actors     actors;
 
 // Used everywhere to write text on the screen.
 std::shared_ptr<BitmapFont> font;
@@ -172,18 +175,18 @@ void update_screen()
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
     if( gameLogic != dual_mode ) {
-        CActorPtr player(  new Player( Actor::vector_type(x,y) ) );
+        SharedCActorPtr player(  new Player( Actor::vector_type(x,y) ) );
         cActors.push_back( player );
 
         Orbital::target = std::tr1::static_pointer_cast<Player>( player );
         Player::original = Orbital::target;
     } else {
-        CActorPtr player(  new Player( Actor::vector_type(x-50,y) ) );
+        SharedCActorPtr player(  new Player( Actor::vector_type(x-50,y) ) );
         cActors.push_back( player );
         Orbital::target = std::tr1::static_pointer_cast<Player>( player );
 
-        CActorPtr player2(  new Player2( Actor::vector_type(x+50,y) ) );
-        cActors.push_back( CActorPtr( player2 ) );
+        SharedCActorPtr player2(  new Player2( Actor::vector_type(x+50,y) ) );
+        cActors.push_back( SharedCActorPtr( player2 ) );
         Orbital::target2 = std::tr1::static_pointer_cast<Player>( player2 );
  
 
@@ -192,8 +195,12 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
     }
 
     actors.push_back( Orbital::target.lock() );
-    if( gameLogic == dual_mode )
+    attractors.push_back( Orbital::target );
+
+    if( gameLogic == dual_mode ) {
         actors.push_back( Orbital::target2.lock() );
+        attractors.push_back( Orbital::target2.lock() );
+    }
 }
 
 template< typename T >
@@ -342,7 +349,7 @@ void update_high_score()
     out << highScoreTable;
 }
 
-bool delete_me( CActorPtr& actor )
+bool delete_me( SharedCActorPtr& actor )
 {
     if( actor->deleteMe )
     {
@@ -861,9 +868,21 @@ int main( int argc, char** argv )
 
         gameLogic( frameTime );
 
+        // Update cActors.
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
         for( time += frameTime; time >= DT; time -= DT ) {
+            // Accumulate gravities.
+            for( size_t i=0; i < attractors.size(); i++ )
+            {
+                auto attr = attractors[i].lock();
+                for( size_t j=0; j < cActors.size(); j++ )
+                {
+                    cActors[j]->register_attractor( *attr );
+                }
+            }
+
+
             for_each_ptr ( 
                 cActors.begin(), cActors.end(), 
                 std::bind2nd( std::mem_fun_ref(&Actor::move), DT )
@@ -923,6 +942,14 @@ int main( int argc, char** argv )
                 particles.begin(), particles.end(), is_off_screen
             ), 
             particles.end() 
+        );
+
+        attractors.erase (
+            remove_if (
+                attractors.begin(), attractors.end(), 
+                [](WeakCActorPtr& p) { return p.expired(); }
+            ),
+            attractors.end()
         );
 
         static int lastUpdate = gameTime;

@@ -36,6 +36,10 @@ class CircleActor : public Actor
     // screen.
     void move( int dt, value_type maxSpeed=0 );
 
+    virtual void register_attractor( const CircleActor& attr )
+    {
+    }
+
     // How many points are awarded for killing this. Allows negative values.
     virtual int score_value() = 0;
 

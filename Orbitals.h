@@ -36,7 +36,9 @@ class Orbital : public CircleActor
     static bool         velocityArrow;
     static bool         accelerationArrow;
 
+    // Member data
     int activationDelay;
+    vector_type g; // Gravity accumulator.
 
     Orbital( const vector_type& position, const vector_type& v );
 
@@ -58,6 +60,24 @@ class Orbital : public CircleActor
     void collide_with( CircleActor& collider );
 
     Color color();
+
+    virtual value_type g_multiplier()
+    {
+        return 1.0f / 90.0f;
+    }
+
+    virtual value_type g_dist( const vector_type& r )
+    {
+        return magnitude( r );
+    }
+
+    virtual void register_attractor( const CircleActor& attr )
+    {
+        vector_type r = attr.s - s;
+        g += magnitude ( 
+            r, attr.mass() * g_multiplier() / g_dist(r) * Arena::scale
+        );
+    }
 };
 
 class Twister : public Orbital
@@ -79,6 +99,22 @@ class Twister : public Orbital
     int score_value();
 
     Color color();
+
+    value_type g_dist( const vector_type& r )
+    {
+        return r*r;
+    }
+
+    value_type g_multiplier()
+    {
+        return 1;
+    }
+
+    void register_attractor( const CircleActor& attr )
+    {
+        vector_type r = attr.s - s;
+        g += magnitude( r, attr.mass() / g_dist(r) ) * Arena::scale;
+    }
 };
 
 class Stopper : public Orbital
@@ -109,6 +145,19 @@ class Stopper : public Orbital
     void collide_with( CircleActor& collider );
 
     Color color();
+
+    value_type g_multiplier()
+    {
+        return 1.0f / 220.0f;
+    }
+
+    void register_attractor( const CircleActor& attr )
+    {
+        vector_type r = attr.s - s;
+        g += magnitude ( 
+            r, attr.mass() * g_multiplier() / g_dist(r) * Arena::scale
+        );
+    }
 };
 
 struct Sticker : public Orbital
