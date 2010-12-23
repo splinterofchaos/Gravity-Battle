@@ -7,6 +7,7 @@
 #include <cmath>
 
 Texture Orbital::image;
+Orbital::Attractors Orbital::attractors;
 unsigned int Orbital::predictionLength    = 0;
 unsigned int Orbital::predictionPrecision = 17;
 unsigned int Orbital::gravityLine         = 0;
@@ -25,6 +26,8 @@ Orbital::Orbital( const Orbital::vector_type& pos,
     isActive = false;
 
     colorIntensity = random( 6, 10 ) / 10.0f;
+
+    g = vector_type( 0, 0 );
 }
 
 CircleActor::State Orbital::on_off_screen( State state )
@@ -55,20 +58,27 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
     if( !isMovable )
         return state;
 
-    SharedPlayerPtr target;
-    if( isActive && ( target = Orbital::target.lock() ) )
+    if( isActive )
     {
-        // Orbit the target.
-        vector_type r = target->s - state.s;
-        state.a = acceleration( r );
+        g *= 0;
 
-        SharedPlayerPtr target2;
-        if( target2 = Orbital::target2.lock() )
-            state.a += acceleration( target2->s - state.s );
+        for( size_t i=0; i < attractors.size(); i++ )
+        {
+            std::tr1::shared_ptr<CircleActor> attr = attractors[i].lock();
+            if( attr && attr->isActive && attr.get() != this ) 
+            {
+                vector_type r = attr->s - state.s;
+                g += magnitude ( 
+                    r, attr->mass() * g_multiplier() / g_dist(r) * Arena::scale
+                );
+            }
+        }
+
+        state.a = g;
     }
     else
     {
-        state.a = vector_type( 0, 0 );
+        state.a *= 0;
     }
 
     return CircleActor::integrate( state, dt, maxSpeed );
@@ -83,6 +93,7 @@ void Orbital::move( int dt )
             isActive = true;
     }
 
+    // Will call Orbital::integrate.
     CircleActor::move( dt );
 }
 
@@ -274,7 +285,17 @@ Color Orbital::color()
     return c;
 }
 
-void Orbital::collide_with( CircleActor& )
+Orbital::value_type Orbital::g_multiplier()
+{
+    return 1.0f / 90.0f;
+}
+
+Orbital::value_type Orbital::g_dist( const vector_type& r )
+{
+    return magnitude( r );
+}
+
+void Orbital::collide_with( CircleActor& collider )
 {
     deleteMe = true;;
 }
@@ -334,6 +355,16 @@ Color Twister::color()
     Color c = Color( 1.0f, 0.1f, 0.1f, 1.0f ) * colorIntensity;
     c.a( 1 );
     return c;
+}
+
+Twister::value_type Twister::g_dist( const vector_type& r )
+{
+    return r*r;
+}
+
+Twister::value_type Twister::g_multiplier()
+{
+    return 1;
 }
 
 int Twister::score_value()
@@ -457,6 +488,11 @@ Color Stopper::color()
     }
 
     return c;
+}
+
+Stopper::value_type Stopper::g_multiplier()
+{
+    return 1.0f / 220.0f;
 }
 
 Sticker::Sticker( const vector_type& pos, const vector_type& v )

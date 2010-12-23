@@ -19,6 +19,9 @@ class Orbital : public CircleActor
     GLfloat colorIntensity;
 
   public:
+    typedef std::vector< std::tr1::weak_ptr<CircleActor> > Attractors;
+    static Attractors attractors;
+
     static const value_type RADIUS = 18;
     static const int ACTIVATION_DELAY = 2000;
     static const float BOUNCINESS = 0.8;
@@ -36,7 +39,9 @@ class Orbital : public CircleActor
     static bool         velocityArrow;
     static bool         accelerationArrow;
 
+    // Member data
     int activationDelay;
+    vector_type g; // Gravity accumulator.
 
     Orbital( const vector_type& position, const vector_type& v );
 
@@ -58,6 +63,9 @@ class Orbital : public CircleActor
     void collide_with( CircleActor& collider );
 
     Color color();
+
+    virtual value_type g_multiplier();
+    virtual value_type g_dist( const vector_type& r );
 };
 
 class Twister : public Orbital
@@ -79,6 +87,9 @@ class Twister : public Orbital
     int score_value();
 
     Color color();
+
+    value_type g_dist( const vector_type& r );
+    value_type g_multiplier();
 };
 
 class Stopper : public Orbital
@@ -109,6 +120,8 @@ class Stopper : public Orbital
     void collide_with( CircleActor& collider );
 
     Color color();
+
+    value_type g_multiplier();
 };
 
 struct Sticker : public Orbital
