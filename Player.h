@@ -38,10 +38,6 @@ class Player : public CircleActor
     void collide_with( CircleActor& collider );
 
     Color color();
-
-    void register_attractor( const CircleActor& attr )
-    {
-    }
 };
 
 struct Player2 : public Player

@@ -18,8 +18,4 @@ class MenuOrbital : public Orbital
     void draw();
 
     void collide_with( CircleActor& collider );
-
-    void register_attractor( const CircleActor& attr )
-    {
-    }
 };
