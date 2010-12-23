@@ -259,12 +259,6 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
     actors.push_back(    particle );
 }
 
-bool is_off_screen( ParticlePtr p )
-{
-    return p->s.x() < Arena::minX-p->scale || p->s.x() > Arena::maxX || 
-        p->s.y() < Arena::minY-p->scale || p->s.y() > Arena::maxY;
-}
-
 float scoreVal = 0;
 
 std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
@@ -934,7 +928,16 @@ int main( int argc, char** argv )
 
         particles.erase ( 
             remove_if (
-                particles.begin(), particles.end(), is_off_screen
+                particles.begin(), particles.end(),
+                []( ParticlePtr& p )
+                {
+                    // Letting the particles go a little off-screen safely
+                    // gives a better "endless space!" feeling.
+                    return p->s.x() < Arena::minX-50 || 
+                           p->s.x() > Arena::maxX+50 || 
+                           p->s.y() < Arena::minY-50 || 
+                           p->s.y() > Arena::maxY+50;
+                }
             ), 
             particles.end() 
         );
