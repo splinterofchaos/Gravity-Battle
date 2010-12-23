@@ -856,6 +856,7 @@ void menu( int )
         // Misc prints.
         font->draw( "^^ Move up here for arcade mode! ^^", 350, 50 );
         font->draw( "To the left for challenge mode. >>>", 650, 300 );
+        font->draw( "<<< To the right for CHAOS mode.", 20, 300 );
         font->draw ( 
             "Move down here for dual mode! (use WASD and arrow keys)", 
             350, Arena::maxY - 50 
