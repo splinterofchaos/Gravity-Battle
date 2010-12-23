@@ -264,12 +264,6 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
     actors.push_back(    particle );
 }
 
-bool is_off_screen( ParticlePtr p )
-{
-    return p->s.x() < Arena::minX-p->scale || p->s.x() > Arena::maxX || 
-        p->s.y() < Arena::minY-p->scale || p->s.y() > Arena::maxY;
-}
-
 float scoreVal = 0;
 
 std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
@@ -988,6 +982,20 @@ int main()
                         }
         }
 
+        // MAKE PARTICLES ORBIT CACTORS!
+        for( size_t i=0; i < particles.size(); i++ )
+        {
+            particles[i]->a = 0;
+            for( size_t j=0; j < cActors.size(); j++ )
+            {
+                Vector<float,2> r = cActors[j]->s - particles[i]->s;
+                if( magnitude(r) > cActors[j]->radius() )
+                    particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/50.0f) / std::pow(magnitude(r),1.3f) ) * Arena::scale;
+                else
+                    particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/10000.0f) / std::pow(magnitude(r),2.f) ) * Arena::scale;
+            }
+        };
+
         for_each_ptr ( 
             particles.begin(), particles.end(), 
             std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
@@ -1030,7 +1038,16 @@ int main()
 
         particles.erase ( 
             remove_if (
-                particles.begin(), particles.end(), is_off_screen
+                particles.begin(), particles.end(),
+                []( ParticlePtr& p )
+                {
+                    // Letting the particles go a little off-screen safely
+                    // gives a better "endless space!" feeling.
+                    return p->s.x() < Arena::minX-50 || 
+                           p->s.x() > Arena::maxX+50 || 
+                           p->s.y() < Arena::minY-50 || 
+                           p->s.y() > Arena::maxY+50;
+                }
             ), 
             particles.end() 
         );
