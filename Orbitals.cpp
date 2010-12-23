@@ -171,10 +171,8 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                     if( ! attr || attr.get() == this )
                         continue;
 
-                    vector_type r = attr->s - p.s;
-
-                    // Combined radii.
                     float combRad = attr->radius() + radius();
+                    vector_type r = attr->s - p.s;
 
                     if( magnitude(r) < combRad )
                     {
