@@ -131,19 +131,21 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
     SharedPlayerPtr target  = Orbital::target.lock();
     SharedPlayerPtr target2 = Orbital::target2.lock();
-    if( extra && target && isMovable )
+    if( extra && isMovable )
     {
         if( gravityLine ) 
         {
-            vector_type accelerationLine[] = {
-                target->s,
-                s,
-                target2? target2->s : target->s
-            };
+            for( size_t i=0; i < attractors.size(); i++ ) 
+                if( auto attr = attractors[i].lock() )
+                {
+                    vector_type accelerationLine[] = {
+                        attr->s,
+                        s,
+                    };
 
-            draw::draw( &accelerationLine[0][0], 3, image.handle(), texCoords,
-                        GL_LINE_STRIP );
-
+                    draw::draw( &accelerationLine[0][0], 2, image.handle(), 
+                                texCoords, GL_LINE_STRIP );
+                }
         }
 
         const unsigned int NUM_PREDICTIONS = predictionLength;
@@ -162,11 +164,11 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
             {
                 p = integrate( p, 4 );
 
-                vector_type r = target->s - p.s;
-                vector_type r2 = vector_type(0,0);
-
-                if( true ) 
+                if( target ) 
                 {
+                    vector_type r = target->s - p.s;
+                    vector_type r2 = vector_type(0,0);
+
                     // Combined radii.
                     float combRad = target->radius() + radius();
 
@@ -247,7 +249,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
             glLoadIdentity();
         }
-    } // if target
+    } // if extra
 
 }
 
