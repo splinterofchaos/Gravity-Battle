@@ -1051,10 +1051,10 @@ int main()
                 {
                     // Letting the particles go a little off-screen safely
                     // gives a better "endless space!" feeling.
-                    return p->s.x() < Arena::minX-50 || 
-                           p->s.x() > Arena::maxX+50 || 
-                           p->s.y() < Arena::minY-50 || 
-                           p->s.y() > Arena::maxY+50;
+                    return p->s.x() < Arena::minX-100 || 
+                           p->s.x() > Arena::maxX+100 || 
+                           p->s.y() < Arena::minY-100 || 
+                           p->s.y() > Arena::maxY+100;
                 }
             ), 
             particles.end() 
