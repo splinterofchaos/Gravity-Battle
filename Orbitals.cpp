@@ -164,20 +164,27 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
             {
                 p = integrate( p, 4 );
 
-                if( target ) 
+                // If this state will collide with an attractor, break.
+                for( size_t k=0; k < attractors.size(); k++ ) 
                 {
-                    vector_type r = target->s - p.s;
-                    vector_type r2 = vector_type(0,0);
+                    auto attr = attractors[k].lock();
+                    if( ! attr || attr.get() == this )
+                        continue;
+
+                    vector_type r = attr->s - p.s;
 
                     // Combined radii.
-                    float combRad = target->radius() + radius();
+                    float combRad = attr->radius() + radius();
 
-                    if( magnitude(r) < combRad || 
-                        (target2 && magnitude(r2) < combRad) )
+                    if( magnitude(r) < combRad )
                     {
                         // Exit both inner and outer loops.
                         i = NUM_PREDICTIONS;
+                        j = predictionPrecision;
+
+                        // No new prediction. Undo increment.
                         actualPredictions--;
+
                         break;
                     } 
                 }
