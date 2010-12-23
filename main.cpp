@@ -455,7 +455,29 @@ WeakCActorPtr standard_spawn()
 }
 
 void chaos_mode( int dt )
-{
+{ 
+    // For this special chaos mode, make the particles orbit the actors!
+    for( size_t i=0; i < particles.size(); i++ )
+    {
+        particles[i]->a = 0;
+        for( size_t j=0; j < cActors.size(); j++ )
+        {
+            Vector<float,2> r = cActors[j]->s - particles[i]->s;
+            float g_multiplier = 1 / 50.f;
+            float exp          = 1.3f;
+
+            if( magnitude(r) < cActors[j]->radius() ) {
+                g_multiplier = 1 / 10000.f;
+                exp          = 2.f;
+            }
+
+            particles[i]->a += magnitude (
+                r, 
+                cActors[j]->mass() * g_multiplier / std::pow(magnitude(r),exp)
+            ) * Arena::scale;
+        }
+    }
+
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -981,20 +1003,6 @@ int main()
                             cActors[j]->collide_with( *cActors[i] );
                         }
         }
-
-        // MAKE PARTICLES ORBIT CACTORS!
-        for( size_t i=0; i < particles.size(); i++ )
-        {
-            particles[i]->a = 0;
-            for( size_t j=0; j < cActors.size(); j++ )
-            {
-                Vector<float,2> r = cActors[j]->s - particles[i]->s;
-                if( magnitude(r) > cActors[j]->radius() )
-                    particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/50.0f) / std::pow(magnitude(r),1.3f) ) * Arena::scale;
-                else
-                    particles[i]->a += magnitude( r, cActors[j]->mass() * (1.0f/10000.0f) / std::pow(magnitude(r),2.f) ) * Arena::scale;
-            }
-        };
 
         for_each_ptr ( 
             particles.begin(), particles.end(), 
