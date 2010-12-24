@@ -577,6 +577,30 @@ void chaos_mode( int dt )
 
 void arcade_mode( int dt )
 {
+    if( ! Orbital::target.expired() )
+    {
+        for( size_t i=0; i < particles.size(); i++ )
+        {
+            particles[i]->a = 0;
+            {
+                Vector<float,2> r = cActors[0]->s - particles[i]->s;
+
+                float g_multiplier = 1 / 100.f;
+                float exp          = 1.1f;
+
+                if( magnitude(r) < cActors[0]->radius() ) {
+                    g_multiplier = -1 / 5000.f;
+                    exp          = -1.5f;
+                }
+
+                particles[i]->a += magnitude (
+                    r, 
+                    cActors[0]->mass() * g_multiplier / std::pow(magnitude(r),exp)
+                ) * Arena::scale;
+            }
+        }
+    }
+
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
