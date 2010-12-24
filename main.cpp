@@ -226,23 +226,15 @@ std::tr1::weak_ptr<T> spawn()
 {
     int x, y;
 
-    x = 
-        random (
-            int(Arena::minX + T::RADIUS*Arena::scale), 
-            int(Arena::maxX - T::RADIUS*Arena::scale) 
-        );
+    x = random (
+        int(Arena::minX + T::RADIUS*Arena::scale), 
+        int(Arena::maxX - T::RADIUS*Arena::scale) 
+    );
 
-    y =  
-        random (
-            int(Arena::minY + T::RADIUS*Arena::scale),
-            int(Arena::maxY - T::RADIUS*Arena::scale) 
-        );
-
-    // On Linux, sometimes x or y is negative. Fix that.
-    if( x < 0 )
-        x = -x;
-    if( y < 0 )
-        y = -y;
+    y =  random (
+        int(Arena::minY + T::RADIUS*Arena::scale),
+        int(Arena::maxY - T::RADIUS*Arena::scale) 
+    );
 
     return spawn<T>( x, y );
 }
@@ -383,8 +375,11 @@ void reset( GameLogic logic = 0 )
         // Before clearing the actors, make them explode.
         for( size_t i=0; i < cActors.size(); i++ )
             cActors[i]->deleteMe = true;
+
+        // But don't kill the player!
         if( target )
             target->deleteMe = false;
+
         for_each( cActors.begin(), cActors.end(), delete_me );
     } else {
         // Normal resets clear the screen.
@@ -416,15 +411,7 @@ Spawns spawnSlots[14] = {
 
 WeakCActorPtr random_spawn( int difficulty )
 {
-    static int recentSpawns[2] = { 0, 1 };
-
-    int newSpawn = 0;
-
-    newSpawn = spawnSlots[ random(0, difficulty) ];
-    
-    recentSpawns[1] = recentSpawns[0];
-    if( newSpawn != N_SPAWN_SLOTS )
-        recentSpawns[0] = newSpawn;
+    int newSpawn = spawnSlots[ random(0, difficulty) ];
 
     WeakCActorPtr s; // The new spawn.
 
@@ -581,7 +568,8 @@ void arcade_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) {
+    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) 
+    {
         glColor3f( 1, 1, 1 );
 
         font->draw( "Press r to reset, m for menu", 600, 200 );
@@ -591,12 +579,12 @@ void arcade_mode( int dt )
         b.writeln( "Scores stored in Highscores.txt:" );
         b.writeln( "" );
 
-        // To draw text with a gradient, keep track of these:
-        float color = 1;
-        float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
+        // The table should include two columns, handles and scores, both
+        // determining their width by their longest member. A two pass
+        // algorithm is used. Pass one finds the size of the longest members,
+        // the second prints them.
 
-        // Find the largest handle and score for to make nice
-        // columns for printing.
+        // Pass one:
         size_t largestHandleSize = 0;
         size_t largestScoreSize = 0;
         for( HighScoreTable::iterator it=highScoreTable.begin();
@@ -619,6 +607,11 @@ void arcade_mode( int dt )
         const int HANDLE_WIDTH = largestHandleSize + 2;
         const int SCORE_WIDTH  = largestScoreSize  + 5;
 
+        // To draw text with a gradient, keep track of these:
+        float color = 1;
+        float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
+
+        // Pass 2:
         // Assume highScoreTable is newly initialized by update_high_score. 
         for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
              it!=highScoreTable.rend(); it++ ) 
@@ -645,7 +638,7 @@ void arcade_mode( int dt )
         }
     }
 
-    // If the player is alive...
+    // If the player is alive, increase the score.
     if( !Orbital::target.expired() ) 
     {
         float sum = 0;
@@ -974,7 +967,6 @@ int main( int, char** )
                   break;
 
                   case 'f': FLIP_VALUE( fps ); break;
-
 #undef FLIP_VALUE
 
                   case 'w': case 'a': case 's': case 'd': 
@@ -996,9 +988,9 @@ int main( int, char** )
         static int time = 0;
         for( time += frameTime; time >= DT; time -= DT ) 
         {
-            for_each_ptr ( 
+            for_each ( 
                 cActors.begin(), cActors.end(), 
-                std::bind2nd( std::mem_fun_ref(&Actor::move), DT )
+                []( std::tr1::shared_ptr<Actor> ptr ) { ptr->move(DT); }
             );
 
             if( cActors.size() )
@@ -1017,9 +1009,9 @@ int main( int, char** )
             );
         }
 
-        for_each_ptr ( 
+        for_each ( 
             particles.begin(), particles.end(), 
-            std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
+            []( const std::tr1::shared_ptr<Particle>& ptr ) { ptr->move(DT); }
         );
 
         // Draw everything.
