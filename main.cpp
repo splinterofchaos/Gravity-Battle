@@ -463,12 +463,15 @@ void chaos_mode( int dt )
         for( size_t j=0; j < cActors.size(); j++ )
         {
             Vector<float,2> r = cActors[j]->s - particles[i]->s;
-            float g_multiplier = 1 / 50.f;
+            float g_multiplier = 1 / 56.f;
             float exp          = 1.3f;
 
+            // This creates a repelling force so particles stay outside
+            // objects. It also makes the objects feel much more physical to
+            // have the particles interact with them this way.
             if( magnitude(r) < cActors[j]->radius() ) {
-                g_multiplier = 1 / 10000.f;
-                exp          = 2.f;
+                g_multiplier = -10000.f;
+                exp          = 1.5f;
             }
 
             particles[i]->a += magnitude (
