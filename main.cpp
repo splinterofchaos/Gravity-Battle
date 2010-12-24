@@ -456,31 +456,6 @@ WeakCActorPtr standard_spawn()
 
 void chaos_mode( int dt )
 { 
-    // For this special chaos mode, make the particles orbit the actors!
-    for( size_t i=0; i < particles.size(); i++ )
-    {
-        particles[i]->a = 0;
-        for( size_t j=0; j < cActors.size(); j++ )
-        {
-            Vector<float,2> r = cActors[j]->s - particles[i]->s;
-            float g_multiplier = 1 / 56.f;
-            float exp          = 1.3f;
-
-            // This creates a repelling force so particles stay outside
-            // objects. It also makes the objects feel much more physical to
-            // have the particles interact with them this way.
-            if( magnitude(r) < cActors[j]->radius() ) {
-                g_multiplier = -1 / 10000.f;
-                exp          = -1.5f;
-            }
-
-            particles[i]->a += magnitude (
-                r, 
-                cActors[j]->mass() * g_multiplier / std::pow(magnitude(r),exp)
-            ) * Arena::scale;
-        }
-    }
-
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -577,30 +552,6 @@ void chaos_mode( int dt )
 
 void arcade_mode( int dt )
 {
-    if( ! Orbital::target.expired() )
-    {
-        for( size_t i=0; i < particles.size(); i++ )
-        {
-            particles[i]->a = 0;
-            {
-                Vector<float,2> r = cActors[0]->s - particles[i]->s;
-
-                float g_multiplier = 1 / 100.f;
-                float exp          = 1.1f;
-
-                if( magnitude(r) < cActors[0]->radius() ) {
-                    g_multiplier = -1 / 5000.f;
-                    exp          = -1.5f;
-                }
-
-                particles[i]->a += magnitude (
-                    r, 
-                    cActors[0]->mass() * g_multiplier / std::pow(magnitude(r),exp)
-                ) * Arena::scale;
-            }
-        }
-    }
-
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -1036,6 +987,38 @@ int main( int, char** )
                 ), 
                 cActors.end() 
             );
+        }
+
+        for( size_t i=0; i < particles.size(); i++ )
+        {
+            particles[i]->a = 0;
+            for( size_t j=0; j < Orbital::attractors.size(); j++ )
+            {
+                std::tr1::shared_ptr< CircleActor > attr = Orbital::attractors[j].lock();
+
+                if( ! attr ) {
+                    Orbital::attractors.erase( Orbital::attractors.begin() + j );
+                    j--;
+                    continue;
+                }
+
+                Vector<float,2> r = attr->s - particles[i]->s;
+                float g_multiplier = 1 / 56.f;
+                float exp          = 1.3f;
+
+                // This creates a repelling force so particles stay outside
+                // objects. It also makes the objects feel much more physical to
+                // have the particles interact with them this way.
+                if( magnitude(r) < attr->radius() ) {
+                    g_multiplier = -1 / 10000.f;
+                    exp          = -1.5f;
+                }
+
+                particles[i]->a += magnitude (
+                    r, 
+                    attr->mass() * g_multiplier / std::pow(magnitude(r),exp)
+                ) * Arena::scale;
+            }
         }
 
         for_each_ptr ( 
