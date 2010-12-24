@@ -126,6 +126,7 @@ void configure( const Config& cfg )
     cfg.get( "motionBlur",          &motionBlur );
     cfg.get( "scale",               &Arena::scale );
     cfg.get( "nHighScores",         &nHighScores );
+    cfg.get( "fps",                 &showFrameTime );
 }
 
 
@@ -972,13 +973,13 @@ int main( int, char** )
                                 glAccum( GL_LOAD, 1 );
                   break;
 
+                  case 'f': FLIP_VALUE( fps ); break;
+
 #undef FLIP_VALUE
 
                   case 'w': case 'a': case 's': case 'd': 
                             playerHasMoved = true; break;
                   case SDLK_SPACE: playerIncreasedGravity = true;
-
-                  case 'f': showFrameTime = !showFrameTime;
 
                   default: break;
                 }

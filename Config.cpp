@@ -21,6 +21,8 @@ void Config::set_defaults()
     vars["scale"] = "1";
 
     vars["nHighScores"] = "10";
+
+    vars["fps"] = "0";
 }
 
 Config::Config()
