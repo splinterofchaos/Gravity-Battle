@@ -983,45 +983,52 @@ int main( int, char** )
             );
         }
 
-        for( size_t i=0; i < particles.size(); i++ )
+        const int PDT = DT*4;
+        static int pTime = 0;
+        for( pTime += frameTime; pTime >= PDT; pTime -= PDT )
         {
-            particles[i]->a = 0;
-            for( size_t j=0; j < Orbital::attractors.size(); j++ )
+            for( size_t i=0; i < particles.size(); i++ )
             {
-                std::tr1::shared_ptr< CircleActor > attr = Orbital::attractors[j].lock();
+                particles[i]->a = 0;
+                for( size_t j=0; j < Orbital::attractors.size(); j++ )
+                {
+                    std::tr1::shared_ptr< CircleActor > attr = Orbital::attractors[j].lock();
 
-                if( ! attr ) {
-                    Orbital::attractors.erase( Orbital::attractors.begin() + j );
-                    j--;
-                    continue;
+                    if( ! attr ) {
+                        Orbital::attractors.erase( Orbital::attractors.begin() + j );
+                        j--;
+                        continue;
+                    }
+
+                    Vector<float,2> r = attr->s - particles[i]->s;
+                    float g_multiplier = 1 / 56.f;
+                    float exp          = 1.3f;
+
+                    // This creates a repelling force so particles stay outside
+                    // objects. It also makes the objects feel much more physical to
+                    // have the particles interact with them this way.
+                    if( magnitude(r) < attr->radius() + particles[i]->scale ) {
+                        g_multiplier = -1 / 10000.f;
+                        exp          = -1.5f;
+                    }
+
+                    particles[i]->a += magnitude (
+                        r, 
+                        attr->mass() * g_multiplier / std::pow(magnitude(r),exp)
+                    ) * Arena::scale;
                 }
-
-                Vector<float,2> r = attr->s - particles[i]->s;
-                float g_multiplier = 1 / 56.f;
-                float exp          = 1.3f;
-
-                // This creates a repelling force so particles stay outside
-                // objects. It also makes the objects feel much more physical to
-                // have the particles interact with them this way.
-                if( magnitude(r) < attr->radius() + particles[i]->scale ) {
-                    g_multiplier = -1 / 10000.f;
-                    exp          = -1.5f;
-                }
-
-                particles[i]->a += magnitude (
-                    r, 
-                    attr->mass() * g_multiplier / std::pow(magnitude(r),exp)
-                ) * Arena::scale;
             }
-        }
 
-        // Tried to clean this up by using for_each and a lambda, but it was
-        // way to slow!! Perhaps the lambda implementation for gcc is
-        // sub-optimal?
-        for_each_ptr ( 
-            particles.begin(), particles.end(), 
-            std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
-        );
+            // 
+            for_each_ptr ( 
+                particles.begin(), particles.end(), 
+                std::bind2nd( std::mem_fun_ref(&Actor::move), PDT )
+            );
+
+            // Tried to clean this up by using for_each and a lambda, but it was
+            // way to slow!! Perhaps the lambda implementation for gcc is
+            // sub-optimal?
+        }
 
         // Draw everything.
         // Since some of actors' elements may be expired at this point, clean
