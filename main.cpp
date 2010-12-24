@@ -1003,8 +1003,8 @@ int main( int, char** )
                 // This creates a repelling force so particles stay outside
                 // objects. It also makes the objects feel much more physical to
                 // have the particles interact with them this way.
-                if( magnitude(r) < attr->radius() ) {
-                    g_multiplier = -1 / 9000.f;
+                if( magnitude(r) < attr->radius() + particles[i]->scale ) {
+                    g_multiplier = -1 / 10000.f;
                     exp          = -1.5f;
                 }
 
