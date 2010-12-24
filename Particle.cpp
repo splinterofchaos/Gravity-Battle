@@ -24,14 +24,14 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
 
 void Particle::draw()
 {
-    float heightRatio = magnitude(v) / maxSpeed;
+    float widthRatio = 1.0 + magnitude(v) / maxSpeed * 11;
     float angle = std::atan2( v.y(), v.x() ) * (180/3.145f);
 
     float verts[] = { 
-        -scale, -scale * heightRatio,
-         scale, -scale * heightRatio,
-         scale,  scale * heightRatio,        
-        -scale,  scale * heightRatio,
+        -scale * widthRatio, -scale,
+         scale * widthRatio, -scale,
+         scale * widthRatio,  scale,        
+        -scale * widthRatio,  scale,
     };
 
     int texCoords[] = {
