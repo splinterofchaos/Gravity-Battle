@@ -895,7 +895,7 @@ void menu( int )
     }
 }
 
-int main()
+int main( int, char** )
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
     const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;
