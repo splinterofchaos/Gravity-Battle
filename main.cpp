@@ -470,8 +470,8 @@ void chaos_mode( int dt )
             // objects. It also makes the objects feel much more physical to
             // have the particles interact with them this way.
             if( magnitude(r) < cActors[j]->radius() ) {
-                g_multiplier = -10000.f;
-                exp          = 1.5f;
+                g_multiplier = -1 / 10000.f;
+                exp          = -1.5f;
             }
 
             particles[i]->a += magnitude (
