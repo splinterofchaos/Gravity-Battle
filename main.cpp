@@ -993,13 +993,12 @@ int main( int, char** )
                 []( std::tr1::shared_ptr<Actor> ptr ) { ptr->move(DT); }
             );
 
-            if( cActors.size() )
-                for( size_t i=0; i < cActors.size()-1; i++ )
-                    for( size_t j=i+1; j < cActors.size(); j++ )
-                        if( collision( *cActors[i], *cActors[j] ) ) {
-                            cActors[i]->collide_with( *cActors[j] );
-                            cActors[j]->collide_with( *cActors[i] );
-                        }
+            for( auto act1=cActors.begin(); act1+1 < cActors.end(); act1++ )
+                for( auto act2=act1+1;      act2   < cActors.end(); act2++ )
+                    if( collision( **act1, **act2 ) ) {
+                        (*act1)->collide_with( **act2 );
+                        (*act2)->collide_with( **act1 );
+                    }
 
             cActors.erase ( 
                 remove_if (
@@ -1009,9 +1008,12 @@ int main( int, char** )
             );
         }
 
-        for_each ( 
+        // Tried to clean this up by using for_each and a lambda, but it was
+        // way to slow!! Perhaps the lambda implementation for gcc is
+        // sub-optimal?
+        for_each_ptr ( 
             particles.begin(), particles.end(), 
-            []( const std::tr1::shared_ptr<Particle>& ptr ) { ptr->move(DT); }
+            std::bind2nd( std::mem_fun_ref(&Actor::move), frameTime )
         );
 
         // Draw everything.
