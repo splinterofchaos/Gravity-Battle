@@ -1005,6 +1005,13 @@ int main( int, char** )
                             cActors[i]->collide_with( *cActors[j] );
                             cActors[j]->collide_with( *cActors[i] );
                         }
+
+            cActors.erase ( 
+                remove_if (
+                    cActors.begin(), cActors.end(), delete_me
+                ), 
+                cActors.end() 
+            );
         }
 
         for_each_ptr ( 
@@ -1039,13 +1046,6 @@ int main( int, char** )
         draw::draw( boarder, 4, GL_LINE_LOOP );
         
         glLoadIdentity();
-
-        cActors.erase ( 
-            remove_if (
-                cActors.begin(), cActors.end(), delete_me
-            ), 
-            cActors.end() 
-        );
 
         particles.erase ( 
             remove_if (
