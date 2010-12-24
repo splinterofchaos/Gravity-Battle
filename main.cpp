@@ -45,6 +45,8 @@ const int VERSION = 9;
 
 // SDL uses milliseconds so i will too.
 const int SECOND = 1000;
+int timePlayerDied = -1000;
+bool showFrameTime = false;
 
 std::ofstream loggit( "log" );
 #define PANDE( cmd ) log << #cmd" ==> " << (cmd) << '\n'
@@ -71,8 +73,6 @@ Actors    actors;
 
 // Used everywhere to write text on the screen.
 std::shared_ptr<BitmapFont> font;
-
-int timePlayerDied = -1000;
 
 // True if the player has moved since the game started.
 bool playerHasMoved = false; 
@@ -978,6 +978,8 @@ int main( int, char** )
                             playerHasMoved = true; break;
                   case SDLK_SPACE: playerIncreasedGravity = true;
 
+                  case 'f': showFrameTime = !showFrameTime;
+
                   default: break;
                 }
                 break;
@@ -1079,9 +1081,11 @@ int main( int, char** )
         if( frameTime > MAX_FRAME_TIME )
             frameTime = MAX_FRAME_TIME;
 
-        std::stringstream ss;
-        ss << "fps: " << ( (float)SECOND / frameTime );
-        font->draw( ss.str(), 10, 680 );
+        if( showFrameTime ) {
+            std::stringstream ss;
+            ss << "fps: " << ( (float)SECOND / frameTime );
+            font->draw( ss.str(), 10, 680 );
+        }
 
         gameTime += frameTime;
     }
