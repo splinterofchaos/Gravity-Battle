@@ -987,33 +987,35 @@ int main( int, char** )
         static int pTime = 0;
         for( pTime += frameTime; pTime >= PDT; pTime -= PDT )
         {
-            for( size_t i=0; i < particles.size(); i++ )
+            for( auto part=particles.begin(); part < particles.end(); part++ )
             {
-                particles[i]->a = 0;
-                for( size_t j=0; j < Orbital::attractors.size(); j++ )
+                (*part)->a = 0;
+                auto attrPtr = Orbital::attractors.begin();
+                for( ; attrPtr < Orbital::attractors.end(); attrPtr++ )
                 {
-                    std::tr1::shared_ptr< CircleActor > attr = Orbital::attractors[j].lock();
+                    std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
 
                     if( ! attr ) {
-                        Orbital::attractors.erase( Orbital::attractors.begin() + j );
-                        j--;
+                        Orbital::attractors.erase( attrPtr );
+                        attrPtr--;
                         continue;
                     }
 
-                    Vector<float,2> r = attr->s - particles[i]->s;
+                    Vector<float,2> r = attr->s - (*part)->s;
                     float g_multiplier = 1 / 26.f;
                     float exp          = 1.3f;
 
                     // This creates a repelling force so particles stay outside
-                    // objects. It also makes the objects feel much more physical to
-                    // have the particles interact with them this way. Giving ten 
-                    // extra pixels of space makes it feel even better.
-                    if( magnitude(r) < attr->radius() + particles[i]->scale + 10 ) {
+                    // objects. It also makes the objects feel much more
+                    // physical to have the particles interact with them this
+                    // way. Giving ten extra pixels of space makes it feel even
+                    // better!
+                    if( magnitude(r) < attr->radius() + (*part)->scale + 10 ) {
                         g_multiplier = -1 / 30000.f;
                         exp          = -1.5f;
                     }
 
-                    particles[i]->a += magnitude (
+                    (*part)->a += magnitude (
                         r, 
                         attr->mass() * g_multiplier / std::pow(magnitude(r),exp)
                     ) * Arena::scale;
