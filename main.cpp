@@ -1001,14 +1001,15 @@ int main( int, char** )
                     }
 
                     Vector<float,2> r = attr->s - particles[i]->s;
-                    float g_multiplier = 1 / 56.f;
+                    float g_multiplier = 1 / 26.f;
                     float exp          = 1.3f;
 
                     // This creates a repelling force so particles stay outside
                     // objects. It also makes the objects feel much more physical to
-                    // have the particles interact with them this way.
-                    if( magnitude(r) < attr->radius() + particles[i]->scale ) {
-                        g_multiplier = -1 / 10000.f;
+                    // have the particles interact with them this way. Giving ten 
+                    // extra pixels of space makes it feel even better.
+                    if( magnitude(r) < attr->radius() + particles[i]->scale + 10 ) {
+                        g_multiplier = -1 / 30000.f;
                         exp          = -1.5f;
                     }
 
@@ -1019,15 +1020,13 @@ int main( int, char** )
                 }
             }
 
-            // 
+            // Tried to clean this up by using for_each and a lambda, but it was
+            // way to slow!! Perhaps the lambda implementation for gcc is
+            // sub-optimal?
             for_each_ptr ( 
                 particles.begin(), particles.end(), 
                 std::bind2nd( std::mem_fun_ref(&Actor::move), PDT )
             );
-
-            // Tried to clean this up by using for_each and a lambda, but it was
-            // way to slow!! Perhaps the lambda implementation for gcc is
-            // sub-optimal?
         }
 
         // Draw everything.
