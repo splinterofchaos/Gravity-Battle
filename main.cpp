@@ -1088,14 +1088,14 @@ int main( int, char** )
         if( paused )
             frameTime = 0;
 
-        if( frameTime > MAX_FRAME_TIME )
-            frameTime = MAX_FRAME_TIME;
-
         if( showFrameTime ) {
             std::stringstream ss;
             ss << "fps: " << ( (float)SECOND / frameTime );
             font->draw( ss.str(), 10, 680 );
         }
+
+        if( frameTime > MAX_FRAME_TIME )
+            frameTime = MAX_FRAME_TIME;
 
         gameTime += frameTime;
     }
