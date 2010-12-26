@@ -20,12 +20,19 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
 
     this->c *= random( 0.1f, 1.5f );
 	this->c.a( 0.7 );
+
+    gravityField = true;
 }   
 
 void Particle::draw()
 {
-    float widthRatio = 1.0 + magnitude(v) / maxSpeed * 11;
-    float angle = std::atan2( v.y(), v.x() ) * (180/3.145f);
+    // If =a, particles will represent the gravities affecting them.
+    // If =v, they will be drawn according to their motion.
+    vector_type& direction = gravityField? a : v;
+    float max = gravityField? 0.001 : maxSpeed;
+
+    float angle = std::atan2( direction.y(), direction.x() ) * (180/3.145f);
+    float widthRatio = 1.0 + magnitude(direction) / max * 11;
 
     float verts[] = { 
         -scale * widthRatio, -scale,
