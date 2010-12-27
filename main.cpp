@@ -444,7 +444,7 @@ WeakCActorPtr random_spawn( int difficulty )
       case ORBITAL: s = spawn<Orbital>(); break;
       case STOPPER: s = spawn<Stopper>(); break;
       case TWISTER: s = spawn<Twister>(); break;
-      case STICKER: s = spawn<Sticker>(); break;
+      case STICKER: s = spawn<Negative>(); break;
       default: random_spawn( difficulty ); // Should never be reached.
     }
 
