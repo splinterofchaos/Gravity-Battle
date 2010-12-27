@@ -982,13 +982,7 @@ int main( int, char** )
                 ), 
                 cActors.end() 
             );
-        }
 
-        // Update particles
-        const int PDT = DT*4;
-        static int pTime = 0;
-        for( pTime += frameTime; pTime >= PDT; pTime -= PDT )
-        {
             #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
@@ -1004,7 +998,7 @@ int main( int, char** )
 
                     Vector<float,2> r = attr->s - (*part)->s;
                     float g_multiplier = 1 / 26.f;
-                    float exp          = 1.3f;
+                    float exp          = 1.2f;
 
                     // This creates a repelling force so particles stay outside
                     // objects. It also makes the objects feel much more
@@ -1013,7 +1007,7 @@ int main( int, char** )
                     // better!
                     if( magnitude(r) < attr->radius() + (*part)->scale + 10 ) {
                         g_multiplier = -1 / 30000.f;
-                        exp          = -1.5f;
+                        exp          = -1.91f;
                     }
 
                     (*part)->a += magnitude (
@@ -1025,7 +1019,7 @@ int main( int, char** )
 
             #pragma omp parallel for
             for( auto it=particles.begin(); it < particles.end(); it++ )
-                (*it)->move( PDT );
+                (*it)->move( DT );
         }
 
         // Draw everything.
