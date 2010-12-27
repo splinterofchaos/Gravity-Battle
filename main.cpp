@@ -1034,7 +1034,7 @@ int main( int, char** )
         actors.erase (
             remove_if (
                 actors.begin(), actors.end(), 
-                [](ActorPtr& p) { return p.expired(); }
+                std::mem_fun_ref( &ActorPtr::expired )
             ),
             actors.end()
         );
