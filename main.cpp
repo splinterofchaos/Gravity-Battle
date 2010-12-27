@@ -1039,6 +1039,14 @@ int main( int, char** )
             actors.end()
         );
 
+        Orbital::attractors.erase (
+            remove_if (
+                Orbital::attractors.begin(), Orbital::attractors.end(),
+                std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
+            ),
+            Orbital::attractors.end()
+        );
+
         for( auto it=actors.begin(); it < actors.end() ; it++ ) {
             it->lock()->draw();
         }
