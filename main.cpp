@@ -961,6 +961,7 @@ int main( int, char** )
         // Update cActors.
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
+        // For each time-step:
         for( time += frameTime; time >= DT; time -= DT ) 
         {
             for_each ( 
@@ -983,6 +984,7 @@ int main( int, char** )
             );
         }
 
+        // Update particles
         const int PDT = DT*4;
         static int pTime = 0;
         for( pTime += frameTime; pTime >= PDT; pTime -= PDT )
