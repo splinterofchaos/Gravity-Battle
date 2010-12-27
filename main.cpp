@@ -987,6 +987,7 @@ int main( int, char** )
         static int pTime = 0;
         for( pTime += frameTime; pTime >= PDT; pTime -= PDT )
         {
+            #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
                 (*part)->a = 0;
@@ -996,8 +997,6 @@ int main( int, char** )
                     std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
 
                     if( ! attr ) {
-                        Orbital::attractors.erase( attrPtr );
-                        attrPtr--;
                         continue;
                     }
 
@@ -1022,13 +1021,9 @@ int main( int, char** )
                 }
             }
 
-            // Tried to clean this up by using for_each and a lambda, but it was
-            // way to slow!! Perhaps the lambda implementation for gcc is
-            // sub-optimal?
-            for_each_ptr ( 
-                particles.begin(), particles.end(), 
-                std::bind2nd( std::mem_fun_ref(&Actor::move), PDT )
-            );
+            #pragma omp parallel for
+            for( auto it=particles.begin(); it < particles.end(); it++ )
+                (*it)->move( PDT );
         }
 
         // Draw everything.
