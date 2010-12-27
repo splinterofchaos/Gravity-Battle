@@ -147,23 +147,22 @@ GLenum init_gl( int w, int h )
     return glGetError();
 }
 
-typedef BOOL (APIENTRY *PFNWGLSWAPINTERVALFARPROC)( int );
-PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
-
 // Borrowed and modified from http://www.devmaster.net/forums/showthread.php?t=443
-void setVSync(int interval=1)
+void set_vsync( int interval = 1 )
 {
-  const char *extensions = (const char*)glGetString( GL_EXTENSIONS );
+    typedef BOOL (APIENTRY *PFNWGLSWAPINTERVALFARPROC)( int );
+    PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
 
-  if( strstr( extensions, "WGL_EXT_swap_control" ) == 0 )
-    return; // Error: WGL_EXT_swap_control extension not supported on your computer.\n");
-  else
-  {
-    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress( "wglSwapIntervalEXT" );
+    const char *extensions = (const char*)glGetString( GL_EXTENSIONS );
 
-    if( wglSwapIntervalEXT )
-      wglSwapIntervalEXT(interval);
-  }
+    if( strstr( extensions, "WGL_EXT_swap_control" ) == 0 ) {
+        return; // Error: WGL_EXT_swap_control extension not supported on your computer.\n");
+    } else {
+        wglSwapIntervalEXT = (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress( "wglSwapIntervalEXT" );
+
+        if( wglSwapIntervalEXT )
+            wglSwapIntervalEXT( interval );
+    }
 }
 
 bool make_sdl_gl_window( int w, int h )
@@ -174,7 +173,7 @@ bool make_sdl_gl_window( int w, int h )
 
     font.reset( new BitmapFont );
 
-    setVSync( 0 );
+    set_vsync( 0 );
 
     return true;
 }
