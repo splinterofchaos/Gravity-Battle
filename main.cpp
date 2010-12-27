@@ -1114,7 +1114,12 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
-            ss << "fps: " << ( (float)SECOND / frameTime );
+
+            float val = frameTime;
+            if( !frameTime )
+                val = 0.5;
+
+            ss << "fps: " << ( (float)SECOND / val );
             font->draw( ss.str(), 10, 680 );
         }
 
