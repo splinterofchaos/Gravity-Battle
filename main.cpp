@@ -147,6 +147,7 @@ GLenum init_gl( int w, int h )
     return glGetError();
 }
 
+#ifdef __WIN32
 // Borrowed and modified from http://www.devmaster.net/forums/showthread.php?t=443
 void set_vsync( int interval = 1 )
 {
@@ -164,6 +165,7 @@ void set_vsync( int interval = 1 )
             wglSwapIntervalEXT( interval );
     }
 }
+#endif
 
 bool make_sdl_gl_window( int w, int h )
 {
@@ -173,7 +175,9 @@ bool make_sdl_gl_window( int w, int h )
 
     font.reset( new BitmapFont );
 
+#ifdef __WIN32
     set_vsync( 0 );
+#endif
 
     return true;
 }
