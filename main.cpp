@@ -992,9 +992,8 @@ int main( int, char** )
                 {
                     std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
 
-                    if( ! attr ) {
+                    if( ! attr )
                         continue;
-                    }
 
                     Vector<float,2> r = attr->s - (*part)->s;
                     float g_multiplier = 1 / 26.f;
