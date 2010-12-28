@@ -1084,8 +1084,14 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
+            TextBox b( *font, 10, 660 );
+
             ss << "fps: " << ( (float)SECOND / frameTime );
-            font->draw( ss.str(), 10, 680 );
+            b.writeln( ss.str() );
+
+            ss.str( "" );
+            ss << "parts: " << particles.size();
+            b.writeln( ss.str() );
         }
 
         gameTime += frameTime;
