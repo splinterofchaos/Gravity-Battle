@@ -1048,11 +1048,29 @@ int main( int, char** )
             // destabilize the physics system by making it integrate more time.
             float times = 1;
             if( frameTime > IDEAL_FRAME_TIME*1.5 )
-                times = frameTime / (IDEAL_FRAME_TIME*1.5);
+                times = 2 * frameTime / (IDEAL_FRAME_TIME*1.5);
 
             #pragma omp parallel for
             for( auto it=particles.begin(); it < particles.end(); it++ )
                 (*it)->move( DT * times );
+
+            // Rather than erasing the particles after this loop, durring worst
+            // case scenarios, this helps reduce the excess particles quickly. 
+            particles.erase ( 
+                remove_if (
+                    particles.begin(), particles.end(),
+                    []( ParticlePtr& p )
+                    {
+                    // Letting the particles go a little off-screen safely
+                    // gives a better "endless space!" feeling.
+                    return p->s.x() < Arena::minX-100 || 
+                    p->s.x() > Arena::maxX+100 || 
+                    p->s.y() < Arena::minY-100 || 
+                    p->s.y() > Arena::maxY+100;
+                    }
+                ), 
+                particles.end() 
+            );
         }
 
         // Draw everything.
@@ -1090,22 +1108,6 @@ int main( int, char** )
         draw::draw( boarder, 4, GL_LINE_LOOP );
         
         glLoadIdentity();
-
-        particles.erase ( 
-            remove_if (
-                particles.begin(), particles.end(),
-                []( ParticlePtr& p )
-                {
-                    // Letting the particles go a little off-screen safely
-                    // gives a better "endless space!" feeling.
-                    return p->s.x() < Arena::minX-100 || 
-                           p->s.x() > Arena::maxX+100 || 
-                           p->s.y() < Arena::minY-100 || 
-                           p->s.y() > Arena::maxY+100;
-                }
-            ), 
-            particles.end() 
-        );
 
         static int lastUpdate = gameTime;
         if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime ) {
