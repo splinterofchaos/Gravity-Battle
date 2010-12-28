@@ -147,6 +147,26 @@ GLenum init_gl( int w, int h )
     return glGetError();
 }
 
+#ifdef __WIN32
+// Borrowed and modified from http://www.devmaster.net/forums/showthread.php?t=443
+void set_vsync( int interval = 1 )
+{
+    typedef BOOL (APIENTRY *PFNWGLSWAPINTERVALFARPROC)( int );
+    PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
+
+    const char *extensions = (const char*)glGetString( GL_EXTENSIONS );
+
+    if( strstr( extensions, "WGL_EXT_swap_control" ) == 0 ) {
+        return; // Error: WGL_EXT_swap_control extension not supported on your computer.\n");
+    } else {
+        wglSwapIntervalEXT = (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress( "wglSwapIntervalEXT" );
+
+        if( wglSwapIntervalEXT )
+            wglSwapIntervalEXT( interval );
+    }
+}
+#endif
+
 bool make_sdl_gl_window( int w, int h )
 {
     if( ! SDL_SetVideoMode(w, h, 32, SDL_OPENGL) )
@@ -154,6 +174,10 @@ bool make_sdl_gl_window( int w, int h )
     init_gl( w, h );
 
     font.reset( new BitmapFont );
+
+#ifdef __WIN32
+    set_vsync( 0 );
+#endif
 
     return true;
 }
@@ -1098,7 +1122,12 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
-            ss << "fps: " << ( (float)SECOND / frameTime );
+
+            float val = frameTime;
+            if( !frameTime )
+                val = 0.5;
+
+            ss << "fps: " << ( (float)SECOND / val );
             font->draw( ss.str(), 10, 680 );
         }
 
