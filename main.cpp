@@ -1129,6 +1129,7 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
+            TextBox b( *font, 10, 660 );
 
             float val = frameTime;
             if( !frameTime )
@@ -1136,6 +1137,10 @@ int main( int, char** )
 
             ss << "fps: " << ( (float)SECOND / val );
             font->draw( ss.str(), 10, 680 );
+
+            ss.str( "" );
+            ss << "parts: " << particles.size();
+            b.writeln( ss.str() );
         }
 
         if( frameTime > MAX_FRAME_TIME )
