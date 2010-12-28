@@ -23,7 +23,7 @@ link    = ${CC} ${CFLAGS} -std=c++0x -o ${OUT}
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o
 
 ${OUT} : ${OBJ} main.cpp makefile
-	${link} main.cpp -std=c++0x -fopenmp ${OBJ} ${LDFLAGS}
+	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
 
 .glpp.o : glpp.cpp glpp.h
 	${compile} glpp.cpp -o .glpp.o
