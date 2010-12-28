@@ -1047,8 +1047,8 @@ int main( int, char** )
             // minimize the data set as quickly as possible. To do this,
             // destabilize the physics system by making it integrate more time.
             float times = 1;
-            if( frameTime > IDEAL_FRAME_TIME )
-                times = frameTime / IDEAL_FRAME_TIME;
+            if( frameTime > IDEAL_FRAME_TIME*1.5 )
+                times = frameTime / (IDEAL_FRAME_TIME*1.5);
 
             #pragma omp parallel for
             for( auto it=particles.begin(); it < particles.end(); it++ )
