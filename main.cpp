@@ -1040,15 +1040,20 @@ int main( int, char** )
                 }
             }
 
-            // This may seem not obvious, but trust me it works.
+            // This may seem not obvious, but it works.
             // Particle physics is by far the most CPU intensive part of this
             // whole program. When a frame lasts too long, it is probably
             // because there are too many particles on screen. We want to
             // minimize the data set as quickly as possible. To do this,
             // destabilize the physics system by making it integrate more time.
+            // But when the frame time is ideal, this has no effect.
             float times = 1;
-            if( frameTime > IDEAL_FRAME_TIME*1.5 )
-                times = 3 * frameTime / IDEAL_FRAME_TIME;
+            if( frameTime > IDEAL_FRAME_TIME ) 
+                times = (float)frameTime / IDEAL_FRAME_TIME;
+            times *= times;
+
+            if( ! times )
+                times = 1;
 
             #pragma omp parallel for
             for( auto it=particles.begin(); it < particles.end(); it++ )
