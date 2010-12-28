@@ -1048,7 +1048,7 @@ int main( int, char** )
             // destabilize the physics system by making it integrate more time.
             float times = 1;
             if( frameTime > IDEAL_FRAME_TIME*1.5 )
-                times = 2 * frameTime / (IDEAL_FRAME_TIME*1.5);
+                times = 3 * frameTime / IDEAL_FRAME_TIME;
 
             #pragma omp parallel for
             for( auto it=particles.begin(); it < particles.end(); it++ )
