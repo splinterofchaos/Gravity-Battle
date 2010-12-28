@@ -127,6 +127,14 @@ void configure( const Config& cfg )
     cfg.get( "scale",               &Arena::scale );
     cfg.get( "nHighScores",         &nHighScores );
     cfg.get( "fps",                 &showFrameTime );
+    
+    std::string particleBehaviour;
+    cfg.get( "particle-behaviour", &particleBehaviour );
+
+    if( particleBehaviour == "gravity-field" )
+        Particle::gravityField = true;
+    else
+        Particle::gravityField = false;
 }
 
 

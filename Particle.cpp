@@ -5,6 +5,8 @@
 
 #include <cmath>
 
+bool Particle::gravityField = false;
+
 Particle::Particle( const vector_type& pos, const vector_type& v, 
                     value_type minSpeed, value_type maxSpeed, float scale,
                     const Color& c )   
@@ -21,7 +23,6 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
     this->c *= random( 0.1f, 1.5f );
 	this->c.a( 0.7 );
 
-    gravityField = true;
 }   
 
 void Particle::draw()
@@ -32,7 +33,15 @@ void Particle::draw()
     float max = gravityField? 0.001 : maxSpeed;
 
     float angle = std::atan2( direction.y(), direction.x() ) * (180/3.145f);
-    float widthRatio = 1.0 + magnitude(direction) / max * 11;
+    float widthRatio = 1.0;
+
+    if( gravityField )
+        widthRatio += max / magnitude(direction) * 11;
+    else
+        widthRatio += magnitude(direction) / max * 11;
+
+    if( direction == a )
+        angle += 90;
 
     float verts[] = { 
         -scale * widthRatio, -scale,
