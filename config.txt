@@ -46,5 +46,5 @@ nHighScores = 10
 fps = 1
 
 # How should particles behave?
-#particle-behaviour = orbit
-particle-behaviour = gravity-field
+particle-behaviour = orbit
+#particle-behaviour = gravity-field
