@@ -23,6 +23,8 @@ void Config::set_defaults()
     vars["nHighScores"] = "10";
 
     vars["fps"] = "0";
+
+    vars["particle-behaviour"] = "orbit";
 }
 
 Config::Config()

@@ -10,6 +10,8 @@ class Particle : public Actor
     float scale;
     value_type maxSpeed;
 
+    static bool gravityField;
+
     Particle( const vector_type& pos, const vector_type& v, value_type minSpeed,
               value_type maxSpeed, float scale, const Color& c );
 
