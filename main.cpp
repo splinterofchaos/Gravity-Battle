@@ -435,7 +435,7 @@ std::vector<Spawns> spawnSlots = {
 
 WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
-    unsigned int rank = (float)slots.size() / maxTime * gameTime;;
+    unsigned int rank = (float)slots.size() / maxTime * gameTime;
     if( rank > slots.size() )
         rank = slots.size();
 
