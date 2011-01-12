@@ -426,26 +426,20 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 }
 
-enum Spawns { ORBITAL, STOPPER, TWISTER, STICKER, N_SPAWN_SLOTS=9 };
-Spawns spawnSlots[14] = {
+enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS=9 };
+std::vector<Spawns> spawnSlots = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
     TWISTER, ORBITAL, TWISTER 
 };
 
-WeakCActorPtr standard_spawn()
+WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
-    static int difficulty = 1;
-    if( spawnDelay > 5500 )
-        difficulty = 1;
-    else if( spawnDelay > 5300 )
-        difficulty = 3;
-    else if( spawnDelay > 4000 )
-        difficulty = 6;
-    else if( spawnDelay > 3000 )
-        difficulty = N_SPAWN_SLOTS;
+    unsigned int rank = gameTime / maxTime;
+    if( rank > slots.size() )
+        rank = slots.size();
 
-    int newSpawn = spawnSlots[ random(0, difficulty) ];
+    int newSpawn = spawnSlots[ random(0, rank) ];
 
     WeakCActorPtr s; // The new spawn.
 
@@ -454,8 +448,8 @@ WeakCActorPtr standard_spawn()
       case ORBITAL: s = spawn<Orbital>(); break;
       case STOPPER: s = spawn<Stopper>(); break;
       case TWISTER: s = spawn<Twister>(); break;
-      case STICKER: s = spawn<Negative>(); break;
-      default: standard_spawn(); // Should never be reached.
+      case NEGATIVE: s = spawn<Negative>(); break;
+      default: standard_spawn( slots, maxTime ); // Should never be reached.
     }
 
     return s;
@@ -553,7 +547,7 @@ void chaos_mode( int dt )
         if( spawnDelay < 500 )
             spawnDelay = 500;
 
-        Orbital::attractors.push_back( standard_spawn() );
+        Orbital::attractors.push_back( standard_spawn( spawnSlots, 10*SECOND) );
     }
 }
 
@@ -655,7 +649,7 @@ void arcade_mode( int dt )
         if( spawnDelay < 500 )
             spawnDelay = 500;
 
-        standard_spawn();
+        standard_spawn( spawnSlots, 10*SECOND );
     }
 }
 
@@ -688,7 +682,7 @@ void dual_mode( int dt )
         if( spawnDelay < 1000 )
             spawnDelay = 1000;
 
-        standard_spawn();
+        standard_spawn( spawnSlots, 10*SECOND );
     }
 }
 
