@@ -433,24 +433,6 @@ Spawns spawnSlots[14] = {
     TWISTER, ORBITAL, TWISTER 
 };
 
-WeakCActorPtr random_spawn( int difficulty )
-{
-    int newSpawn = spawnSlots[ random(0, difficulty) ];
-
-    WeakCActorPtr s; // The new spawn.
-
-    switch( newSpawn )
-    {
-      case ORBITAL: s = spawn<Orbital>(); break;
-      case STOPPER: s = spawn<Stopper>(); break;
-      case TWISTER: s = spawn<Twister>(); break;
-      case STICKER: s = spawn<Negative>(); break;
-      default: random_spawn( difficulty ); // Should never be reached.
-    }
-
-    return s;
-}
-
 WeakCActorPtr standard_spawn()
 {
     static int difficulty = 1;
@@ -463,7 +445,20 @@ WeakCActorPtr standard_spawn()
     else if( spawnDelay > 3000 )
         difficulty = N_SPAWN_SLOTS;
 
-    return random_spawn( difficulty );
+    int newSpawn = spawnSlots[ random(0, difficulty) ];
+
+    WeakCActorPtr s; // The new spawn.
+
+    switch( newSpawn )
+    {
+      case ORBITAL: s = spawn<Orbital>(); break;
+      case STOPPER: s = spawn<Stopper>(); break;
+      case TWISTER: s = spawn<Twister>(); break;
+      case STICKER: s = spawn<Negative>(); break;
+      default: standard_spawn(); // Should never be reached.
+    }
+
+    return s;
 }
 
 void chaos_mode( int dt )
