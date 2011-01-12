@@ -363,7 +363,7 @@ bool delete_me( SharedCActorPtr& actor )
     if( actor->deleteMe )
     {
         // Explode.
-        for( int i=0; i < actor->mass()*particleRatio; i++ )
+        for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
             spawn_particle( actor->s, actor->v/6, actor->radius()/8,
                             actor->color() );
 
@@ -460,7 +460,7 @@ void chaos_mode( int dt )
     static std::vector<Spawns> chaosSlots = {
         STOPPER, ORBITAL,
         ORBITAL, NEGATIVE, ORBITAL, TWISTER,
-        TWISTER, NEGATIVE, TWISTER 
+        TWISTER, ORBITAL, TWISTER 
     };
 
     glColor3f( 1, 1, 0 );
