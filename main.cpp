@@ -127,6 +127,14 @@ void configure( const Config& cfg )
     cfg.get( "scale",               &Arena::scale );
     cfg.get( "nHighScores",         &nHighScores );
     cfg.get( "fps",                 &showFrameTime );
+    
+    std::string particleBehaviour;
+    cfg.get( "particle-behaviour", &particleBehaviour );
+
+    if( particleBehaviour == "gravity-field" )
+        Particle::gravityField = true;
+    else
+        Particle::gravityField = false;
 }
 
 
@@ -980,6 +988,7 @@ int main( int, char** )
         // Update cActors.
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
+        // For each time-step:
         for( time += frameTime; time >= DT; time -= DT ) 
         {
             for_each ( 
@@ -1000,12 +1009,8 @@ int main( int, char** )
                 ), 
                 cActors.end() 
             );
-        }
 
-        const int PDT = DT*4;
-        static int pTime = 0;
-        for( pTime += frameTime; pTime >= PDT; pTime -= PDT )
-        {
+            #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
                 (*part)->a = 0;
@@ -1014,15 +1019,12 @@ int main( int, char** )
                 {
                     std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
 
-                    if( ! attr ) {
-                        Orbital::attractors.erase( attrPtr );
-                        attrPtr--;
+                    if( ! attr )
                         continue;
-                    }
 
                     Vector<float,2> r = attr->s - (*part)->s;
                     float g_multiplier = 1 / 26.f;
-                    float exp          = 1.3f;
+                    float exp          = 1.2f;
 
                     // This creates a repelling force so particles stay outside
                     // objects. It also makes the objects feel much more
@@ -1031,7 +1033,7 @@ int main( int, char** )
                     // better!
                     if( magnitude(r) < attr->radius() + (*part)->scale + 10 ) {
                         g_multiplier = -1 / 30000.f;
-                        exp          = -1.5f;
+                        exp          = -1.91f;
                     }
 
                     (*part)->a += magnitude (
@@ -1041,12 +1043,41 @@ int main( int, char** )
                 }
             }
 
-            // Tried to clean this up by using for_each and a lambda, but it was
-            // way to slow!! Perhaps the lambda implementation for gcc is
-            // sub-optimal?
-            for_each_ptr ( 
-                particles.begin(), particles.end(), 
-                std::bind2nd( std::mem_fun_ref(&Actor::move), PDT )
+            // This may seem not obvious, but it works.
+            // Particle physics is by far the most CPU intensive part of this
+            // whole program. When a frame lasts too long, it is probably
+            // because there are too many particles on screen. We want to
+            // minimize the data set as quickly as possible. To do this,
+            // destabilize the physics system by making it integrate more time.
+            // But when the frame time is ideal, this has no effect.
+            float times = 1;
+            if( frameTime > IDEAL_FRAME_TIME ) 
+                times = (float)frameTime / IDEAL_FRAME_TIME;
+            times *= times;
+
+            if( ! times )
+                times = 1;
+
+            #pragma omp parallel for
+            for( auto it=particles.begin(); it < particles.end(); it++ )
+                (*it)->move( DT * times );
+
+            // Rather than erasing the particles after this loop, durring worst
+            // case scenarios, this helps reduce the excess particles quickly. 
+            particles.erase ( 
+                remove_if (
+                    particles.begin(), particles.end(),
+                    []( ParticlePtr& p )
+                    {
+                    // Letting the particles go a little off-screen safely
+                    // gives a better "endless space!" feeling.
+                    return p->s.x() < Arena::minX-100 || 
+                    p->s.x() > Arena::maxX+100 || 
+                    p->s.y() < Arena::minY-100 || 
+                    p->s.y() > Arena::maxY+100;
+                    }
+                ), 
+                particles.end() 
             );
         }
 
@@ -1056,9 +1087,17 @@ int main( int, char** )
         actors.erase (
             remove_if (
                 actors.begin(), actors.end(), 
-                [](ActorPtr& p) { return p.expired(); }
+                std::mem_fun_ref( &ActorPtr::expired )
             ),
             actors.end()
+        );
+
+        Orbital::attractors.erase (
+            remove_if (
+                Orbital::attractors.begin(), Orbital::attractors.end(),
+                std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
+            ),
+            Orbital::attractors.end()
         );
 
         for( auto it=actors.begin(); it < actors.end() ; it++ ) {
@@ -1078,22 +1117,6 @@ int main( int, char** )
         
         glLoadIdentity();
 
-        particles.erase ( 
-            remove_if (
-                particles.begin(), particles.end(),
-                []( ParticlePtr& p )
-                {
-                    // Letting the particles go a little off-screen safely
-                    // gives a better "endless space!" feeling.
-                    return p->s.x() < Arena::minX-100 || 
-                           p->s.x() > Arena::maxX+100 || 
-                           p->s.y() < Arena::minY-100 || 
-                           p->s.y() > Arena::maxY+100;
-                }
-            ), 
-            particles.end() 
-        );
-
         static int lastUpdate = gameTime;
         if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime ) {
             configure( config );
@@ -1109,8 +1132,18 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
-            ss << "fps: " << ( (float)SECOND / frameTime );
+            TextBox b( *font, 10, 660 );
+
+            float val = frameTime;
+            if( !frameTime )
+                val = 0.5;
+
+            ss << "fps: " << ( (float)SECOND / val );
             font->draw( ss.str(), 10, 680 );
+
+            ss.str( "" );
+            ss << "parts: " << particles.size();
+            b.writeln( ss.str() );
         }
 
         if( frameTime > MAX_FRAME_TIME )

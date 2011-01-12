@@ -44,3 +44,7 @@ nHighScores = 10
 
 # Display frames per second? (0=off, else on.)
 fps = 1
+
+# How should particles behave?
+particle-behaviour = orbit
+#particle-behaviour = gravity-field

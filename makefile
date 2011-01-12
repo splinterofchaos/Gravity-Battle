@@ -4,10 +4,13 @@
 # CFLAGS are sent to the C compiler.
 
 ifeq "$(OS)" "Windows_NT"
+	# Openmp seems to do more bad than good, so don't include it.
+	EXTRA =
 	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lopengl32 -lgdi32
 	OUT     = run.exe
 else
 	# Linux
+	EXTRA = -fopenmp
 	LDFLAGS = -lGL -lX11 -lSDL 
 	OUT     = run
 endif
@@ -17,8 +20,8 @@ CC = g++
 
 CFLAGS  += -Wall 
 
-compile = ${CC} ${CFLAGS} -std=c++0x -c 
-link    = ${CC} ${CFLAGS} -std=c++0x -o ${OUT}
+compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -c 
+link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -o ${OUT}
 
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o
 
