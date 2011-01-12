@@ -439,7 +439,7 @@ WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
     if( rank > slots.size() )
         rank = slots.size();
 
-    int newSpawn = spawnSlots[ random(0, rank) ];
+    int newSpawn = slots[ random(0, rank) ];
 
     WeakCActorPtr s; // The new spawn.
 
@@ -457,6 +457,12 @@ WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 
 void chaos_mode( int dt )
 { 
+    static std::vector<Spawns> chaosSlots = {
+        STOPPER, ORBITAL,
+        ORBITAL, NEGATIVE, ORBITAL, TWISTER,
+        TWISTER, NEGATIVE, TWISTER 
+    };
+
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -547,7 +553,7 @@ void chaos_mode( int dt )
         if( spawnDelay < 500 )
             spawnDelay = 500;
 
-        Orbital::attractors.push_back( standard_spawn( spawnSlots, 10*SECOND) );
+        Orbital::attractors.push_back( standard_spawn( chaosSlots, 10*SECOND) );
     }
 }
 
