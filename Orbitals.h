@@ -44,6 +44,9 @@ class Orbital : public CircleActor
     static const int N_WALL_SFX = 3;
     static Sound wallSfx[N_WALL_SFX];
 
+    static const int N_BIRTH_SFX = 3;
+    static Sound birthSfx[ N_BIRTH_SFX ];
+
     // Member data
     int activationDelay;
     vector_type g; // Gravity accumulator.

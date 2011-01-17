@@ -18,6 +18,7 @@ Orbital::WeakPlayerPtr Orbital::target;
 Orbital::WeakPlayerPtr Orbital::target2;
 
 Sound Orbital::wallSfx[ N_WALL_SFX ];
+Sound Orbital::birthSfx[ N_BIRTH_SFX ];
 Sound Stopper::switchSfx[ N_SWITCHS ];
 
 Orbital::Orbital( const Orbital::vector_type& pos,
@@ -31,6 +32,8 @@ Orbital::Orbital( const Orbital::vector_type& pos,
     colorIntensity = random( 6, 10 ) / 10.0f;
 
     g = vector_type( 0, 0 );
+
+    birthSfx[ random(0, N_BIRTH_SFX) ].play();
 }
 
 CircleActor::State Orbital::on_off_screen( State state )
