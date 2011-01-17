@@ -6,6 +6,8 @@
 
 #include "Player.h"
 
+#include "Sound.h"
+
 // include shared ptr.
 #if defined( __GNUC__ )
     #include <memory> 

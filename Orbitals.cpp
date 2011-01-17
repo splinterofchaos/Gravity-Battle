@@ -304,7 +304,7 @@ Orbital::value_type Orbital::g_dist( const vector_type& r )
 
 void Orbital::collide_with( CircleActor& collider )
 {
-    deleteMe = true;;
+    deleteMe = true;
 }
 
 Twister::Twister( const Orbital::vector_type& pos, 

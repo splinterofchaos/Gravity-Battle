@@ -20,6 +20,8 @@
 
 #include "Draw.h"
 
+#include "Sound.h"
+
 // 3rd party includes.
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -180,6 +182,8 @@ bool make_sdl_gl_window( int w, int h )
     if( ! SDL_SetVideoMode(w, h, 32, SDL_OPENGL) )
         return false;
     init_gl( w, h );
+
+    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
 
     font.reset( new BitmapFont );
 
@@ -368,6 +372,8 @@ void update_high_score()
 
 bool delete_me( SharedCActorPtr& actor )
 {
+    static Sound explosions[] = { Sound("art/sfx/Explode1.wav") };
+
     if( actor->deleteMe )
     {
         // Explode.
@@ -385,6 +391,8 @@ bool delete_me( SharedCActorPtr& actor )
             timePlayerDied = gameTime;
             update_high_score();
         }
+
+        explosions[0].play();
     }
     return actor->deleteMe;
 }

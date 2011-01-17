@@ -11,7 +11,7 @@ ifeq "$(OS)" "Windows_NT"
 else
 	# Linux
 	EXTRA = -fopenmp
-	LDFLAGS = -lGL -lX11 -lSDL 
+	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer
 	OUT     = run
 endif
 
@@ -23,10 +23,13 @@ CFLAGS  += -Wall
 compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -c 
 link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -o ${OUT}
 
-OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o
+OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o
 
 ${OUT} : ${OBJ} main.cpp makefile
 	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
+
+.Sound.o : Sound.h Sound.cpp
+	${compile} Sound.cpp -o .Sound.o
 
 .glpp.o : glpp.cpp glpp.h
 	${compile} glpp.cpp -o .glpp.o
