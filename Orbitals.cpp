@@ -17,6 +17,8 @@ bool         Orbital::accelerationArrow   = false;
 Orbital::WeakPlayerPtr Orbital::target;
 Orbital::WeakPlayerPtr Orbital::target2;
 
+Sound Stopper::switchSfx[ N_SWITCHS ];
+
 Orbital::Orbital( const Orbital::vector_type& pos,
                   const Orbital::vector_type& vel )
     : CircleActor( pos )
@@ -454,6 +456,8 @@ void Stopper::collide_with( CircleActor& collider )
     );
     lastColiders[0] = &collider;
 
+    bool presentState = isMovable;
+
     if( isMovable ) 
     {
         isMovable = false;
@@ -481,6 +485,9 @@ void Stopper::collide_with( CircleActor& collider )
             v = collider.v * collider.mass() / mass();
         }
     }
+
+    if( isMovable != presentState )
+        switchSfx[ random(0, N_SWITCHS) ].play();
 }
 
 Color Stopper::color()

@@ -378,7 +378,7 @@ bool delete_me( SharedCActorPtr& actor )
         Sound("art/sfx/Explode3.wav"),
         Sound("art/sfx/Explode4.wav"),
     };
-    const int N_EXPLOSIONS = sizeof( explosions ) / sizeof( Sound );
+    static const int N_EXPLOSIONS = sizeof( explosions ) / sizeof( Sound );
 
     if( actor->deleteMe )
     {
@@ -933,6 +933,11 @@ int main( int, char** )
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
+
+    Stopper::switchSfx[0].load( "art/sfx/Stopper-change.wav" );
+    Stopper::switchSfx[1].load( "art/sfx/Stopper-change1.wav" );
+    Stopper::switchSfx[2].load( "art/sfx/Stopper-change2.wav" );
+    Stopper::switchSfx[3].load( "art/sfx/Stopper-change3.wav" );
 
     reset( menu ); 
 

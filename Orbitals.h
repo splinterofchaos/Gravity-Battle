@@ -104,6 +104,9 @@ class Stopper : public Orbital
     int lastCollisionTime;
 
   public:
+    static const int N_SWITCHS = 4;
+    static Sound switchSfx[N_SWITCHS];
+
     static const value_type RADIUS = 34;
     static const value_type STOPPED_RADIUS = 29;
 
