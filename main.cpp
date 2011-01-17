@@ -372,7 +372,13 @@ void update_high_score()
 
 bool delete_me( SharedCActorPtr& actor )
 {
-    static Sound explosions[] = { Sound("art/sfx/Explode1.wav") };
+    static Sound explosions[] = { 
+        Sound("art/sfx/Explode1.wav"),
+        Sound("art/sfx/Explode2.wav"),
+        Sound("art/sfx/Explode3.wav"),
+        Sound("art/sfx/Explode4.wav"),
+    };
+    const int N_EXPLOSIONS = sizeof( explosions ) / sizeof( Sound );
 
     if( actor->deleteMe )
     {
@@ -392,7 +398,7 @@ bool delete_me( SharedCActorPtr& actor )
             update_high_score();
         }
 
-        explosions[0].play();
+        explosions[ random(0, N_EXPLOSIONS) ].play();
     }
     return actor->deleteMe;
 }
