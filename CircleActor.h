@@ -18,6 +18,7 @@ class CircleActor : public Actor
     State state();
 
   public:
+    // Status info
     bool isActive;
     bool isMovable;
     bool isDeadly;

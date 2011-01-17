@@ -41,9 +41,13 @@ class Orbital : public CircleActor
     static bool         velocityArrow;
     static bool         accelerationArrow;
 
+    static const int N_WALL_SFX = 3;
+    static Sound wallSfx[N_WALL_SFX];
+
     // Member data
     int activationDelay;
     vector_type g; // Gravity accumulator.
+    bool hitWall;
 
     Orbital( const vector_type& position, const vector_type& v );
 

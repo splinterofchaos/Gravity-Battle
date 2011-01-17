@@ -934,6 +934,10 @@ int main( int, char** )
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
 
+    Orbital::wallSfx[0].load( "art/sfx/Hit-wall.wav" );
+    Orbital::wallSfx[1].load( "art/sfx/Hit-wall1.wav" );
+    Orbital::wallSfx[2].load( "art/sfx/Hit-wall2.wav" );
+
     Stopper::switchSfx[0].load( "art/sfx/Stopper-change.wav" );
     Stopper::switchSfx[1].load( "art/sfx/Stopper-change1.wav" );
     Stopper::switchSfx[2].load( "art/sfx/Stopper-change2.wav" );
