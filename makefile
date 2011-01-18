@@ -6,12 +6,12 @@
 ifeq "$(OS)" "Windows_NT"
 	# Openmp seems to do more bad than good, so don't include it.
 	EXTRA =
-	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lopengl32 -lgdi32
+	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lopengl32 -lgdi32
 	OUT     = run.exe
 else
 	# Linux
 	EXTRA = -fopenmp
-	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer
+	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer 
 	OUT     = run
 endif
 

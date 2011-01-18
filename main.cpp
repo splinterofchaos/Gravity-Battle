@@ -861,6 +861,10 @@ void challenge( int dt )
 
 void menu( int )
 {
+    static Music menuSong( "art/music/The Creep Behind.ogg" );
+    if( ! menuSong.playing() )
+        menuSong.loop();
+
     if( cActors.size() == 1 )
         for( int i=0; i < 3; i++ )
             spawn<MenuOrbital>();
