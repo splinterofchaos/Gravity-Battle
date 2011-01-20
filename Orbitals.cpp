@@ -22,7 +22,7 @@ Sound Orbital::birthSfx[ N_BIRTH_SFX ];
 Sound Stopper::switchSfx[ N_SWITCHS ];
 
 Orbital::Orbital( const Orbital::vector_type& pos,
-                  const Orbital::vector_type& vel )
+                  const Orbital::vector_type& vel, bool playSound )
     : CircleActor( pos )
 {
     v = vel;
@@ -33,7 +33,10 @@ Orbital::Orbital( const Orbital::vector_type& pos,
 
     g = vector_type( 0, 0 );
 
-    birthSfx[ random(0, N_BIRTH_SFX) ].play();
+    if( playSound )
+        birthSfx[ random(0, N_BIRTH_SFX) ].play();
+
+    hitWall = false;
 }
 
 CircleActor::State Orbital::on_off_screen( State state )
@@ -515,10 +518,10 @@ Color Stopper::color()
     Color c;
 
     if( !isMovable ) {
-        c = Color( 0.9, 0.9, 0.9, 0.9 ) * colorIntensity;
+        c = Color( 0.6, 0.6, 0.6, 0.6 ) * colorIntensity;
         c.a( 1 );
     } else {
-        c = Color( 1, 1, 1, 0.5 );
+        c = Color( 1, 1, 1, 0.65 );
     }
 
     return c;

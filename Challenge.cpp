@@ -10,12 +10,19 @@ const float Obsticle::SIZE = 15;
 const float Goal::SIZE = 23;
 
 Package::Package( const vector_type& pos, const vector_type& )
-    : Orbital( pos, vector_type(0,0) )
+    : Orbital( pos, vector_type(0,0), false )
 {
     activationDelay = 1;
     started = false;
     isMovable = false;
     reachedGoal = false;
+}
+
+Package::State Package::on_off_screen( State s )
+{
+    if( isActive )
+        return Orbital::on_off_screen( s );
+    return s;
 }
 
 void Package::move( int dt )
@@ -81,12 +88,16 @@ void Package::collide_with( CircleActor& collider )
 }
 
 Obsticle::Obsticle( const vector_type& pos, const vector_type& )
-    : Orbital( pos, vector_type(0,0) )
+    : Orbital( pos, vector_type(0,0), false )
 {
     isMovable = false;
     activationDelay = 0;
 }
 
+Obsticle::State Obsticle::on_off_screen( State s )
+{
+    return s;
+}
 
 Color Obsticle::color()
 {
@@ -104,10 +115,15 @@ void Obsticle::collide_with( CircleActor& )
 }
 
 Goal::Goal( const vector_type& pos, const vector_type& )
-    : Orbital( pos, vector_type(0,0) )
+    : Orbital( pos, vector_type(0,0), false )
 {
     isMovable = false;
     activationDelay = 0;
+}
+
+Goal::State Goal::on_off_screen( State s )
+{
+    return s;
 }
 
 Color Goal::color()

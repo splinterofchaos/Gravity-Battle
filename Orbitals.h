@@ -52,7 +52,8 @@ class Orbital : public CircleActor
     vector_type g; // Gravity accumulator.
     bool hitWall;
 
-    Orbital( const vector_type& position, const vector_type& v );
+    Orbital( const vector_type& position, const vector_type& v, 
+             bool playSound=true );
 
     State on_off_screen( State state );
 

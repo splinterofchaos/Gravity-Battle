@@ -405,7 +405,8 @@ bool delete_me( SharedCActorPtr& actor )
 
 void reset( GameLogic logic = 0 )
 {
-    Mix_FadeOutMusic( 2500 );
+    if( logic )
+        Mix_FadeOutMusic( 500 );
 
     Arena::minX = Arena::minY = 3;
     Arena::maxX = SCREEN_WIDTH-3;
@@ -734,6 +735,14 @@ void dual_mode( int dt )
 
 void package_delivery( int dt )
 {
+    static Music menuSong( "art/music/Magic.ogg" );
+
+    if( ! menuSong.playing() )
+    {
+        menuSong.fade_in( 1 * SECOND );
+        Mix_VolumeMusic( MIX_MAX_VOLUME / 2 );
+    }
+
     static std::tr1::weak_ptr<Package> weakPackage;
     static bool started    = false; // Has the round started?
     static bool scoreSaved = false; // (At end:) Was the score saved?

@@ -16,6 +16,8 @@ struct Package : public Orbital
 
     Package( const vector_type& pos, const vector_type& v );
 
+    State on_off_screen( State state );
+
     void move( int dt );
     void draw();
 
@@ -30,6 +32,8 @@ struct Obsticle : public Orbital
 
     Obsticle( const vector_type& pos, const vector_type& v=vector_type(0,0) );
 
+    State on_off_screen( State state );
+
     Color color();
 
     value_type radius() const;
@@ -42,6 +46,8 @@ struct Goal : public Orbital
     static const float SIZE;
 
     Goal( const vector_type& pos, const vector_type& v=vector_type(0,0) );
+
+    State on_off_screen( State state );
 
     Color color();
 
