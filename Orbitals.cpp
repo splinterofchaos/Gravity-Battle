@@ -125,7 +125,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
     if( isActive )
         activationProgress = 1;
     else
-        activationProgress =  std::cos ( 
+        activationProgress =  0.5 + 0.5 * std::cos ( 
             (float)activationDelay * (3.14/ACTIVATION_DELAY) 
         );
 
@@ -141,10 +141,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
     Color c = color();
     if( ! isActive )
-        if( activationProgress < 0.5 )
-            c *= activationProgress + 1;
-        else
-            c *= activationProgress;
+        c = { 1, 1, 1, 1 };
 
     glColor4f( c.r(), c.g(), c.b(), c.a() );
 
