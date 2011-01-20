@@ -20,6 +20,8 @@
 
 #include "Draw.h"
 
+#include "Sound.h"
+
 // 3rd party includes.
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -180,6 +182,8 @@ bool make_sdl_gl_window( int w, int h )
     if( ! SDL_SetVideoMode(w, h, 32, SDL_OPENGL) )
         return false;
     init_gl( w, h );
+
+    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
 
     font.reset( new BitmapFont );
 
@@ -368,6 +372,14 @@ void update_high_score()
 
 bool delete_me( SharedCActorPtr& actor )
 {
+    static Sound explosions[] = { 
+        Sound("art/sfx/Explode1.wav"),
+        Sound("art/sfx/Explode2.wav"),
+        Sound("art/sfx/Explode3.wav"),
+        Sound("art/sfx/Explode4.wav"),
+    };
+    static const int N_EXPLOSIONS = sizeof( explosions ) / sizeof( Sound );
+
     if( actor->deleteMe )
     {
         // Explode.
@@ -385,12 +397,16 @@ bool delete_me( SharedCActorPtr& actor )
             timePlayerDied = gameTime;
             update_high_score();
         }
+
+        explosions[ random(0, N_EXPLOSIONS) ].play();
     }
     return actor->deleteMe;
 }
 
 void reset( GameLogic logic = 0 )
 {
+    Mix_FadeOutMusic( 2500 );
+
     Arena::minX = Arena::minY = 3;
     Arena::maxX = SCREEN_WIDTH-3;
     Arena::maxY = SCREEN_HEIGHT-3;
@@ -572,6 +588,17 @@ void chaos_mode( int dt )
 
 void arcade_mode( int dt )
 {
+    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+
+    if( ! menuSong.playing() && !Orbital::target.expired() )
+    {
+        menuSong.fade_in( 1 * SECOND );
+        Mix_VolumeMusic( MIX_MAX_VOLUME / 2 );
+    }
+
+    if( menuSong.playing() && Orbital::target.expired() )
+        Mix_FadeOutMusic( 2500 );
+
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -847,6 +874,10 @@ void challenge( int dt )
 
 void menu( int )
 {
+    static Music menuSong( "art/music/The Creep Behind.ogg" );
+    if( ! menuSong.playing() )
+        menuSong.fade_in( 1 * SECOND );
+
     if( cActors.size() == 1 )
         for( int i=0; i < 3; i++ )
             spawn<MenuOrbital>();
@@ -919,6 +950,19 @@ int main( int, char** )
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
     Orbital::image.load( "art/Orbital.bmp" );
+
+    Orbital::birthSfx[0].load( "art/sfx/Birth.wav" );
+    Orbital::birthSfx[1].load( "art/sfx/Birth1.wav" );
+    Orbital::birthSfx[2].load( "art/sfx/Birth2.wav" );
+
+    Orbital::wallSfx[0].load( "art/sfx/Hit-wall.wav" );
+    Orbital::wallSfx[1].load( "art/sfx/Hit-wall1.wav" );
+    Orbital::wallSfx[2].load( "art/sfx/Hit-wall2.wav" );
+
+    Stopper::switchSfx[0].load( "art/sfx/Stopper-change.wav" );
+    Stopper::switchSfx[1].load( "art/sfx/Stopper-change1.wav" );
+    Stopper::switchSfx[2].load( "art/sfx/Stopper-change2.wav" );
+    Stopper::switchSfx[3].load( "art/sfx/Stopper-change3.wav" );
 
     reset( menu ); 
 

@@ -17,6 +17,10 @@ bool         Orbital::accelerationArrow   = false;
 Orbital::WeakPlayerPtr Orbital::target;
 Orbital::WeakPlayerPtr Orbital::target2;
 
+Sound Orbital::wallSfx[ N_WALL_SFX ];
+Sound Orbital::birthSfx[ N_BIRTH_SFX ];
+Sound Stopper::switchSfx[ N_SWITCHS ];
+
 Orbital::Orbital( const Orbital::vector_type& pos,
                   const Orbital::vector_type& vel )
     : CircleActor( pos )
@@ -28,19 +32,29 @@ Orbital::Orbital( const Orbital::vector_type& pos,
     colorIntensity = random( 6, 10 ) / 10.0f;
 
     g = vector_type( 0, 0 );
+
+    birthSfx[ random(0, N_BIRTH_SFX) ].play();
 }
 
 CircleActor::State Orbital::on_off_screen( State state )
 {
-    if( state.s.x() - radius() < Arena::minX && state.v.x() < 0 )
-        state.v.x( -state.v.x() * BOUNCINESS );
-    else if( state.s.x() + radius() > Arena::maxX && state.v.x() > 0 )
-        state.v.x( -state.v.x() * BOUNCINESS );
+    hitWall = false;
 
-    if( state.s.y() - radius() < Arena::minY && state.v.y() < 0 )
+    if( state.s.x() - radius() < Arena::minX && state.v.x() < 0 ) {
+        state.v.x( -state.v.x() * BOUNCINESS );
+        hitWall = true;
+    } else if( state.s.x() + radius() > Arena::maxX && state.v.x() > 0 ) {
+        state.v.x( -state.v.x() * BOUNCINESS );
+        hitWall = true;
+    }
+
+    if( state.s.y() - radius() < Arena::minY && state.v.y() < 0 ) {
         state.v.y( -state.v.y() * BOUNCINESS );
-    else if( state.s.y() + radius() > Arena::maxY && state.v.y() > 0 )
+        hitWall = true;
+    } else if( state.s.y() + radius() > Arena::maxY && state.v.y() > 0 ) {
         state.v.y( -state.v.y() * BOUNCINESS );
+        hitWall = true;
+    }
 
     return state;
 }
@@ -93,8 +107,13 @@ void Orbital::move( int dt )
             isActive = true;
     }
 
+    vector_type vOrig = v;
+
     // Will call Orbital::integrate.
     CircleActor::move( dt );
+
+    if( hitWall )
+        wallSfx[ random(0, N_WALL_SFX) ].play();
 }
 
 void Orbital::draw_impl( float* verts, float zRotation, bool extra )
@@ -310,7 +329,7 @@ Orbital::value_type Orbital::g_dist( const vector_type& r )
 
 void Orbital::collide_with( CircleActor& collider )
 {
-    deleteMe = true;;
+    deleteMe = true;
 }
 
 Twister::Twister( const Orbital::vector_type& pos, 
@@ -460,6 +479,8 @@ void Stopper::collide_with( CircleActor& collider )
     );
     lastColiders[0] = &collider;
 
+    bool presentState = isMovable;
+
     if( isMovable ) 
     {
         isMovable = false;
@@ -487,6 +508,9 @@ void Stopper::collide_with( CircleActor& collider )
             v = collider.v * collider.mass() / mass();
         }
     }
+
+    if( isMovable != presentState )
+        switchSfx[ random(0, N_SWITCHS) ].play();
 }
 
 Color Stopper::color()

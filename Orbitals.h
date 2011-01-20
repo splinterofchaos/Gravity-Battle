@@ -6,6 +6,8 @@
 
 #include "Player.h"
 
+#include "Sound.h"
+
 // include shared ptr.
 #if defined( __GNUC__ )
     #include <memory> 
@@ -39,9 +41,16 @@ class Orbital : public CircleActor
     static bool         velocityArrow;
     static bool         accelerationArrow;
 
+    static const int N_WALL_SFX = 3;
+    static Sound wallSfx[N_WALL_SFX];
+
+    static const int N_BIRTH_SFX = 3;
+    static Sound birthSfx[ N_BIRTH_SFX ];
+
     // Member data
     int activationDelay;
     vector_type g; // Gravity accumulator.
+    bool hitWall;
 
     Orbital( const vector_type& position, const vector_type& v );
 
@@ -102,6 +111,9 @@ class Stopper : public Orbital
     int lastCollisionTime;
 
   public:
+    static const int N_SWITCHS = 4;
+    static Sound switchSfx[N_SWITCHS];
+
     static const value_type RADIUS = 34;
     static const value_type STOPPED_RADIUS = 29;
 
