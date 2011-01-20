@@ -405,6 +405,8 @@ bool delete_me( SharedCActorPtr& actor )
 
 void reset( GameLogic logic = 0 )
 {
+    Mix_FadeOutMusic( 2500 );
+
     Arena::minX = Arena::minY = 3;
     Arena::maxX = SCREEN_WIDTH-3;
     Arena::maxY = SCREEN_HEIGHT-3;
@@ -586,6 +588,17 @@ void chaos_mode( int dt )
 
 void arcade_mode( int dt )
 {
+    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+
+    if( ! menuSong.playing() && !Orbital::target.expired() )
+    {
+        menuSong.fade_in( 1 * SECOND );
+        Mix_VolumeMusic( MIX_MAX_VOLUME / 2 );
+    }
+
+    if( menuSong.playing() && Orbital::target.expired() )
+        Mix_FadeOutMusic( 2500 );
+
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -863,7 +876,7 @@ void menu( int )
 {
     static Music menuSong( "art/music/The Creep Behind.ogg" );
     if( ! menuSong.playing() )
-        menuSong.loop();
+        menuSong.fade_in( 1 * SECOND );
 
     if( cActors.size() == 1 )
         for( int i=0; i < 3; i++ )
