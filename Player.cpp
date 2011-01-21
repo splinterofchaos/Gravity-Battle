@@ -23,7 +23,7 @@ void Player::move( int dt )
     const value_type ACC   = 0.012;
 
     // TODO: The value of SPEED seems not to affect this function. Why?
-    const value_type SPEED = 0.0000005;
+    const value_type SPEED = 0.0000002;
 
     if( keyStates[ SDLK_a ] )
         a.x( a.x() - ACC );
@@ -39,6 +39,9 @@ void Player::move( int dt )
 
     // Used in Player::mass called by CircleActor::move.
     moreGravity = keyStates[ SDLK_SPACE ];
+
+    if( moreGravity )
+        a *= 1.05;
 
     CircleActor::move( dt, SPEED );
 

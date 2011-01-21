@@ -406,7 +406,7 @@ bool delete_me( SharedCActorPtr& actor )
 void reset( GameLogic logic = 0 )
 {
     if( logic )
-        Mix_FadeOutMusic( 500 );
+        Mix_FadeOutMusic( 200 );
 
     Arena::minX = Arena::minY = 3;
     Arena::maxX = SCREEN_WIDTH-3;
@@ -491,8 +491,23 @@ WeakCActorPtr standard_spawn()
     return random_spawn( difficulty );
 }
 
+void play_song( Music& song )
+{
+    if( ! song.playing() && !Orbital::target.expired() )
+    {
+        song.fade_in( 1 * SECOND );
+        Mix_VolumeMusic( MIX_MAX_VOLUME / 2 );
+    }
+
+    if( song.playing() && Orbital::target.expired() )
+        Mix_FadeOutMusic( 2500 );
+}
+
 void chaos_mode( int dt )
 { 
+    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    play_song( menuSong );
+
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
@@ -590,15 +605,7 @@ void chaos_mode( int dt )
 void arcade_mode( int dt )
 {
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
-
-    if( ! menuSong.playing() && !Orbital::target.expired() )
-    {
-        menuSong.fade_in( 1 * SECOND );
-        Mix_VolumeMusic( MIX_MAX_VOLUME / 2 );
-    }
-
-    if( menuSong.playing() && Orbital::target.expired() )
-        Mix_FadeOutMusic( 2500 );
+    play_song( menuSong );
 
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
@@ -898,7 +905,7 @@ void menu( int )
         b.writeln( "WASD to move." );
 
         if( ! playerIncreasedGravity )
-            b.writeln( "SPACEBAR to increase gravity." );
+            b.writeln( "SPACEBAR to dash." );
     } else {
         glColor3f( 0.5, 0.5, 1 );
 
