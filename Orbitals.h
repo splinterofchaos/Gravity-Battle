@@ -137,15 +137,18 @@ class Stopper : public Orbital
     value_type g_multiplier();
 };
 
-struct Sticker : public Orbital
+struct Negative : public Orbital
 {
 	static const float RADIUS = 10; 
 
-	Sticker( const vector_type& pos, const vector_type& v );
+	Negative( const vector_type& pos, const vector_type& v );
 
 	vector_type acceleration( const vector_type& r );
 
 	value_type radius() const;
+    value_type mass()   const;
 
 	Color color();
+
+    value_type g_multiplier();
 };

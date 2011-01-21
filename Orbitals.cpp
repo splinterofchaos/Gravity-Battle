@@ -505,7 +505,7 @@ void Stopper::collide_with( CircleActor& collider )
             isMovable = true;
 
             // Transfer momentum fro collider to this.
-            v = collider.v * collider.mass() / mass();
+            v = collider.v * std::abs( collider.mass() ) / mass();
         }
     }
 
@@ -532,24 +532,34 @@ Stopper::value_type Stopper::g_multiplier()
     return 1.0f / 220.0f;
 }
 
-Sticker::Sticker( const vector_type& pos, const vector_type& v )
+Negative::Negative( const vector_type& pos, const vector_type& v )
 	: Orbital( pos, v )
 {
 }
 
-Sticker::vector_type Sticker::acceleration( const vector_type& r )
+Negative::vector_type Negative::acceleration( const vector_type& r )
 {
 	return magnitude( r, r*r / 50000000 );
 }
 
-Sticker::value_type Sticker::radius() const
+Negative::value_type Negative::radius() const
 {
 	return RADIUS;
 }
 
-Color Sticker::color()
+Negative::value_type Negative::mass() const
+{
+    return -Orbital::mass();
+}
+
+Color Negative::color()
 {
     Color c = Color( 0.3f, 1.0f, 1.0f, 1.0f ) * colorIntensity;
     c.a( 1 );
     return c;
+}
+
+Negative::value_type Negative::g_multiplier()
+{
+    return 1 / 45.f;
 }

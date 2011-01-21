@@ -383,7 +383,7 @@ bool delete_me( SharedCActorPtr& actor )
     if( actor->deleteMe )
     {
         // Explode.
-        for( int i=0; i < actor->mass()*particleRatio; i++ )
+        for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
             spawn_particle( actor->s, actor->v/6, actor->radius()/8,
                             actor->color() );
 
@@ -451,16 +451,20 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 }
 
-enum Spawns { ORBITAL, STOPPER, TWISTER, STICKER, N_SPAWN_SLOTS=9 };
-Spawns spawnSlots[14] = {
+enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS=9 };
+std::vector<Spawns> spawnSlots = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
     TWISTER, ORBITAL, TWISTER 
 };
 
-WeakCActorPtr random_spawn( int difficulty )
+WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
-    int newSpawn = spawnSlots[ random(0, difficulty) ];
+    unsigned int rank = (float)slots.size() / maxTime * gameTime;
+    if( rank > slots.size() )
+        rank = slots.size();
+
+    int newSpawn = slots[ random(0, rank) ];
 
     WeakCActorPtr s; // The new spawn.
 
@@ -469,26 +473,11 @@ WeakCActorPtr random_spawn( int difficulty )
       case ORBITAL: s = spawn<Orbital>(); break;
       case STOPPER: s = spawn<Stopper>(); break;
       case TWISTER: s = spawn<Twister>(); break;
-      case STICKER: s = spawn<Sticker>(); break;
-      default: random_spawn( difficulty ); // Should never be reached.
+      case NEGATIVE: s = spawn<Negative>(); break;
+      default: standard_spawn( slots, maxTime ); // Should never be reached.
     }
 
     return s;
-}
-
-WeakCActorPtr standard_spawn()
-{
-    static int difficulty = 1;
-    if( spawnDelay > 5500 )
-        difficulty = 1;
-    else if( spawnDelay > 5300 )
-        difficulty = 3;
-    else if( spawnDelay > 4000 )
-        difficulty = 6;
-    else if( spawnDelay > 3000 )
-        difficulty = N_SPAWN_SLOTS;
-
-    return random_spawn( difficulty );
 }
 
 void play_song( Music& song )
@@ -507,6 +496,12 @@ void chaos_mode( int dt )
 { 
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
     play_song( menuSong );
+
+    static std::vector<Spawns> chaosSlots = {
+        ORBITAL, ORBITAL,
+        ORBITAL, TWISTER, STOPPER, TWISTER,
+        NEGATIVE, ORBITAL, TWISTER 
+    };
 
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
@@ -598,7 +593,7 @@ void chaos_mode( int dt )
         if( spawnDelay < 500 )
             spawnDelay = 500;
 
-        Orbital::attractors.push_back( standard_spawn() );
+        Orbital::attractors.push_back( standard_spawn( chaosSlots, 10*SECOND) );
     }
 }
 
@@ -703,7 +698,7 @@ void arcade_mode( int dt )
         if( spawnDelay < 500 )
             spawnDelay = 500;
 
-        standard_spawn();
+        standard_spawn( spawnSlots, 10*SECOND );
     }
 }
 
@@ -736,7 +731,7 @@ void dual_mode( int dt )
         if( spawnDelay < 1000 )
             spawnDelay = 1000;
 
-        standard_spawn();
+        standard_spawn( spawnSlots, 10*SECOND );
     }
 }
 
