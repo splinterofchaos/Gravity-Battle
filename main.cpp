@@ -1070,6 +1070,17 @@ int main( int, char** )
                 cActors.end() 
             );
 
+            // Removing attractors here relieves us from needing to validate 
+            // them as we iterate each particle through them. Surprisingly,
+            // this seems to improve performance in MinGW.
+            Orbital::attractors.erase (
+                remove_if (
+                    Orbital::attractors.begin(), Orbital::attractors.end(),
+                    std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
+                ),
+                Orbital::attractors.end()
+            );
+
             #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
@@ -1079,12 +1090,7 @@ int main( int, char** )
                 {
                     std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
 
-                    if( ! attr )
-                        continue;
-
                     Vector<float,2> r = attr->s - (*part)->s;
-                    float g_multiplier = 1 / 26.f;
-                    float exp          = 1.2f;
 
                     // This creates a repelling force so particles stay outside
                     // objects. It also makes the objects feel much more
@@ -1092,14 +1098,16 @@ int main( int, char** )
                     // way. Giving ten extra pixels of space makes it feel even
                     // better!
                     if( magnitude(r) < attr->radius() + (*part)->scale + 10 ) {
-                        g_multiplier = -1 / 30000.f;
-                        exp          = -1.91f;
+                        (*part)->a += magnitude (
+                            -r,
+                            0.3f
+                        ) * Arena::scale;
+                    } else {
+                        (*part)->a += magnitude (
+                            r, 
+                            attr->mass() * (1/26.f) / std::pow(magnitude(r),1.2f)
+                        ) * Arena::scale;
                     }
-
-                    (*part)->a += magnitude (
-                        r, 
-                        attr->mass() * g_multiplier / std::pow(magnitude(r),exp)
-                    ) * Arena::scale;
                 }
             }
 
@@ -1150,14 +1158,6 @@ int main( int, char** )
                 std::mem_fun_ref( &ActorPtr::expired )
             ),
             actors.end()
-        );
-
-        Orbital::attractors.erase (
-            remove_if (
-                Orbital::attractors.begin(), Orbital::attractors.end(),
-                std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
-            ),
-            Orbital::attractors.end()
         );
 
         for( auto it=actors.begin(); it < actors.end() ; it++ ) {
