@@ -1,6 +1,6 @@
 # How many particles to spawn, proportionate to the exploder's mass.
 # It the game runs slowly after a collision, this is the variable to turn down.
-particleRatio = 150
+particleRatio = 200
 
 # A prediction line, showing the path enemies will fallow assuming the player
 # stands still, can be drawn to help beginners learn how to play and manipulate

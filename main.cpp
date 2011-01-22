@@ -62,11 +62,10 @@ GameLogic gameLogic;
 
 typedef std::tr1::shared_ptr< CircleActor > SharedCActorPtr;
 typedef std::tr1::weak_ptr< CircleActor >   WeakCActorPtr;
-typedef std::tr1::shared_ptr<Particle>      ParticlePtr;
 typedef std::tr1::weak_ptr<Actor>           ActorPtr;
 
 typedef std::vector< SharedCActorPtr > CActors;
-typedef std::vector< ParticlePtr > Particles;
+typedef std::vector< Particle > Particles;
 typedef std::vector<ActorPtr>      Actors;
 
 CActors   cActors;
@@ -283,14 +282,11 @@ void spawn_particle( const Actor::vector_type& pos, const Actor::vector_type& v,
 
     scale = random( 0.5f, scale );
 
-    ParticlePtr particle ( 
-        new Particle ( 
-            pos, v, 0, 1, scale, c
-        )
+    Particle particle ( 
+        pos, v, 0, 1, scale, c
     );
 
     particles.push_back( particle );
-    actors.push_back(    particle );
 }
 
 float scoreVal = 0;
@@ -1098,34 +1094,34 @@ int main( int, char** )
             #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
-                (*part)->a *= 0;
+                part->a *= 0;
 
                 auto attrPtr = Orbital::attractors.begin();
                 for( ; attrPtr < Orbital::attractors.end(); attrPtr++ )
                 {
                     std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
 
-                    Vector<float,2> r = attr->s - (*part)->s;
+                    Vector<float,2> r = attr->s - part->s;
 
                     // This creates a repelling force so particles stay outside
                     // objects. It also makes the objects feel much more
                     // physical to have the particles interact with them this
                     // way. Giving ten extra pixels of space makes it feel even
                     // better!
-                    if( magnitude(r) < attr->radius() + (*part)->scale + 10 ) {
-                        (*part)->a += magnitude (
+                    if( magnitude(r) < attr->radius() + part->scale + 10 ) {
+                        part->a += magnitude (
                             -r,
-                            0.34f
+                            0.44f
                         ) * Arena::scale;
                     } else {
-                        (*part)->a += magnitude (
+                        part->a += magnitude (
                             r, 
-                            attr->mass() * (1.5f/26.f) / std::pow(magnitude(r),1.2f)
+                            attr->mass() * (2.0f/26.f) / std::pow(magnitude(r),1.2f)
                         ) * Arena::scale;
                     }
                 }
 
-                (*part)->move( time );
+                part->move( time );
             }
 
             // Rather than erasing the particles after this loop, durring worst
@@ -1133,14 +1129,14 @@ int main( int, char** )
             particles.erase ( 
                 remove_if (
                     particles.begin(), particles.end(),
-                    []( ParticlePtr& p )
+                    []( const Particle& p )
                     {
-                    // Letting the particles go a little off-screen safely
-                    // gives a better "endless space!" feeling.
-                    return p->s.x() < Arena::minX-100 || 
-                    p->s.x() > Arena::maxX+100 || 
-                    p->s.y() < Arena::minY-100 || 
-                    p->s.y() > Arena::maxY+100;
+                        // Letting the particles go a little off-screen safely
+                        // gives a better "endless space!" feeling.
+                        return p.s.x() < Arena::minX-300 || 
+                               p.s.x() > Arena::maxX+300 || 
+                               p.s.y() < Arena::minY-300 || 
+                               p.s.y() > Arena::maxY+300;
                     }
                 ), 
                 particles.end() 
@@ -1161,6 +1157,9 @@ int main( int, char** )
         for( auto it=actors.begin(); it < actors.end() ; it++ ) {
             it->lock()->draw();
         }
+
+        for( auto it=particles.begin(); it < particles.end(); it++ )
+            it->draw();
 
 
         float boarder[] = {
