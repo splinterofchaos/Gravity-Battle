@@ -1129,8 +1129,8 @@ int main( int, char** )
                     } else {
                         part->a += magnitude (
                             r, 
-                            attr->mass() * (2.0f/22.f) / 
-                                std::pow(magnitude(r),1.2f) *
+                            attr->mass() * (1.f/11.f) / 
+                                std::pow( magnitude( r ), 1.2f ) *
                                 Arena::scale 
                         );
                     }
