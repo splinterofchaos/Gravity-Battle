@@ -1108,17 +1108,30 @@ int main( int, char** )
                     // physical to have the particles interact with them this
                     // way. Giving ten extra pixels of space makes it feel even
                     // better!
-                    if( magnitude(r) < attr->radius() + part->scale + 10 ) {
+                    if( magnitude(r) < attr->radius() + part->scale + 15 ) {
                         part->a += magnitude (
                             -r,
-                            0.44f
-                        ) * Arena::scale;
+                            0.26f * Arena::scale
+                        );
                     } else {
                         part->a += magnitude (
                             r, 
-                            attr->mass() * (2.0f/26.f) / std::pow(magnitude(r),1.2f)
-                        ) * Arena::scale;
+                            attr->mass() * (1.0f/19.f) / 
+                                std::pow(magnitude(r),1.2f) *
+                                Arena::scale / Orbital::attractors.size()
+                        );
                     }
+                }
+
+                for( auto it=cActors.begin(); it != cActors.end(); it++ )
+                {
+                    Vector<float,2> r = part->s - (*it)->s;
+
+                    if( magnitude(r) < (*it)->radius() + part->scale + 10 )
+                        part->a += magnitude (
+                            r,
+                            0.1f
+                        ) * Arena::scale;
                 }
 
                 part->move( time );
@@ -1133,10 +1146,10 @@ int main( int, char** )
                     {
                         // Letting the particles go a little off-screen safely
                         // gives a better "endless space!" feeling.
-                        return p.s.x() < Arena::minX-300 || 
-                               p.s.x() > Arena::maxX+300 || 
-                               p.s.y() < Arena::minY-300 || 
-                               p.s.y() > Arena::maxY+300;
+                        return p.s.x() < Arena::minX-400 || 
+                               p.s.x() > Arena::maxX+400 || 
+                               p.s.y() < Arena::minY-400 || 
+                               p.s.y() > Arena::maxY+400;
                     }
                 ), 
                 particles.end() 
