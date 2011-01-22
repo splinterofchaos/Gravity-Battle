@@ -1091,6 +1091,24 @@ int main( int, char** )
 
             int time = DT * timeMult;
 
+            // ALGORITHM FOR PARTICLE PHYSICS:
+            //     For each particle, p:
+            //         For each attractor, a:
+            //             If particle is colliding with a:
+            //                 Repel.
+            //             else:
+            //                 Attract
+            //
+            //         For each circle actor, c:
+            //             Repel if close.
+            //
+            //         Move particle.
+            //
+            // A particle is repelled when near a circle actor or attractor.
+            // Since all attractors are circle actors, the repulsion is added
+            // twice. Attractors need more repulsion than non-attractors
+            // so adding it twice is fine.
+
             #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
@@ -1103,28 +1121,24 @@ int main( int, char** )
 
                     Vector<float,2> r = attr->s - part->s;
 
-                    // This creates a repelling force so particles stay outside
-                    // objects. It also makes the objects feel much more
-                    // physical to have the particles interact with them this
-                    // way. Giving ten extra pixels of space makes it feel even
-                    // better!
-                    if( magnitude(r) < attr->radius() + part->scale + 15 ) {
+                    if( magnitude(r) < attr->radius() + part->scale + 10 ) {
                         part->a += magnitude (
                             -r,
-                            0.26f * Arena::scale
+                            0.5f * Arena::scale
                         );
                     } else {
                         part->a += magnitude (
                             r, 
-                            attr->mass() * (1.0f/19.f) / 
+                            attr->mass() * (2.0f/22.f) / 
                                 std::pow(magnitude(r),1.2f) *
-                                Arena::scale / Orbital::attractors.size()
+                                Arena::scale 
                         );
                     }
                 }
 
                 for( auto it=cActors.begin(); it != cActors.end(); it++ )
                 {
+                    // This r is the negative of the one in the above loop.
                     Vector<float,2> r = part->s - (*it)->s;
 
                     if( magnitude(r) < (*it)->radius() + part->scale + 10 )
@@ -1172,7 +1186,11 @@ int main( int, char** )
         }
 
         for( auto it=particles.begin(); it < particles.end(); it++ )
-            it->draw();
+            if( it->s.x() > Arena::minX && 
+                it->s.x() < Arena::maxX && 
+                it->s.y() > Arena::minY && 
+                it->s.y() < Arena::maxY )
+                it->draw();
 
 
         float boarder[] = {
