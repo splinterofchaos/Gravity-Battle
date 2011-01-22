@@ -1115,12 +1115,12 @@ int main( int, char** )
                     if( magnitude(r) < attr->radius() + (*part)->scale + 10 ) {
                         (*part)->a += magnitude (
                             -r,
-                            0.3f
+                            0.34f
                         ) * Arena::scale;
                     } else {
                         (*part)->a += magnitude (
                             r, 
-                            attr->mass() * (1/26.f) / std::pow(magnitude(r),1.2f)
+                            attr->mass() * (1.5f/26.f) / std::pow(magnitude(r),1.2f)
                         ) * Arena::scale;
                     }
                 }
