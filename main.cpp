@@ -378,10 +378,17 @@ bool delete_me( SharedCActorPtr& actor )
 
     if( actor->deleteMe )
     {
+        size_t newParticles = particles.size();
+
         // Explode.
         for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
             spawn_particle( actor->s, actor->v/6, actor->radius()/8,
                             actor->color() );
+
+        // Give the new particles a chance to spread out before they collide
+        // with surrounding cActors.
+        for( ; newParticles < particles.size(); newParticles++ )
+            particles[ newParticles++ ].move( 25 );
 
         // Add to score if player is alive.
         if( !Orbital::target.expired() )
@@ -1121,19 +1128,12 @@ int main( int, char** )
 
                     Vector<float,2> r = attr->s - part->s;
 
-                    if( magnitude(r) < attr->radius() + part->scale + 10 ) {
-                        part->a += magnitude (
-                            -r,
-                            0.5f * Arena::scale
-                        );
-                    } else {
-                        part->a += magnitude (
-                            r, 
-                            attr->mass() * (1.f/11.f) / 
-                                std::pow( magnitude( r ), 1.2f ) *
-                                Arena::scale 
-                        );
-                    }
+                    part->a += magnitude (
+                        r, 
+                        attr->mass() * (1.f/11.f) / 
+                            std::pow( magnitude( r ), 1.2f ) *
+                            Arena::scale 
+                    );
                 }
 
                 for( auto it=cActors.begin(); it != cActors.end(); it++ )
@@ -1144,7 +1144,7 @@ int main( int, char** )
                     if( magnitude(r) < (*it)->radius() + part->scale + 10 )
                         part->a += magnitude (
                             r,
-                            0.1f
+                            0.5f
                         ) * Arena::scale;
                 }
 
