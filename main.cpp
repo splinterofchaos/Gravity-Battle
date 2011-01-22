@@ -1107,8 +1107,8 @@ int main( int, char** )
             // destabilize the physics system by making it integrate more time.
             // But when the frame time is ideal, this has no effect.
             float timeMult = 1;
-            if( frameTime > IDEAL_FRAME_TIME ) 
-                timeMult = (float)frameTime / IDEAL_FRAME_TIME;
+            if( frameTime > IDEAL_FRAME_TIME * 2.f/3 ) 
+                timeMult = (float)frameTime / (IDEAL_FRAME_TIME*2/3.f);
             timeMult *= timeMult;
 
             int time = DT * timeMult;
@@ -1148,7 +1148,7 @@ int main( int, char** )
                     {
                         part->a -= magnitude (
                             r,
-                            0.25f * Arena::scale
+                            0.3f * Arena::scale
                         );
                     } else {
                         part->a += magnitude (
