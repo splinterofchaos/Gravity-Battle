@@ -1081,10 +1081,25 @@ int main( int, char** )
                 Orbital::attractors.end()
             );
 
+            // This may seem not obvious, but it works.
+            // Particle physics is by far the most CPU intensive part of this
+            // whole program. When a frame lasts too long, it is probably
+            // because there are too many particles on screen. We want to
+            // minimize the data set as quickly as possible. To do this,
+            // destabilize the physics system by making it integrate more time.
+            // But when the frame time is ideal, this has no effect.
+            float timeMult = 1;
+            if( frameTime > IDEAL_FRAME_TIME ) 
+                timeMult = (float)frameTime / IDEAL_FRAME_TIME;
+            timeMult *= timeMult;
+
+            int time = DT * timeMult;
+
             #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
-                (*part)->a = 0;
+                (*part)->a *= 0;
+
                 auto attrPtr = Orbital::attractors.begin();
                 for( ; attrPtr < Orbital::attractors.end(); attrPtr++ )
                 {
@@ -1109,26 +1124,9 @@ int main( int, char** )
                         ) * Arena::scale;
                     }
                 }
+
+                (*part)->move( time );
             }
-
-            // This may seem not obvious, but it works.
-            // Particle physics is by far the most CPU intensive part of this
-            // whole program. When a frame lasts too long, it is probably
-            // because there are too many particles on screen. We want to
-            // minimize the data set as quickly as possible. To do this,
-            // destabilize the physics system by making it integrate more time.
-            // But when the frame time is ideal, this has no effect.
-            float times = 1;
-            if( frameTime > IDEAL_FRAME_TIME ) 
-                times = (float)frameTime / IDEAL_FRAME_TIME;
-            times *= times;
-
-            if( ! times )
-                times = 1;
-
-            #pragma omp parallel for
-            for( auto it=particles.begin(); it < particles.end(); it++ )
-                (*it)->move( DT * times );
 
             // Rather than erasing the particles after this loop, durring worst
             // case scenarios, this helps reduce the excess particles quickly. 
