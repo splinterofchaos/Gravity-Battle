@@ -588,13 +588,20 @@ void chaos_mode( int dt )
     }
 
     if( spawnWait <= gameTime ) {
-        spawnWait = gameTime + spawnDelay;
+        // This is calibrated to be 2 seconds when gameTime=50 seconds.
+        // PROOF:
+        //  D = delay, T = gameTime
+        //  If D = 4000 - a sqrt(T) and D(50,000) = 2:
+        //      2000 = 4000 - a sqrt(50000)
+        //      2000 = a sqrt(5*100*100) 
+        //      2000 = 100 * a * sqrt(5)
+        //      a = 20 / sqrt(5)
+        spawnDelay = 4*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
 
-        spawnDelay -= 300;
-        if( spawnDelay <= 3000 )
-            spawnDelay -= -500;
-        if( spawnDelay < 500 )
-            spawnDelay = 500;
+        if( spawnDelay < 1 * SECOND )
+            spawnDelay = 1 * SECOND;
+
+        spawnWait = gameTime + spawnDelay;
 
         Orbital::attractors.push_back( standard_spawn( chaosSlots, 10*SECOND) );
     }
@@ -693,13 +700,21 @@ void arcade_mode( int dt )
     }
 
     if( spawnWait <= gameTime ) {
-        spawnWait = gameTime + spawnDelay;
+        // This is calibrated (as of 01/22/11) to be 5 seconds initially and 2
+        // seconds when gameTime=50 seconds.
+        // PROOF:
+        //  D = delay, T = gameTime
+        //  If D = 5000 - a sqrt(T) and D(50,000) = 2:
+        //      2000 = 5000 - a sqrt(50000)
+        //      3000 = a sqrt(5*100*100) 
+        //      3000 = 100 * a * sqrt(5)
+        //      a = 30 / sqrt(5)
+        spawnDelay = 5*SECOND - std::sqrt(gameTime) * (30.f/std::sqrt(5));
 
-        spawnDelay -= 300;
-        if( spawnDelay <= 3000 )
-            spawnDelay -= -500;
-        if( spawnDelay < 500 )
-            spawnDelay = 500;
+        if( spawnDelay < 1 * SECOND )
+            spawnDelay = 1 * SECOND;
+
+        spawnWait = gameTime + spawnDelay;
 
         standard_spawn( spawnSlots, 10*SECOND );
     }
@@ -1220,17 +1235,25 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
-            TextBox b( *font, 10, 660 );
+            TextBox b( *font, 10, 620 );
 
             float val = frameTime;
             if( !frameTime )
                 val = 0.5;
 
             ss << "fps: " << ( (float)SECOND / val );
-            font->draw( ss.str(), 10, 680 );
+            b.writeln( ss.str() );
 
             ss.str( "" );
             ss << "parts: " << particles.size();
+            b.writeln( ss.str() );
+
+            ss.str( "" );
+            ss << "spawn delay: " << spawnDelay;
+            b.writeln( ss.str() );
+
+            ss.str( "" );
+            ss << "time: " << gameTime / SECOND;
             b.writeln( ss.str() );
         }
 
