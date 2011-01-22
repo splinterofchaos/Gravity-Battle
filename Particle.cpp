@@ -23,6 +23,7 @@ Particle::Particle( const vector_type& pos, const vector_type& v,
     this->c *= random( 0.1f, 1.5f );
 	this->c.a( 0.7 );
 
+    isVisible = true;
 }   
 
 void Particle::draw()

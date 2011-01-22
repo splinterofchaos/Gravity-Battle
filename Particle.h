@@ -9,6 +9,7 @@ class Particle : public Actor
 
     float scale;
     value_type maxSpeed;
+    bool isVisible;
 
     static bool gravityField;
 

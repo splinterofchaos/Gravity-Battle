@@ -382,7 +382,7 @@ bool delete_me( SharedCActorPtr& actor )
 
         // Explode.
         for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/6,
+            spawn_particle( actor->s, actor->v/6, actor->radius()/8,
                             actor->color() );
 
         // Give the new particles a chance to spread out before they collide
@@ -1135,6 +1135,7 @@ int main( int, char** )
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
                 part->a *= 0;
+                part->isVisible = true;
 
                 auto attrPtr = Orbital::attractors.begin();
                 for( ; attrPtr < Orbital::attractors.end(); attrPtr++ )
@@ -1143,12 +1144,20 @@ int main( int, char** )
 
                     Vector<float,2> r = attr->s - part->s;
 
-                    part->a += magnitude (
-                        r, 
-                        attr->mass() * (1.f/11.f) / 
-                            std::pow( magnitude( r ), 1.2f ) *
-                            Arena::scale 
-                    );
+                    if( magnitude(r) < attr->radius() + part->scale + 10 )
+                    {
+                        part->a -= magnitude (
+                            r,
+                            0.25f * Arena::scale
+                        );
+                    } else {
+                        part->a += magnitude (
+                            r, 
+                            attr->mass() * (1.f/31.f) / 
+                                std::pow( magnitude( r ), 1.2f ) *
+                                Arena::scale 
+                        );
+                    }
                 }
 
                 for( auto it=cActors.begin(); it != cActors.end(); it++ )
@@ -1156,11 +1165,21 @@ int main( int, char** )
                     // This r is the negative of the one in the above loop.
                     Vector<float,2> r = part->s - (*it)->s;
 
-                    if( magnitude(r) < (*it)->radius() + part->scale + 10 )
+                    if( magnitude(r) < (*it)->radius() + part->scale )
+                    {
                         part->a += magnitude (
                             r,
-                            0.5f
-                        ) * Arena::scale;
+                            0.05f * Arena::scale
+                        );
+
+                        if( part->v * r < 0 )
+                        {
+                            auto u = unit( r );
+                            part->v = part->v - 2 * (part->v * u) * u;
+                        }
+
+                        part->isVisible = false;
+                    }
                 }
 
                 part->move( time );
