@@ -382,7 +382,7 @@ bool delete_me( SharedCActorPtr& actor )
 
         // Explode.
         for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/8,
+            spawn_particle( actor->s, actor->v/6, actor->radius()/6,
                             actor->color() );
 
         // Give the new particles a chance to spread out before they collide
