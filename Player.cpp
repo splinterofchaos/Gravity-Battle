@@ -14,6 +14,7 @@ Player::WeakPlayerPtr Player::copy;
 Player::Player( const Player::vector_type& position )
     : CircleActor( position ), isVisible( true )
 {
+    isAttractor = true;
 }
 
 void Player::move( int dt )

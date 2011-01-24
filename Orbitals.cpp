@@ -62,14 +62,6 @@ CircleActor::State Orbital::on_off_screen( State state )
     return state;
 }
 
-Orbital::vector_type Orbital::acceleration( const vector_type& r )
-{
-
-    return magnitude ( 
-        r, target.lock()->mass() * (1.0f/90.0f) / magnitude(r) * Arena::scale 
-    );
-}
-
 CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed )
 {
     if( !isMovable )
@@ -327,7 +319,7 @@ Orbital::value_type Orbital::g_dist( const vector_type& r )
     return magnitude( r );
 }
 
-void Orbital::collide_with( CircleActor& collider )
+void Orbital::collide_with( CircleActor& )
 {
     deleteMe = true;
 }

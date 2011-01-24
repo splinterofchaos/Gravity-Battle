@@ -19,9 +19,10 @@ CircleActor::State CircleActor::state()
 
 void CircleActor::init()
 {
-    isActive = true;
+    isActive  = true;
     isMovable = true;
-    isDeadly = true;
+    isDeadly  = true;
+    isAttractor = false;
 }
 
 CircleActor::CircleActor()

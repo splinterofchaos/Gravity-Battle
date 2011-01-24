@@ -22,6 +22,7 @@ class CircleActor : public Actor
     bool isActive;
     bool isMovable;
     bool isDeadly;
+    bool isAttractor;
 
     CircleActor();
     CircleActor( const vector_type& position );

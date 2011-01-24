@@ -57,7 +57,6 @@ class Orbital : public CircleActor
 
     State on_off_screen( State state );
 
-    virtual vector_type acceleration( const vector_type& r );
     State integrate( State state, int dt, value_type maxSpeed=0 );
     void move( int dt );
 

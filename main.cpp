@@ -611,7 +611,9 @@ void chaos_mode( int dt )
 
         spawnWait = gameTime + spawnDelay;
 
-        Orbital::attractors.push_back( standard_spawn( chaosSlots, 10*SECOND) );
+        SharedCActorPtr spawn = standard_spawn( chaosSlots, 10*SECOND).lock();
+        Orbital::attractors.push_back( spawn );
+        spawn->isAttractor = true;
     }
 }
 
@@ -1153,14 +1155,12 @@ int main( int, char** )
                 part->a *= 0;
                 part->isVisible = true;
 
-                auto attrPtr = Orbital::attractors.begin();
-                for( ; attrPtr < Orbital::attractors.end(); attrPtr++ )
+                CActors::iterator attr = cActors.begin();
+                for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
                 {
-                    std::tr1::shared_ptr< CircleActor > attr = attrPtr->lock();
+                    Vector<float,2> r = (*attr)->s - part->s;
 
-                    Vector<float,2> r = attr->s - part->s;
-
-                    if( magnitude(r) < attr->radius() + part->scale + 10 )
+                    if( magnitude(r) < (*attr)->radius() + part->scale + 10 )
                     {
                         part->a -= magnitude (
                             r,
@@ -1169,19 +1169,19 @@ int main( int, char** )
                     } else {
                         part->a += magnitude (
                             r, 
-                            attr->mass() * (1.f/31.f) / 
+                            (*attr)->mass() * (1.f/31.f) / 
                                 std::pow( magnitude( r ), 1.2f ) *
                                 Arena::scale 
                         );
                     }
                 }
 
-                for( auto it=cActors.begin(); it != cActors.end(); it++ )
+                for( ; attr != cActors.end(); attr++ )
                 {
                     // This r is the negative of the one in the above loop.
-                    Vector<float,2> r = part->s - (*it)->s;
+                    Vector<float,2> r = part->s - (*attr)->s;
 
-                    if( magnitude(r) < (*it)->radius() + part->scale )
+                    if( magnitude(r) < (*attr)->radius() + part->scale )
                     {
                         part->a += magnitude (
                             r,
