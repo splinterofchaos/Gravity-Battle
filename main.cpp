@@ -587,19 +587,15 @@ void chaos_mode( int dt )
     {
         if( ! Orbital::target.expired() )
         {
-            // This is calibrated to be 2 seconds when gameTime=50 seconds.
+            // This is calibrated to be 3 seconds when gameTime=50 seconds.
             // PROOF:
             //  D = delay, T = gameTime
-            //  If D = 4000 - a sqrt(T) and D(50,000) = 2:
-            //      2000 = 4000 - a sqrt(50000)
+            //  If D = 5000 - a sqrt(T) and D(50,000) = 2:
+            //      3000 = 5000 - a sqrt(50000)
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 4*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
-        }
-        else
-        {
-            spawnDelay = 3 * SECOND;
+            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
         }
 
         if( spawnDelay < 1 * SECOND )
@@ -709,20 +705,15 @@ void arcade_mode( int dt )
     {
         if( ! Orbital::target.expired() )
         {
-            // This is calibrated (as of 01/22/11) to be 5 seconds initially and 2
-            // seconds when gameTime=50 seconds.
+            // This is calibrated to be 3 seconds when gameTime=50 seconds.
             // PROOF:
             //  D = delay, T = gameTime
             //  If D = 5000 - a sqrt(T) and D(50,000) = 2:
-            //      2000 = 5000 - a sqrt(50000)
-            //      3000 = a sqrt(5*100*100) 
-            //      3000 = 100 * a * sqrt(5)
-            //      a = 30 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (30.f/std::sqrt(5));
-        }
-        else
-        {
-            spawnDelay = 3 * SECOND;
+            //      3000 = 5000 - a sqrt(50000)
+            //      2000 = a sqrt(5*100*100) 
+            //      2000 = 100 * a * sqrt(5)
+            //      a = 20 / sqrt(5)
+            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
         }
 
         if( spawnDelay < 1 * SECOND )
