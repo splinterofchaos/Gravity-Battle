@@ -182,7 +182,7 @@ bool make_sdl_gl_window( int w, int h )
         return false;
     init_gl( w, h );
 
-    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
+    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 2048 );
 
     font.reset( new BitmapFont );
 
