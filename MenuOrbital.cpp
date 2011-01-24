@@ -7,7 +7,7 @@
 MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& )
     : Orbital( pos, vector_type(0,0) )
 {
-    time = 0;
+    time = random( 0.0f, 3.0f );;
     angle = random_angle();
 
     isActive = false;
