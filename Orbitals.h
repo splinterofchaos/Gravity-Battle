@@ -99,6 +99,8 @@ class Twister : public Orbital
 
     value_type g_dist( const vector_type& r );
     value_type g_multiplier();
+
+    value_type mass() const;
 };
 
 class Stopper : public Orbital

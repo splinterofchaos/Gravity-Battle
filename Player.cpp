@@ -118,9 +118,9 @@ Player::value_type Player::mass() const
 {
     value_type g;
     if( moreGravity )
-        g = 50;
+        g = 80;
     else
-        g = 18;
+        g = 25;
 
     if( !copy.expired() )
         return g / 2;
