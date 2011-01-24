@@ -136,9 +136,10 @@ void Player::collide_with( CircleActor& collider )
         SharedPlayerPtr copy = Player::copy.lock();
         if( copy )
             copy->collide_with( *this );
-    } else {
-        a = vector_type(0,0);
-        v /= 10;
+    } else if( ! collider.isMovable ) {
+        vector_type r = unit( s - collider.s );
+        a -= 2 * ( a * r ) * r;
+        a *= 5;
     }
 }
 
