@@ -69,12 +69,13 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
 
     if( isActive )
     {
+        // Reset gravity accumulator.
         g *= 0;
 
         for( size_t i=0; i < attractors.size(); i++ )
         {
             std::tr1::shared_ptr<CircleActor> attr = attractors[i].lock();
-            if( attr && attr->isActive && attr.get() != this ) 
+            if( attr->isActive && attr.get() != this ) 
             {
                 vector_type r = attr->s - state.s;
                 g += magnitude ( 
@@ -136,7 +137,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
 
     Color c = color();
     if( ! isActive )
-        c = { 1, 1, 1, 1 };
+        c *= 2;
 
     glColor4f( c.r(), c.g(), c.b(), c.a() );
 
@@ -365,10 +366,10 @@ void Twister::move( int dt )
 void Twister::draw()
 {
     float verts[] = { 
-        -radius(), -radius()/2,
-        radius(), -radius()/2,
-        radius(),  radius()/2,        
-        -radius(),  radius()/2,
+        -radius(), -radius()*0.65f,
+         radius(), -radius()*0.65f,
+         radius(),  radius()*0.65f,        
+        -radius(),  radius()*0.65f,
     };
 
     draw_impl( verts, angle );

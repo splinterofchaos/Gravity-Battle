@@ -70,7 +70,6 @@ typedef std::vector<ActorPtr>      Actors;
 
 CActors   cActors;
 Particles particles;
-Actors    actors;
 
 // Used everywhere to write text on the screen.
 std::shared_ptr<BitmapFont> font;
@@ -228,11 +227,9 @@ void spawn_player( Actor::value_type x, Actor::value_type y )
         Player2::original = Orbital::target;
     }
 
-    actors.push_back( Orbital::target.lock() );
     Orbital::attractors.push_back( Orbital::target );
 
     if( gameLogic == dual_mode ) {
-        actors.push_back( Orbital::target2.lock() );
         Orbital::attractors.push_back( Orbital::target2.lock() );
     }
 }
@@ -251,7 +248,6 @@ std::tr1::weak_ptr<T> spawn( Actor::value_type x, Actor::value_type y )
     );
 
     cActors.push_back( newActor );
-    actors.push_back(  newActor );
 
     return newActor;
 }
@@ -388,7 +384,7 @@ bool delete_me( SharedCActorPtr& actor )
         // Give the new particles a chance to spread out before they collide
         // with surrounding cActors.
         for( ; newParticles < particles.size(); newParticles++ )
-            particles[ newParticles++ ].move( 40 );
+            particles[ newParticles++ ].move( 30 );
 
         // Add to score if player is alive.
         if( !Orbital::target.expired() )
@@ -1106,17 +1102,6 @@ int main( int, char** )
                 cActors.end() 
             );
 
-            // Removing attractors here relieves us from needing to validate 
-            // them as we iterate each particle through them. Surprisingly,
-            // this seems to improve performance in MinGW.
-            Orbital::attractors.erase (
-                remove_if (
-                    Orbital::attractors.begin(), Orbital::attractors.end(),
-                    std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
-                ),
-                Orbital::attractors.end()
-            );
-
             // This may seem not obvious, but it works.
             // Particle physics is by far the most CPU intensive part of this
             // whole program. When a frame lasts too long, it is probably
@@ -1160,12 +1145,22 @@ int main( int, char** )
                 {
                     Vector<float,2> r = (*attr)->s - part->s;
 
-                    if( magnitude(r) < (*attr)->radius() + part->scale + 10 )
+                    float combRad = (*attr)->radius() + part->scale + 15;
+                    if( ! (*attr)->isActive )
+                        combRad *= 2;
+
+                    if( magnitude(r) < combRad )
                     {
                         part->a -= magnitude (
                             r,
-                            0.3f * Arena::scale
+                            0.29f * Arena::scale
                         );
+
+                        if( part->v * r < 0 )
+                        {
+                            auto u = unit( r );
+                            part->v = part->v - 2 * (part->v * u) * u;
+                        }
                     } else {
                         part->a += magnitude (
                             r, 
@@ -1181,11 +1176,15 @@ int main( int, char** )
                     // This r is the negative of the one in the above loop.
                     Vector<float,2> r = part->s - (*attr)->s;
 
-                    if( magnitude(r) < (*attr)->radius() + part->scale )
+                    float combRad = (*attr)->radius() + part->scale + 2;
+                    if( ! (*attr)->isActive )
+                        combRad *= 2;
+
+                    if( magnitude(r) < combRad )
                     {
                         part->a += magnitude (
                             r,
-                            0.05f * Arena::scale
+                            0.01f * Arena::scale
                         );
 
                         if( part->v * r < 0 )
@@ -1218,21 +1217,18 @@ int main( int, char** )
                 ), 
                 particles.end() 
             );
+
+            Orbital::attractors.erase (
+                remove_if (
+                    Orbital::attractors.begin(), Orbital::attractors.end(),
+                    std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
+                ),
+                Orbital::attractors.end()
+            );
         }
 
-        // Draw everything.
-        // Since some of actors' elements may be expired at this point, clean
-        // it out. The other lists are cleaned later.
-        actors.erase (
-            remove_if (
-                actors.begin(), actors.end(), 
-                std::mem_fun_ref( &ActorPtr::expired )
-            ),
-            actors.end()
-        );
-
-        for( auto it=actors.begin(); it < actors.end() ; it++ ) {
-            it->lock()->draw();
+        for( auto it=cActors.begin(); it < cActors.end() ; it++ ) {
+            (*it)->draw();
         }
 
         for( auto it=particles.begin(); it < particles.end(); it++ )
