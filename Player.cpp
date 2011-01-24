@@ -26,13 +26,13 @@ void Player::move( int dt )
     // TODO: The value of SPEED seems not to affect this function. Why?
     const value_type SPEED = 0.0000002;
 
-    if( keyStates[ SDLK_a ] )
+    if( keyStates[ SDLK_a ] || keyStates[ SDLK_LEFT  ] )
         a.x( a.x() - ACC );
-    if( keyStates[ SDLK_d ] )
+    if( keyStates[ SDLK_d ] || keyStates[ SDLK_RIGHT ] )
         a.x( a.x() + ACC );
-    if( keyStates[ SDLK_w ] )
+    if( keyStates[ SDLK_w ] || keyStates[ SDLK_UP    ] )
         a.y( a.y() - ACC );
-    if( keyStates[ SDLK_s ] )
+    if( keyStates[ SDLK_s ] || keyStates[ SDLK_DOWN  ] )
         a.y( a.y() + ACC );
 
     if( magnitude(a) > ACC )

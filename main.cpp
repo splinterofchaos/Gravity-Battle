@@ -929,7 +929,7 @@ void menu( int )
         glColor3f( 1, 1, 0 );
 
         TextBox b( *font, 270, 350 );
-        b.writeln( "WASD to move." );
+        b.writeln( "WASD or arrow keys to move." );
 
         if( ! playerIncreasedGravity )
             b.writeln( "SPACEBAR to dash." );
@@ -1064,6 +1064,7 @@ int main( int, char** )
 #undef FLIP_VALUE
 
                   case 'w': case 'a': case 's': case 'd': 
+                  case SDLK_LEFT: case SDLK_RIGHT: case SDLK_UP: case SDLK_DOWN:
                             playerHasMoved = true; break;
                   case SDLK_SPACE: playerIncreasedGravity = true;
 
