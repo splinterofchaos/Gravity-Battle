@@ -307,7 +307,7 @@ Orbital::value_type Orbital::radius() const
 
 Orbital::value_type Orbital::mass() const
 {
-    return 10;
+    return 12;
 }
 
 Color Orbital::color()
@@ -319,7 +319,7 @@ Color Orbital::color()
 
 Orbital::value_type Orbital::g_multiplier()
 {
-    return 1.0f / 90.0f;
+    return 1.0f / 100.0f;
 }
 
 Orbital::value_type Orbital::g_dist( const vector_type& r )
@@ -396,7 +396,12 @@ Twister::value_type Twister::g_dist( const vector_type& r )
 
 Twister::value_type Twister::g_multiplier()
 {
-    return 1;
+    return 1.5f;
+}
+
+Twister::value_type Twister::mass() const
+{
+    return 17;
 }
 
 int Twister::score_value()
@@ -505,7 +510,7 @@ void Stopper::collide_with( CircleActor& collider )
             isMovable = true;
 
             // Transfer momentum fro collider to this.
-            v = collider.v * std::abs( collider.mass() ) / mass();
+            v = collider.v * std::abs( collider.mass() ) / mass() / 2;
         }
     }
 
@@ -539,7 +544,7 @@ Negative::Negative( const vector_type& pos, const vector_type& v )
 
 Negative::vector_type Negative::acceleration( const vector_type& r )
 {
-	return magnitude( r, r*r / 50000000 );
+	return magnitude( r, r*r / 80000000 );
 }
 
 Negative::value_type Negative::radius() const
@@ -561,5 +566,5 @@ Color Negative::color()
 
 Negative::value_type Negative::g_multiplier()
 {
-    return 1 / 45.f;
+    return 1 / 100.f;
 }

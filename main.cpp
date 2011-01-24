@@ -1160,7 +1160,7 @@ int main( int, char** )
 
                     Vector<float,2> r = attr->s - part->s;
 
-                    if( magnitude(r) < attr->radius() + part->scale + 10 )
+                    if( magnitude(r) < attr->radius() + part->scale + 15 )
                     {
                         part->a -= magnitude (
                             r,
