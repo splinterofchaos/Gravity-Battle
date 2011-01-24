@@ -396,7 +396,7 @@ Twister::value_type Twister::g_dist( const vector_type& r )
 
 Twister::value_type Twister::g_multiplier()
 {
-    return 1.5f;
+    return 1.3f;
 }
 
 Twister::value_type Twister::mass() const
@@ -461,7 +461,7 @@ Stopper::value_type Stopper::radius() const
 
 Stopper::value_type Stopper::mass() const
 {
-    return 15 * Arena::scale;
+    return 20 * Arena::scale;
 }
 
 void Stopper::collide_with( CircleActor& collider )
@@ -534,7 +534,7 @@ Color Stopper::color()
 
 Stopper::value_type Stopper::g_multiplier()
 {
-    return 1.0f / 220.0f;
+    return 1.0f / 280.0f;
 }
 
 Negative::Negative( const vector_type& pos, const vector_type& v )
