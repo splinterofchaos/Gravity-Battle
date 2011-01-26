@@ -298,10 +298,13 @@ std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
 
 void update_high_score()
 {
+    std::string tableFile = 
+        gameLogic==arcade_mode? "Arcade Scores.txt" : "Chaos Scores.txt";
+
     // Get the old scores first.
     std::string oldVersion = "1";
     {
-        std::ifstream scoresIn( "Highscores.txt" );
+        std::ifstream scoresIn( tableFile );
         highScoreTable.clear();
         if( scoresIn ) 
         {
@@ -335,8 +338,10 @@ void update_high_score()
     sstream_convert( oldVersion, &oldVersionInt );
     if( highScoreTable.size() && oldVersionInt != VERSION ) {
         std::stringstream filename;
-        filename << "Highscores (" << oldVersion << ").txt";
-        std::rename( "Highscores.txt", filename.str().c_str() );
+        std::string base( tableFile.begin(), tableFile.end()-sizeof(".txt") );
+
+        filename << base << " (" << oldVersion << ").txt";
+        std::rename( tableFile.c_str(), filename.str().c_str() );
         highScoreTable.clear();
     }
 
@@ -357,7 +362,7 @@ void update_high_score()
         highScoreTable.erase( highScoreTable.begin() );
     }
 
-    std::ofstream out( "Highscores.txt" );
+    std::ofstream out( tableFile );
     out << "version = " << VERSION << '\n';
     out << highScoreTable;
 }
@@ -512,7 +517,7 @@ void chaos_mode( int dt )
 
         // Draw high scores to screen.
         TextBox b( *font, 470, 250 );
-        b.writeln( "Scores stored in Highscores.txt:" );
+        b.writeln( "Scores stored in Chaos Scores.txt:" );
         b.writeln( "" );
 
         // To draw text with a gradient, keep track of these:
@@ -625,7 +630,7 @@ void arcade_mode( int dt )
 
         // Draw high scores to screen.
         TextBox b( *font, 470, 250 );
-        b.writeln( "Scores stored in Highscores.txt:" );
+        b.writeln( "Scores stored in 'Arcade Scores.txt:'" );
         b.writeln( "" );
 
         // The table should include two columns, handles and scores, both
