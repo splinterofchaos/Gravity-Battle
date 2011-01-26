@@ -518,8 +518,8 @@ void chaos_mode( int dt )
     play_song( menuSong );
 
     static std::vector<Spawns> chaosSlots = {
-        STOPPER, STOPPER,
-        ORBITAL, STOPPER, STOPPER, TWISTER,
+        ORBITAL, ORBITAL,
+        ORBITAL, TWISTER, STOPPER, TWISTER,
         NEGATIVE, ORBITAL, TWISTER 
     };
 
