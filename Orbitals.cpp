@@ -477,7 +477,7 @@ void Stopper::collide_with( CircleActor& collider )
             isMovable = true;
 
             // Transfer momentum fro collider to this.
-            v = collider.v * 0.8f;
+            v = collider.v * 1.001f;
         }
     }
 

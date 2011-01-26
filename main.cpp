@@ -518,8 +518,8 @@ void chaos_mode( int dt )
     play_song( menuSong );
 
     static std::vector<Spawns> chaosSlots = {
-        ORBITAL, ORBITAL,
-        ORBITAL, TWISTER, STOPPER, TWISTER,
+        STOPPER, STOPPER,
+        ORBITAL, STOPPER, STOPPER, TWISTER,
         NEGATIVE, ORBITAL, TWISTER 
     };
 
@@ -616,7 +616,7 @@ void chaos_mode( int dt )
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
+            spawnDelay = 1*SECOND;
         }
 
         if( spawnDelay < 1 * SECOND )
