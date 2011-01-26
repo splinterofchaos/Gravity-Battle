@@ -422,14 +422,12 @@ int Stopper::score_value()
 
 void Stopper::move( int dt )
 {
-    // Update the collision times.
-    for( size_t i=0; i < N_COLLISIONS_PER_SEC; i++ )
-        timesOfCollisions[i] += dt;
-
     if( isMovable )
         Orbital::move( dt );
 
     isDeadly = isMovable;
+
+    lastCollisionTime += dt;
 }
 
 void Stopper::draw()
@@ -459,24 +457,6 @@ Stopper::value_type Stopper::mass() const
 
 void Stopper::collide_with( CircleActor& collider )
 {
-	const int COLLISION_DELAY = 160;
-
-    // Rotate the times.
-    std::copy ( 
-        timesOfCollisions, timesOfCollisions+N_COLLISIONS_PER_SEC-1,
-        timesOfCollisions+1 
-    );
-    timesOfCollisions[0] = 0;
-
-    // CircleActor** thisCollider = 
-    //     std::find( lastColiders, lastColiders+N_LAST_COLLIDERS, &collider );
-
-    std::copy ( 
-        lastColiders, lastColiders+N_LAST_COLLIDERS-1,
-        lastColiders+1 
-    );
-    lastColiders[0] = &collider;
-
     bool presentState = isMovable;
 
     if( isMovable ) 
@@ -491,24 +471,25 @@ void Stopper::collide_with( CircleActor& collider )
         {
             deleteMe = true;
         } 
-        else if( (timesOfCollisions[4] <= COLLISION_DELAY*4) &&
-                   (this > &collider) ) 
-        {
-            // Must be colliding over and over with another stopper.
-            deleteMe = true;
-        }
         else 
         {
             // Non-players will make it go again.
             isMovable = true;
 
             // Transfer momentum fro collider to this.
-            v = collider.v * std::abs( collider.mass() ) / mass() / 2;
+            v = collider.v * 0.8f;
         }
     }
 
-    if( isMovable != presentState )
+    if( isMovable != presentState ) 
+    {
+        vector_type r = s - collider.s;
+        s = collider.s + magnitude( r, radius() + collider.radius() );
+
         switchSfx[ random(0, N_SWITCHS) ].play();
+    }
+
+    lastCollisionTime = 0;
 }
 
 Color Stopper::color()
