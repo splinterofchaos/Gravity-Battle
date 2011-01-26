@@ -132,7 +132,18 @@ void configure( const Config& cfg )
 
     int volume;
     cfg.get( "music-volume", &volume );
+    if( volume > 128 )
+        volume = 128;
+    else if( volume < 0 )
+        volume = 0;
     Mix_VolumeMusic( volume );
+
+    cfg.get( "sfx-volume", &volume );
+    if( volume > 128 )
+        volume = 128;
+    else if( volume < 0 )
+        volume = 0;
+    Mix_Volume( -1, volume );
     
     std::string particleBehaviour;
     cfg.get( "particle-behaviour", &particleBehaviour );
@@ -495,7 +506,6 @@ void play_song( Music& song )
     if( ! song.playing() && !Orbital::target.expired() )
     {
         song.fade_in( 1 * SECOND );
-        Mix_VolumeMusic( MIX_MAX_VOLUME * 0.75 );
     }
 
     if( song.playing() && Orbital::target.expired() )

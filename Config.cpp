@@ -26,7 +26,9 @@ void Config::set_defaults()
 
     vars["particle-behaviour"] = "orbit";
 
-    vars["music-volume"] = 100; // Out of 128 for SDL_mixer.
+    // Values out of 128 for SDL_mixer.
+    vars["music-volume"] = 100;
+    vars["sfx-volume"]   = 128; 
 }
 
 Config::Config()
