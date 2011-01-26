@@ -616,7 +616,7 @@ void chaos_mode( int dt )
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 1*SECOND;
+            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5))
         }
 
         if( spawnDelay < 1 * SECOND )
