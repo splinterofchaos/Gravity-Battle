@@ -1126,7 +1126,6 @@ int main( int, char** )
             // twice. Attractors need more repulsion than non-attractors
             // so adding it twice is fine.
 
-            #pragma omp parallel for
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
                 part->a *= 0;
