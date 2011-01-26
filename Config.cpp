@@ -25,6 +25,8 @@ void Config::set_defaults()
     vars["fps"] = "0";
 
     vars["particle-behaviour"] = "orbit";
+
+    vars["music-volume"] = 100; // Out of 128 for SDL_mixer.
 }
 
 Config::Config()

@@ -48,3 +48,6 @@ fps = 1
 # How should particles behave?
 particle-behaviour = orbit
 #particle-behaviour = gravity-field
+
+# Music volume: Maximum is 128, minimum is zero.
+music-volume = 100

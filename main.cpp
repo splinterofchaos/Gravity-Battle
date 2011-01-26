@@ -127,6 +127,12 @@ void configure( const Config& cfg )
     cfg.get( "scale",               &Arena::scale );
     cfg.get( "nHighScores",         &nHighScores );
     cfg.get( "fps",                 &showFrameTime );
+
+
+
+    int volume;
+    cfg.get( "music-volume", &volume );
+    Mix_VolumeMusic( volume );
     
     std::string particleBehaviour;
     cfg.get( "particle-behaviour", &particleBehaviour );

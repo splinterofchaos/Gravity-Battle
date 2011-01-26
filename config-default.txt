@@ -1,6 +1,6 @@
 # How many particles to spawn, proportionate to the exploder's mass.
 # It the game runs slowly after a collision, this is the variable to turn down.
-particleRatio = 150
+particleRatio = 100
 
 # A prediction line, showing the path enemies will fallow assuming the player
 # stands still, can be drawn to help beginners learn how to play and manipulate
@@ -27,8 +27,8 @@ gravityLine = 0
 
 # This option sets whether or not to draw an arrow representing the
 # velocities of accelerations of your enemies. 0 for off, non-zero for on.
-velocityArrow = 1
-accelerationArrow = 1
+velocityArrow     = 0
+accelerationArrow = 0
 
 # Add motion blur; 0 for off, non-zero for on. This is mostly eye candy and can
 # make it harder to play.
@@ -37,7 +37,17 @@ motionBlur = 0
 # FOR TESTING PURPOSES ONLY, you may set the scale of the game. This changes
 # the size of everything on screen except text and the size of the screen.
 # Set to 1 for normal size, 0.5 for half size, 2 for double, etc.
-scale = 0.7
+scale = 0.6
 
 # How many high scores should be saved.
 nHighScores = 10
+
+# Display frames per second? (0=off, else on.)
+fps = 1
+
+# How should particles behave?
+particle-behaviour = orbit
+#particle-behaviour = gravity-field
+
+# Music volume: Maximum is 128, minimum is zero.
+music-volume = 100
