@@ -400,7 +400,7 @@ bool delete_me( SharedCActorPtr& actor )
 
         // Explode.
         for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/8,
+            spawn_particle( actor->s, actor->v/6, actor->radius()/9,
                             actor->color() );
 
         // Give the new particles a chance to spread out before they collide
@@ -1188,7 +1188,7 @@ int main( int, char** )
                     // This r is the negative of the one in the above loop.
                     Vector<float,2> r = part->s - (*attr)->s;
 
-                    float combRad = (*attr)->radius() + part->scale + 2;
+                    float combRad = (*attr)->radius() + part->scale + 4;
                     if( ! (*attr)->isActive )
                         combRad *= 2;
 
@@ -1306,9 +1306,18 @@ int main( int, char** )
         gameTime += frameTime;
     }
 
+    std::for_each( Orbital::birthSfx, Orbital::birthSfx+Orbital::N_BIRTH_SFX, [](Sound& s) { s.reset(); } );
+    std::for_each( Orbital::wallSfx, Orbital::wallSfx+Orbital::N_WALL_SFX,    [](Sound& s) { s.reset(); } );
+    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS, [](Sound& s) { s.reset(); } );
+    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS, [](Sound& s) { s.reset(); } );
+
+    Mix_CloseAudio();
+
+    while( Mix_Init(0) )
+        Mix_Quit();
+
     SDL_Quit();
     glFlush();
-    Mix_CloseAudio();
 
     return 0;
 }

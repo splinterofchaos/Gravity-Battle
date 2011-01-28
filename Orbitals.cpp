@@ -300,7 +300,7 @@ Orbital::value_type Orbital::radius() const
 
 Orbital::value_type Orbital::mass() const
 {
-    return 12;
+    return 15;
 }
 
 Color Orbital::color()
