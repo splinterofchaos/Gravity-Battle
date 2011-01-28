@@ -555,7 +555,7 @@ Color Greedy::color()
 
 Greedy::value_type Greedy::mass() const
 {
-    return Orbital::mass();
+    return Orbital::mass() * 1.25f;
 }
 
 Greedy::State Greedy::integrate( State state, int dt, value_type maxSpeed )
