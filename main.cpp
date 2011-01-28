@@ -472,7 +472,7 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 }
 
-enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS=9 };
+enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, GREEDY, N_SPAWN_SLOTS=9 };
 std::vector<Spawns> spawnSlots = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
@@ -495,6 +495,7 @@ WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
       case STOPPER: s = spawn<Stopper>(); break;
       case TWISTER: s = spawn<Twister>(); break;
       case NEGATIVE: s = spawn<Negative>(); break;
+      case GREEDY : s = spawn<Greedy>();  break;
       default: standard_spawn( slots, maxTime ); // Should never be reached.
     }
 
@@ -518,8 +519,8 @@ void chaos_mode( int dt )
     play_song( menuSong );
 
     static std::vector<Spawns> chaosSlots = {
-        ORBITAL, ORBITAL,
-        ORBITAL, TWISTER, STOPPER, TWISTER,
+        ORBITAL, GREEDY, ORBITAL,
+        ORBITAL, TWISTER, STOPPER, GREEDY,
         NEGATIVE, ORBITAL, TWISTER 
     };
 
