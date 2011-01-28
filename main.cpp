@@ -519,9 +519,9 @@ void chaos_mode( int dt )
     play_song( menuSong );
 
     static std::vector<Spawns> chaosSlots = {
-        ORBITAL, GREEDY, ORBITAL,
-        ORBITAL, TWISTER, STOPPER, GREEDY,
-        NEGATIVE, ORBITAL, TWISTER 
+        ORBITAL, STOPPER, 
+        GREEDY, ORBITAL, TWISTER, ORBITAL,
+        NEGATIVE, TWISTER, ORBITAL, TWISTER 
     };
 
     glColor3f( 1, 1, 0 );
@@ -625,7 +625,7 @@ void chaos_mode( int dt )
 
         spawnWait = gameTime + spawnDelay;
 
-        SharedCActorPtr spawn = standard_spawn( chaosSlots, 10*SECOND).lock();
+        SharedCActorPtr spawn = standard_spawn( chaosSlots, 40*SECOND).lock();
         Orbital::attractors.push_back( spawn );
         spawn->isAttractor = true;
     }
