@@ -224,31 +224,13 @@ void update_screen()
 
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
-    if( gameLogic != dual_mode ) {
-        SharedCActorPtr player(  new Player( Actor::vector_type(x,y) ) );
-        cActors.push_back( player );
+    SharedCActorPtr player(  new Player( Actor::vector_type(x,y) ) );
+    cActors.push_back( player );
 
-        Orbital::target = std::tr1::static_pointer_cast<Player>( player );
-        Player::original = Orbital::target;
-    } else {
-        SharedCActorPtr player(  new Player( Actor::vector_type(x-50,y) ) );
-        cActors.push_back( player );
-        Orbital::target = std::tr1::static_pointer_cast<Player>( player );
-
-        SharedCActorPtr player2(  new Player2( Actor::vector_type(x+50,y) ) );
-        cActors.push_back( SharedCActorPtr( player2 ) );
-        Orbital::target2 = std::tr1::static_pointer_cast<Player>( player2 );
- 
-
-        Player::copy = Orbital::target2;
-        Player2::original = Orbital::target;
-    }
+    Orbital::target = std::tr1::static_pointer_cast<Player>( player );
+    Player::original = Orbital::target;
 
     Orbital::attractors.push_back( Orbital::target );
-
-    if( gameLogic == dual_mode ) {
-        Orbital::attractors.push_back( Orbital::target2.lock() );
-    }
 }
 
 template< typename T >
@@ -748,34 +730,47 @@ void arcade_mode( int dt )
 
 void dual_mode( int dt )
 {
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+    static bool spawned[ N_SPAWN_SLOTS ] = { 0, 0, 0, 0, 0, 0 };
 
-    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
-        font->draw( "Press r to reset, m for menu", 600, 200 );
+    TextBox b( *font, 50, 250 );
 
-    if( !Orbital::target.expired() ) 
-    {
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive && cActors[i]->isMovable ) {
-                sum += cActors[i]->score_value();
-                nEnemies++;
-            }
+    b.writeln( "This is how-to-play mode." );
+    b.writeln( "Move around with WASD (like in a first person shooter) or the arrow keys." );
+    b.writeln( "Spawn enemies to practice dealing with them." );
+    b.writeln( "    Don't worry, you're invincible here.." );
+    b.writeln();
+    b.writeln( "To return to the menu, press m." );
 
-        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
+    for_each( cActors.begin(), cActors.end(), []( CActors::value_type a ) { a->isDeadly = false; } );
+
+    Uint8* keyStates = SDL_GetKeyState( 0 );
+    
+    if( keyStates[ SDLK_z ] ) {
+        spawn<Orbital>();
+        spawned[ ORBITAL ] = true;
+    } else if( spawned[ ORBITAL ] ) {
+        spawned[ ORBITAL ] = false;
     }
 
-    if( spawnWait <= gameTime ) {
-        spawnWait = gameTime + spawnDelay;
+    if( keyStates[ SDLK_x ] ) {
+        spawn<Stopper>();
+        spawned[ STOPPER ] = true;
+    } else if( spawned[ STOPPER ] ) {
+        spawned[ STOPPER ] = false;
+    }
 
-        spawnDelay -= 300;
-        if( spawnDelay <= 3000 )
-            spawnDelay -= -500;
-        if( spawnDelay < 1000 )
-            spawnDelay = 1000;
+    if( keyStates[ SDLK_c ] ) {
+        spawn<Twister>();
+        spawned[ TWISTER ] = true;
+    } else if( spawned[ TWISTER ] ) {
+        spawned[ TWISTER ] = false;
+    }
 
-        standard_spawn( spawnSlots, 10*SECOND );
+    if( keyStates[ SDLK_v ] ) {
+        spawn<Negative>();
+        spawned[ NEGATIVE ] = true;
+    } else if( spawned[ NEGATIVE ] ) {
+        spawned[ NEGATIVE ] = false;
     }
 }
 

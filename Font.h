@@ -36,5 +36,5 @@ class TextBox
   public:
     TextBox( BitmapFont& font, float x, float y );
 
-    void writeln( const std::string& text );
+    void writeln( const std::string& text="" );
 };
