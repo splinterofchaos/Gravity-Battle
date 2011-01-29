@@ -747,21 +747,22 @@ void dual_mode( int )
     TextBox intro( *font, 50, 50 );
 
     intro.writeln( "This is how-to-play mode." );
-    intro.writeln( "Move around with WASD (like in a first person shooter) or the arrow keys." );
+    intro.writeln( "Move around with WASD (like in an FPS) or the arrow keys." );
     intro.writeln( "Spawn enemies to practice dealing with them." );
     intro.writeln( "    Don't worry, you're invincible here.." );
     intro.writeln();
-    intro.writeln( "Press ENTER to switch between chaos/arcade physics. (some enemies only available in chaos mode." );
+    intro.writeln( "Press ENTER to switch between chaos/arcade physics. (Some enemies only available in chaos mode.)" );
     intro.writeln();
     intro.writeln( "To return to the menu, press M." );
     
     TextBox spawnList( *font, 650, 50 );
-    glColor3f(.5,.5,1);  spawnList.writeln( "Press Z to spawn an Orbital." );
+    glColor3f(.5,.5, 1); spawnList.writeln( "Press Z to spawn an Orbital." );
     glColor3f(.8,.8,.8); spawnList.writeln( "Press X to spawn a Stopper." );
-    glColor3f(1,.5,.5);  spawnList.writeln( "Press C to spawn a Twister." );
+    glColor3f( 1,.5,.5); spawnList.writeln( "Press C to spawn a Twister." );
 
     if( chaos ) {
-        glColor3f(.7,.9,1); spawnList.writeln( "Press V to spawn a Negative." );
+        glColor3f(.3,.9,.9); 
+        spawnList.writeln( "Press V to spawn a Negative." );
     }
 
     std::tr1::weak_ptr<CircleActor> p;
@@ -771,8 +772,9 @@ void dual_mode( int )
         p = spawn<Stopper>();
     else if( wasPressed[C] )
         p = spawn<Twister>();
-    else if( wasPressed[V] )
-        p = spawn<Negative>();
+    else if( chaos )
+        if( wasPressed[V] )
+            p = spawn<Negative>();
 
     std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
 
