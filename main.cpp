@@ -776,8 +776,10 @@ void dual_mode( int )
 
     std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
 
-    if( chaos )
+    if( chaos && !p.expired() ) {
         Orbital::attractors.push_back( p );
+        p.lock()->isAttractor = true;
+    }
 }
 
 void package_delivery( int dt )
@@ -965,7 +967,7 @@ void menu( int )
         font->draw( "To the left for challenge mode. >>>", 650, 300 );
         font->draw( "<<< To the right for CHAOS mode.", 20, 300 );
         font->draw ( 
-            "Move down here for dual mode! (use WASD and arrow keys)", 
+            "Press and hold S or the down arrow to enter how-to-play mode.", 
             350, Arena::maxY - 50 
         );
     }
