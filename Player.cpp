@@ -15,6 +15,7 @@ Player::Player( const Player::vector_type& position )
     : CircleActor( position ), isVisible( true )
 {
     isAttractor = true;
+    invinsible = false;
 }
 
 void Player::move( int dt )
@@ -130,7 +131,7 @@ Player::value_type Player::mass() const
 
 void Player::collide_with( CircleActor& collider )
 {
-    if( collider.isDeadly ) {
+    if( !invinsible && collider.isDeadly ) {
         deleteMe = true;
 
         SharedPlayerPtr copy = Player::copy.lock();

@@ -94,6 +94,9 @@ bool           newHighScore = false;
 std::string    highScoreHandle( HANDLE_SIZE, 'x' );
 HighScoreTable highScoreTable; 
 
+enum WasPressed { Z, X, C, V, T, N_WAS_PRESSED };
+bool wasPressed[N_WAS_PRESSED] = { 0, 0, 0, 0, 0 };
+
 // FUNCTIONS //
 void arcade_mode( int dt );
 void dual_mode( int dt );
@@ -454,7 +457,7 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 }
 
-enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS=9 };
+enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS };
 std::vector<Spawns> spawnSlots = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
@@ -728,50 +731,53 @@ void arcade_mode( int dt )
     }
 }
 
-void dual_mode( int dt )
+void dual_mode( int )
 {
-    static bool spawned[ N_SPAWN_SLOTS ] = { 0, 0, 0, 0, 0, 0 };
+    static bool chaos = false;
 
-    TextBox b( *font, 50, 250 );
+    if( wasPressed[T] ) {
+        chaos = ! chaos;
 
-    b.writeln( "This is how-to-play mode." );
-    b.writeln( "Move around with WASD (like in a first person shooter) or the arrow keys." );
-    b.writeln( "Spawn enemies to practice dealing with them." );
-    b.writeln( "    Don't worry, you're invincible here.." );
-    b.writeln();
-    b.writeln( "To return to the menu, press m." );
+        int offset = !Orbital::target.expired();
+        for_each( cActors.begin()+offset, cActors.end(), []( CActors::value_type a ) { a->deleteMe = true; } );
+    }
 
-    for_each( cActors.begin(), cActors.end(), []( CActors::value_type a ) { a->isDeadly = false; } );
+    Orbital::target.lock()->invinsible = true;
 
-    Uint8* keyStates = SDL_GetKeyState( 0 );
+    TextBox intro( *font, 50, 50 );
+
+    intro.writeln( "This is how-to-play mode." );
+    intro.writeln( "Move around with WASD (like in a first person shooter) or the arrow keys." );
+    intro.writeln( "Spawn enemies to practice dealing with them." );
+    intro.writeln( "    Don't worry, you're invincible here.." );
+    intro.writeln();
+    intro.writeln( "Press ENTER to switch between chaos/arcade physics. (some enemies only available in chaos mode." );
+    intro.writeln();
+    intro.writeln( "To return to the menu, press M." );
     
-    if( keyStates[ SDLK_z ] ) {
-        spawn<Orbital>();
-        spawned[ ORBITAL ] = true;
-    } else if( spawned[ ORBITAL ] ) {
-        spawned[ ORBITAL ] = false;
+    TextBox spawnList( *font, 650, 50 );
+    glColor3f(.5,.5,1);  spawnList.writeln( "Press Z to spawn an Orbital." );
+    glColor3f(.8,.8,.8); spawnList.writeln( "Press X to spawn a Stopper." );
+    glColor3f(1,.5,.5);  spawnList.writeln( "Press C to spawn a Twister." );
+
+    if( chaos ) {
+        glColor3f(.7,.9,1); spawnList.writeln( "Press V to spawn a Negative." );
     }
 
-    if( keyStates[ SDLK_x ] ) {
-        spawn<Stopper>();
-        spawned[ STOPPER ] = true;
-    } else if( spawned[ STOPPER ] ) {
-        spawned[ STOPPER ] = false;
-    }
+    std::tr1::weak_ptr<CircleActor> p;
+    if( wasPressed[Z] )
+        p = spawn<Orbital>();
+    else if( wasPressed[X] )
+        p = spawn<Stopper>();
+    else if( wasPressed[C] )
+        p = spawn<Twister>();
+    else if( wasPressed[V] )
+        p = spawn<Negative>();
 
-    if( keyStates[ SDLK_c ] ) {
-        spawn<Twister>();
-        spawned[ TWISTER ] = true;
-    } else if( spawned[ TWISTER ] ) {
-        spawned[ TWISTER ] = false;
-    }
+    std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
 
-    if( keyStates[ SDLK_v ] ) {
-        spawn<Negative>();
-        spawned[ NEGATIVE ] = true;
-    } else if( spawned[ NEGATIVE ] ) {
-        spawned[ NEGATIVE ] = false;
-    }
+    if( chaos )
+        Orbital::attractors.push_back( p );
 }
 
 void package_delivery( int dt )
@@ -1030,7 +1036,6 @@ int main( int, char** )
                 switch( event.key.keysym.sym )
                 {
                   case 'p': paused = !paused;    break;
-                  case 'z': spawn<Stopper>();    break;
 
                   case 'r': reset();             break;
                   case 'm': reset( menu );       break;
@@ -1073,7 +1078,13 @@ int main( int, char** )
                   case 'w': case 'a': case 's': case 'd': 
                   case SDLK_LEFT: case SDLK_RIGHT: case SDLK_UP: case SDLK_DOWN:
                             playerHasMoved = true; break;
-                  case SDLK_SPACE: playerIncreasedGravity = true;
+                  case SDLK_SPACE: playerIncreasedGravity = true; break;
+
+                  case 'z': wasPressed[Z] = true; break;
+                  case 'x': wasPressed[X] = true; break;
+                  case 'c': wasPressed[C] = true; break;
+                  case 'v': wasPressed[V] = true; break;
+                  case 't': wasPressed[T] = true; break;
 
                   default: break;
                 }

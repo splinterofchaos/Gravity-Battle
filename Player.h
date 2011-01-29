@@ -25,6 +25,8 @@ class Player : public CircleActor
     static Texture shield;
     static Texture body;
 
+    bool invinsible;
+
     Player( const vector_type& position );
 
     void move( int dt );

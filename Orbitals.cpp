@@ -75,6 +75,10 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
         for( size_t i=0; i < attractors.size(); i++ )
         {
             std::tr1::shared_ptr<CircleActor> attr = attractors[i].lock();
+
+            if( !attr )
+                continue;
+
             if( attr->isActive && attr.get() != this ) 
             {
                 vector_type r = attr->s - state.s;
