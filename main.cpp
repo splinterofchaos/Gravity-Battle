@@ -464,6 +464,22 @@ std::vector<Spawns> spawnSlots = {
     TWISTER, ORBITAL, TWISTER 
 };
 
+WeakCActorPtr delegate_spawn( int spawnCode )
+{
+    WeakCActorPtr s;
+
+    switch( spawnCode )
+    {
+      case ORBITAL: s = spawn<Orbital>(); break;
+      case STOPPER: s = spawn<Stopper>(); break;
+      case TWISTER: s = spawn<Twister>(); break;
+      case NEGATIVE: s = spawn<Negative>(); break;
+      default: break;
+    }
+
+    return s;
+}
+
 WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
     unsigned int rank = (float)slots.size() / maxTime * gameTime;
@@ -472,18 +488,7 @@ WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 
     int newSpawn = slots[ random(0, rank) ];
 
-    WeakCActorPtr s; // The new spawn.
-
-    switch( newSpawn )
-    {
-      case ORBITAL: s = spawn<Orbital>(); break;
-      case STOPPER: s = spawn<Stopper>(); break;
-      case TWISTER: s = spawn<Twister>(); break;
-      case NEGATIVE: s = spawn<Negative>(); break;
-      default: standard_spawn( slots, maxTime ); // Should never be reached.
-    }
-
-    return s;
+    return delegate_spawn( newSpawn );
 }
 
 void play_song( Music& song )
@@ -765,16 +770,23 @@ void dual_mode( int )
         spawnList.writeln( "Press V to spawn a Negative." );
     }
 
-    std::tr1::weak_ptr<CircleActor> p;
+    typedef std::tr1::weak_ptr<CircleActor> WP;
+    WP p;
+
+    int spawnCode = -1;
+
     if( wasPressed[Z] )
-        p = spawn<Orbital>();
+        spawnCode = ORBITAL;
     else if( wasPressed[X] )
-        p = spawn<Stopper>();
+        spawnCode = STOPPER;
     else if( wasPressed[C] )
-        p = spawn<Twister>();
+        spawnCode = TWISTER;
     else if( chaos )
         if( wasPressed[V] )
-            p = spawn<Negative>();
+            spawnCode = NEGATIVE;
+
+    if( spawnCode != -1 )
+        p = delegate_spawn( spawnCode );
 
     std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
 
