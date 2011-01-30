@@ -740,6 +740,19 @@ void dual_mode( int )
 {
     static bool chaos = false;
 
+    static const char* tips[ N_SPAWN_SLOTS ];
+    tips[ ORBITAL ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
+    tips[ TWISTER ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
+    tips[ NEGATIVE ] = "A negative is attracted to you, like an orbital, but repels all other enemies. It's mass is negative.";
+    tips[ STOPPER ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
+                      "\nThe only way to kill a stopper is to run into it while it's stopped.";
+
+    static Color colors[ N_SPAWN_SLOTS ];
+    colors[ ORBITAL  ] = Color( 0.4f, 0.4f, 1.0f );
+    colors[ STOPPER  ] = Color( 0.7f, 0.7f, 0.7f );
+    colors[ TWISTER  ] = Color( 1.0f, 0.1f, 0.1f );
+    colors[ NEGATIVE ] = Color( 0.3f, 1.0f, 1.0f );
+
     if( wasPressed[T] ) {
         chaos = ! chaos;
 
@@ -774,6 +787,7 @@ void dual_mode( int )
     WP p;
 
     int spawnCode = -1;
+    static int recentSpawn = -1;
 
     if( wasPressed[Z] )
         spawnCode = ORBITAL;
@@ -785,8 +799,17 @@ void dual_mode( int )
         if( wasPressed[V] )
             spawnCode = NEGATIVE;
 
-    if( spawnCode != -1 )
+    if( spawnCode != -1 ) {
         p = delegate_spawn( spawnCode );
+        recentSpawn = spawnCode;
+    }
+
+    if( recentSpawn != -1 ) {
+        glColor3f( colors[recentSpawn].r(), colors[recentSpawn].g(), colors[recentSpawn].b() );
+
+        TextBox b( *font, 150, 650 );
+        b.write( tips[recentSpawn] );
+    }
 
     std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
 
