@@ -985,6 +985,96 @@ void menu( int )
     }
 }
 
+#include <Windows.h>
+
+const int THREADS = 60;
+HANDLE startThreading[ THREADS ];
+HANDLE stopThreading[ THREADS ];
+HANDLE threads[ THREADS ];
+int    threadIndex[ THREADS ];
+
+DWORD WINAPI update_particles( LPVOID p )
+{
+    int thread = *(int*)p;
+
+    while( true )
+    {
+        WaitForSingleObject(  startThreading[thread], INFINITE );
+
+        int chunkSize = particles.size() / THREADS;
+        int start = chunkSize * thread;
+        int end   = start + chunkSize;
+
+        for( auto part=particles.begin() + start; part < particles.begin()+end; part++ )
+        {
+            part->a *= 0;
+            part->isVisible = true;
+
+            CActors::iterator attr = cActors.begin();
+            for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
+            {
+                Vector<float,2> r = (*attr)->s - part->s;
+
+                float combRad = (*attr)->radius() + part->scale + 15;
+                if( ! (*attr)->isActive )
+                    combRad *= 2;
+
+                if( magnitude(r) < combRad )
+                {
+                    part->a -= magnitude (
+                        r,
+                        0.29f * Arena::scale * random( 0.8f, 1.2f )
+                    );
+
+                    if( part->v * r < 0 )
+                    {
+                        auto u = unit( r );
+                        part->v = part->v - 2 * (part->v * u) * u;
+                    }
+                } else {
+                    part->a += magnitude (
+                        r, 
+                        (*attr)->mass() * (1.f/31.f) / 
+                        std::pow( magnitude( r ), 1.2f ) *
+                        Arena::scale 
+                    );
+                }
+            }
+
+            for( ; attr != cActors.end(); attr++ )
+            {
+                // This r is the negative of the one in the above loop.
+                Vector<float,2> r = part->s - (*attr)->s;
+
+                float combRad = (*attr)->radius() + part->scale + 4;
+                if( ! (*attr)->isActive )
+                    combRad *= 2;
+
+                if( magnitude(r) < combRad )
+                {
+                    part->a += magnitude (
+                        r,
+                        0.01f * Arena::scale * random( 0.8f, 1.2f )
+                    );
+
+                    if( part->v * r < 0 )
+                    {
+                        auto u = unit( r );
+                        part->v = part->v - 2 * (part->v * u) * u;
+                    }
+
+                    part->isVisible = false;
+                }
+            }
+
+            part->move( 4 );
+        }
+
+        SetEvent( stopThreading[thread] );
+
+    } // while true
+}
+
 int main( int, char** )
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
@@ -1001,6 +1091,15 @@ int main( int, char** )
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
         return 1;
     make_sdl_gl_window( (int)Arena::maxX, (int)Arena::maxY );
+
+
+    DWORD threadId;
+    for ( int t=0; t < THREADS; t++ ) {
+        threadIndex[t] = t;
+        startThreading[t] = CreateEvent(NULL, FALSE, FALSE, NULL);
+        stopThreading[t]  = CreateEvent(NULL, FALSE, FALSE, NULL);
+        threads[t] = CreateThread(NULL,0,update_particles,(LPVOID)&threadIndex[t],0,&threadId);
+    }
 
     Player::body.load(   "art/Orbital.bmp" );
     Player::shield.load( "art/Sheild2.bmp" );
@@ -1147,70 +1246,9 @@ int main( int, char** )
             // twice. Attractors need more repulsion than non-attractors
             // so adding it twice is fine.
 
-            for( auto part=particles.begin(); part < particles.end(); part++ )
-            {
-                part->a *= 0;
-                part->isVisible = true;
-
-                CActors::iterator attr = cActors.begin();
-                for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
-                {
-                    Vector<float,2> r = (*attr)->s - part->s;
-
-                    float combRad = (*attr)->radius() + part->scale + 15;
-                    if( ! (*attr)->isActive )
-                        combRad *= 2;
-
-                    if( magnitude(r) < combRad )
-                    {
-                        part->a -= magnitude (
-                            r,
-                            0.29f * Arena::scale * random( 0.8f, 1.2f )
-                        );
-
-                        if( part->v * r < 0 )
-                        {
-                            auto u = unit( r );
-                            part->v = part->v - 2 * (part->v * u) * u;
-                        }
-                    } else {
-                        part->a += magnitude (
-                            r, 
-                            (*attr)->mass() * (1.f/31.f) / 
-                                std::pow( magnitude( r ), 1.2f ) *
-                                Arena::scale 
-                        );
-                    }
-                }
-
-                for( ; attr != cActors.end(); attr++ )
-                {
-                    // This r is the negative of the one in the above loop.
-                    Vector<float,2> r = part->s - (*attr)->s;
-
-                    float combRad = (*attr)->radius() + part->scale + 4;
-                    if( ! (*attr)->isActive )
-                        combRad *= 2;
-
-                    if( magnitude(r) < combRad )
-                    {
-                        part->a += magnitude (
-                            r,
-                            0.01f * Arena::scale * random( 0.8f, 1.2f )
-                        );
-
-                        if( part->v * r < 0 )
-                        {
-                            auto u = unit( r );
-                            part->v = part->v - 2 * (part->v * u) * u;
-                        }
-
-                        part->isVisible = false;
-                    }
-                }
-
-                part->move( time );
-            }
+            for ( int t=0; t < THREADS; t++ )
+                SetEvent( startThreading[t] );
+            WaitForMultipleObjects( THREADS, &stopThreading[0], true, INFINITE );
 
             // Rather than erasing the particles after this loop, durring worst
             // case scenarios, this helps reduce the excess particles quickly. 
