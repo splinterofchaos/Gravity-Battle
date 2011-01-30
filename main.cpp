@@ -774,17 +774,23 @@ void dual_mode( int )
     intro.writeln( "To return to the menu, press M." );
     
     TextBox spawnList( *font, 650, 50 );
-    glColor3f(.5,.5, 1); spawnList.writeln( "Press Z to spawn an Orbital." );
-    glColor3f(.8,.8,.8); spawnList.writeln( "Press X to spawn a Stopper." );
-    glColor3f( 1,.5,.5); spawnList.writeln( "Press C to spawn a Twister." );
+
+    glColor3f( colors[ORBITAL].r(), colors[ORBITAL].g(), colors[ORBITAL].b() );
+    spawnList.writeln( "Press Z to spawn an Orbital." );
+
+    glColor3f( colors[STOPPER].r(), colors[STOPPER].g(), colors[STOPPER].b() );
+    spawnList.writeln( "Press X to spawn a Stopper." );
+
+    glColor3f( colors[TWISTER].r(), colors[TWISTER].g(), colors[TWISTER].b() );
+    spawnList.writeln( "Press C to spawn a Twister." );
 
     if( chaos ) {
-        glColor3f(.3,.9,.9); 
+        glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
         spawnList.writeln( "Press V to spawn a Negative." );
     }
 
-    typedef std::tr1::weak_ptr<CircleActor> WP;
-    WP p;
+    // A newly spawned enemy.
+    std::tr1::weak_ptr<CircleActor> p;
 
     int spawnCode = -1;
     static int recentSpawn = -1;
@@ -807,6 +813,7 @@ void dual_mode( int )
     if( recentSpawn != -1 ) {
         glColor3f( colors[recentSpawn].r(), colors[recentSpawn].g(), colors[recentSpawn].b() );
 
+        // Textbox::write offers newline detection. Font::draw does not.
         TextBox b( *font, 150, 650 );
         b.write( tips[recentSpawn] );
     }
