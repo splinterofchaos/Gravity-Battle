@@ -1165,7 +1165,7 @@ int main( int, char** )
                     {
                         part->a -= magnitude (
                             r,
-                            0.29f * Arena::scale
+                            0.29f * Arena::scale * random( 0.8f, 1.2f )
                         );
 
                         if( part->v * r < 0 )
@@ -1196,7 +1196,7 @@ int main( int, char** )
                     {
                         part->a += magnitude (
                             r,
-                            0.01f * Arena::scale
+                            0.01f * Arena::scale * random( 0.8f, 1.2f )
                         );
 
                         if( part->v * r < 0 )
