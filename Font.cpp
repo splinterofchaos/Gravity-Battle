@@ -65,6 +65,23 @@ TextBox::TextBox( BitmapFont& font, float x, float y )
 {
 }
 
+void TextBox::write( const std::string& text )
+{
+    // This algorithm REQUIRES that end initialize to 0 - 1.
+    unsigned int i, end = 0 - 1;
+
+    do {
+        // This prevents i from referencing the \n char.
+        i = end + 1;
+        end = text.find( '\n', i );
+
+        if( end == std::string::npos )
+            end = text.size();
+
+        writeln( text.substr(i,end) );
+    } while( end < text.size() );
+}
+
 void TextBox::writeln( const std::string& text )
 {
      font.draw( text, x, y );

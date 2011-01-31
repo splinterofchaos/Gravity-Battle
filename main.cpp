@@ -94,6 +94,9 @@ bool           newHighScore = false;
 std::string    highScoreHandle( HANDLE_SIZE, 'x' );
 HighScoreTable highScoreTable; 
 
+enum WasPressed { Z, X, C, V, T, N_WAS_PRESSED };
+bool wasPressed[N_WAS_PRESSED] = { 0, 0, 0, 0, 0 };
+
 // FUNCTIONS //
 void arcade_mode( int dt );
 void dual_mode( int dt );
@@ -224,31 +227,13 @@ void update_screen()
 
 void spawn_player( Actor::value_type x, Actor::value_type y )
 {
-    if( gameLogic != dual_mode ) {
-        SharedCActorPtr player(  new Player( Actor::vector_type(x,y) ) );
-        cActors.push_back( player );
+    SharedCActorPtr player(  new Player( Actor::vector_type(x,y) ) );
+    cActors.push_back( player );
 
-        Orbital::target = std::tr1::static_pointer_cast<Player>( player );
-        Player::original = Orbital::target;
-    } else {
-        SharedCActorPtr player(  new Player( Actor::vector_type(x-50,y) ) );
-        cActors.push_back( player );
-        Orbital::target = std::tr1::static_pointer_cast<Player>( player );
-
-        SharedCActorPtr player2(  new Player2( Actor::vector_type(x+50,y) ) );
-        cActors.push_back( SharedCActorPtr( player2 ) );
-        Orbital::target2 = std::tr1::static_pointer_cast<Player>( player2 );
- 
-
-        Player::copy = Orbital::target2;
-        Player2::original = Orbital::target;
-    }
+    Orbital::target = std::tr1::static_pointer_cast<Player>( player );
+    Player::original = Orbital::target;
 
     Orbital::attractors.push_back( Orbital::target );
-
-    if( gameLogic == dual_mode ) {
-        Orbital::attractors.push_back( Orbital::target2.lock() );
-    }
 }
 
 template< typename T >
@@ -472,12 +457,28 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 }
 
-enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS=9 };
+enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS };
 std::vector<Spawns> spawnSlots = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
     TWISTER, ORBITAL, TWISTER 
 };
+
+WeakCActorPtr delegate_spawn( int spawnCode )
+{
+    WeakCActorPtr s;
+
+    switch( spawnCode )
+    {
+      case ORBITAL: s = spawn<Orbital>(); break;
+      case STOPPER: s = spawn<Stopper>(); break;
+      case TWISTER: s = spawn<Twister>(); break;
+      case NEGATIVE: s = spawn<Negative>(); break;
+      default: break;
+    }
+
+    return s;
+}
 
 WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
@@ -487,18 +488,7 @@ WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 
     int newSpawn = slots[ random(0, rank) ];
 
-    WeakCActorPtr s; // The new spawn.
-
-    switch( newSpawn )
-    {
-      case ORBITAL: s = spawn<Orbital>(); break;
-      case STOPPER: s = spawn<Stopper>(); break;
-      case TWISTER: s = spawn<Twister>(); break;
-      case NEGATIVE: s = spawn<Negative>(); break;
-      default: standard_spawn( slots, maxTime ); // Should never be reached.
-    }
-
-    return s;
+    return delegate_spawn( newSpawn );
 }
 
 void play_song( Music& song )
@@ -746,36 +736,93 @@ void arcade_mode( int dt )
     }
 }
 
-void dual_mode( int dt )
+void dual_mode( int )
 {
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+    static bool chaos = false;
 
-    if( timePlayerDied && gameTime < timePlayerDied + 7*SECOND )
-        font->draw( "Press r to reset, m for menu", 600, 200 );
+    static const char* tips[ N_SPAWN_SLOTS ];
+    tips[ ORBITAL ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
+    tips[ TWISTER ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
+    tips[ NEGATIVE ] = "A negative is attracted to you, like an orbital, but repels all other enemies. It's mass is negative.";
+    tips[ STOPPER ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
+                      "\nThe only way to kill a stopper is to run into it while it's stopped.";
 
-    if( !Orbital::target.expired() ) 
-    {
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive && cActors[i]->isMovable ) {
-                sum += cActors[i]->score_value();
-                nEnemies++;
-            }
+    static Color colors[ N_SPAWN_SLOTS ];
+    colors[ ORBITAL  ] = Color( 0.4f, 0.4f, 1.0f );
+    colors[ STOPPER  ] = Color( 0.7f, 0.7f, 0.7f );
+    colors[ TWISTER  ] = Color( 1.0f, 0.1f, 0.1f );
+    colors[ NEGATIVE ] = Color( 0.3f, 1.0f, 1.0f );
 
-        scoreVal += sum / 4 * nEnemies*nEnemies * float(dt)/SECOND;
+    if( wasPressed[T] ) {
+        chaos = ! chaos;
+
+        int offset = !Orbital::target.expired();
+        for_each( cActors.begin()+offset, cActors.end(), []( CActors::value_type a ) { a->deleteMe = true; } );
     }
 
-    if( spawnWait <= gameTime ) {
-        spawnWait = gameTime + spawnDelay;
+    Orbital::target.lock()->invinsible = true;
 
-        spawnDelay -= 300;
-        if( spawnDelay <= 3000 )
-            spawnDelay -= -500;
-        if( spawnDelay < 1000 )
-            spawnDelay = 1000;
+    TextBox intro( *font, 50, 50 );
 
-        standard_spawn( spawnSlots, 10*SECOND );
+    intro.writeln( "This is how-to-play mode." );
+    intro.writeln( "Move around with WASD (like in an FPS) or the arrow keys." );
+    intro.writeln( "Spawn enemies to practice dealing with them." );
+    intro.writeln( "    Don't worry, you're invincible here.." );
+    intro.writeln();
+    intro.writeln( "Press ENTER to switch between chaos/arcade physics. (Some enemies only available in chaos mode.)" );
+    intro.writeln();
+    intro.writeln( "To return to the menu, press M." );
+    
+    TextBox spawnList( *font, 650, 50 );
+
+    glColor3f( colors[ORBITAL].r(), colors[ORBITAL].g(), colors[ORBITAL].b() );
+    spawnList.writeln( "Press Z to spawn an Orbital." );
+
+    glColor3f( colors[STOPPER].r(), colors[STOPPER].g(), colors[STOPPER].b() );
+    spawnList.writeln( "Press X to spawn a Stopper." );
+
+    glColor3f( colors[TWISTER].r(), colors[TWISTER].g(), colors[TWISTER].b() );
+    spawnList.writeln( "Press C to spawn a Twister." );
+
+    if( chaos ) {
+        glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
+        spawnList.writeln( "Press V to spawn a Negative." );
+    }
+
+    // A newly spawned enemy.
+    std::tr1::weak_ptr<CircleActor> p;
+
+    int spawnCode = -1;
+    static int recentSpawn = -1;
+
+    if( wasPressed[Z] )
+        spawnCode = ORBITAL;
+    else if( wasPressed[X] )
+        spawnCode = STOPPER;
+    else if( wasPressed[C] )
+        spawnCode = TWISTER;
+    else if( chaos )
+        if( wasPressed[V] )
+            spawnCode = NEGATIVE;
+
+    if( spawnCode != -1 ) {
+        p = delegate_spawn( spawnCode );
+        recentSpawn = spawnCode;
+    }
+
+    if( recentSpawn != -1 ) {
+        glColor3f( colors[recentSpawn].r(), colors[recentSpawn].g(), colors[recentSpawn].b() );
+
+        // Textbox::write offers newline detection. Font::draw does not.
+        TextBox b( *font, 150, 650 );
+        b.write( tips[recentSpawn] );
+    }
+
+    std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
+
+    if( chaos && !p.expired() ) {
+        Orbital::attractors.push_back( p );
+        p.lock()->isAttractor = true;
     }
 }
 
@@ -964,7 +1011,7 @@ void menu( int )
         font->draw( "To the left for challenge mode. >>>", 650, 300 );
         font->draw( "<<< To the right for CHAOS mode.", 20, 300 );
         font->draw ( 
-            "Move down here for dual mode! (use WASD and arrow keys)", 
+            "Press and hold S or the down arrow to enter how-to-play mode.", 
             350, Arena::maxY - 50 
         );
     }
@@ -1035,7 +1082,6 @@ int main( int, char** )
                 switch( event.key.keysym.sym )
                 {
                   case 'p': paused = !paused;    break;
-                  case 'z': spawn<Stopper>();    break;
 
                   case 'r': reset();             break;
                   case 'm': reset( menu );       break;
@@ -1078,7 +1124,13 @@ int main( int, char** )
                   case 'w': case 'a': case 's': case 'd': 
                   case SDLK_LEFT: case SDLK_RIGHT: case SDLK_UP: case SDLK_DOWN:
                             playerHasMoved = true; break;
-                  case SDLK_SPACE: playerIncreasedGravity = true;
+                  case SDLK_SPACE: playerIncreasedGravity = true; break;
+
+                  case 'z': wasPressed[Z] = true; break;
+                  case 'x': wasPressed[X] = true; break;
+                  case 'c': wasPressed[C] = true; break;
+                  case 'v': wasPressed[V] = true; break;
+                  case 't': wasPressed[T] = true; break;
 
                   default: break;
                 }
