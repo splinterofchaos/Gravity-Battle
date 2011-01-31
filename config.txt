@@ -50,7 +50,7 @@ particle-behaviour = orbit
 #particle-behaviour = gravity-field
 
 # Music volume: Maximum is 128, minimum is zero.
-music-volume = 0
+music-volume = 128
 
 # Sound effects volume: Maximum is 128, minimum is zero.
 sfx-volume = 128
