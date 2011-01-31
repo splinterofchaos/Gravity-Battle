@@ -1295,12 +1295,16 @@ int main( int, char** )
             (*it)->draw();
         }
 
+        int partsDrawn = 0;
         for( auto it=particles.begin(); it < particles.end(); it++ )
             if( it->s.x() > Arena::minX && 
                 it->s.x() < Arena::maxX && 
                 it->s.y() > Arena::minY && 
                 it->s.y() < Arena::maxY )
+            {
                 it->draw();
+                partsDrawn++;
+            }
 
 
         float boarder[] = {
@@ -1330,7 +1334,7 @@ int main( int, char** )
 
         if( showFrameTime ) {
             std::stringstream ss;
-            TextBox b( *font, 10, 620 );
+            TextBox b( *font, 10, 600 );
 
             float val = frameTime;
             if( !frameTime )
@@ -1341,6 +1345,10 @@ int main( int, char** )
 
             ss.str( "" );
             ss << "parts: " << particles.size();
+            b.writeln( ss.str() );
+
+            ss.str( "" );
+            ss << "parts on screen: " << partsDrawn;
             b.writeln( ss.str() );
 
             ss.str( "" );
