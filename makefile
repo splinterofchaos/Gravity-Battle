@@ -10,7 +10,7 @@ ifeq "$(OS)" "Windows_NT"
 	OUT     = run.exe
 else
 	# Linux
-	EXTRA =
+	EXTRA   =
 	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer 
 	OUT     = run
 endif
@@ -18,9 +18,9 @@ endif
  
 CC = g++ 
 
-CFLAGS  += -Wall -Wextra
+CFLAGS  += -Wall -Wextra 
 
-compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -c 
+compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -c -O3 
 link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -o ${OUT}
 
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o .BarnesHutTree.o
@@ -29,7 +29,7 @@ ${OUT} : ${OBJ} main.cpp makefile
 	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
 
 .BarnesHutTree.o : BarnesHutTree.h BarnesHutTree.cpp
-	${compile} BarnesHutTree.cpp -o .BarnesHutTree.o
+	${compile} -O1 BarnesHutTree.cpp -o .BarnesHutTree.o
 
 .Sound.o : Sound.h Sound.cpp
 	${compile} Sound.cpp -o .Sound.o
