@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "Actor.h"
 #include "Color.h"
 

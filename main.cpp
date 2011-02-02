@@ -22,6 +22,8 @@
 
 #include "Sound.h"
 
+#include "BarnesHutTree.h"
+
 // 3rd party includes.
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -1032,6 +1034,16 @@ void menu( int )
     }
 }
 
+Vector<float,2> attract( const Vector<float,2>& r, float m )
+{
+    return magnitude (
+        r, 
+        m * (1.f/31.f) / 
+        std::pow( magnitude( r ), 1.2f ) *
+        Arena::scale 
+    );
+}
+
 int main( int, char** )
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
@@ -1167,6 +1179,22 @@ int main( int, char** )
                 cActors.end() 
             );
 
+            Orbital::attractors.erase (
+                remove_if (
+                    Orbital::attractors.begin(), Orbital::attractors.end(),
+                    std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
+                ),
+                Orbital::attractors.end()
+            );
+
+            
+            BarnesHutTree tree( Arena::center_x(), Arena::center_y(), Arena::width() );
+            for( auto it = Orbital::attractors.begin(); 
+                 it != Orbital::attractors.end(); it++ )
+            {
+                tree.insert( it->lock().get() );
+            }
+
             // This may seem not obvious, but it works.
             // Particle physics is by far the most CPU intensive part of this
             // whole program. When a frame lasts too long, it is probably
@@ -1199,69 +1227,14 @@ int main( int, char** )
             // twice. Attractors need more repulsion than non-attractors
             // so adding it twice is fine.
 
-            for( auto part=particles.begin(); part < particles.end(); part++ )
+            for( unsigned int i=0; i < particles.size(); i++ )
             {
-                part->a *= 0;
-                part->isVisible = true;
+                particles[i].a *= 0;
+                particles[i].isVisible = true;
 
-                CActors::iterator attr = cActors.begin();
-                for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
-                {
-                    Vector<float,2> r = (*attr)->s - part->s;
+                particles[i].a = tree.acceleration( &particles[i], attract );
 
-                    float combRad = (*attr)->radius() + part->scale + 15;
-                    if( ! (*attr)->isActive )
-                        combRad *= 2;
-
-                    if( magnitude(r) < combRad )
-                    {
-                        part->a -= magnitude (
-                            r,
-                            0.29f * Arena::scale * random( 0.8f, 1.2f )
-                        );
-
-                        if( part->v * r < 0 )
-                        {
-                            auto u = unit( r );
-                            part->v = part->v - 2 * (part->v * u) * u;
-                        }
-                    } else {
-                        part->a += magnitude (
-                            r, 
-                            (*attr)->mass() * (1.f/31.f) / 
-                                std::pow( magnitude( r ), 1.2f ) *
-                                Arena::scale 
-                        );
-                    }
-                }
-
-                for( ; attr != cActors.end(); attr++ )
-                {
-                    // This r is the negative of the one in the above loop.
-                    Vector<float,2> r = part->s - (*attr)->s;
-
-                    float combRad = (*attr)->radius() + part->scale + 4;
-                    if( ! (*attr)->isActive )
-                        combRad *= 2;
-
-                    if( magnitude(r) < combRad )
-                    {
-                        part->a += magnitude (
-                            r,
-                            0.01f * Arena::scale * random( 0.8f, 1.2f )
-                        );
-
-                        if( part->v * r < 0 )
-                        {
-                            auto u = unit( r );
-                            part->v = part->v - 2 * (part->v * u) * u;
-                        }
-
-                        part->isVisible = false;
-                    }
-                }
-
-                part->move( time );
+                particles[i].move( time );
             }
 
             // Rather than erasing the particles after this loop, durring worst
@@ -1280,14 +1253,6 @@ int main( int, char** )
                     }
                 ), 
                 particles.end() 
-            );
-
-            Orbital::attractors.erase (
-                remove_if (
-                    Orbital::attractors.begin(), Orbital::attractors.end(),
-                    std::mem_fun_ref( &std::tr1::weak_ptr<CircleActor>::expired )
-                ),
-                Orbital::attractors.end()
             );
         }
 
