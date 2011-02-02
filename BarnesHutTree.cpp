@@ -33,7 +33,21 @@ BarnesHutTree::BarnesHutTree( const Vector<float,2>& pos, float l, CircleActor* 
     init( cp ); 
 }
 
-#include <iostream>
+int BarnesHutTree::choose_quadrant( const Vector<float,2>& pos )
+{
+    int quad;
+
+    if( pos.y() < center.y() )
+        quad = 0;
+    else
+        quad = 2;
+
+    if( pos.x() > center.x() )
+        quad += 1;
+
+    return quad;
+}
+
 void BarnesHutTree::insert_into_quadrant( CircleActor* cp )
 {
     // Decide which quadrant to insert the actor.
@@ -47,15 +61,7 @@ void BarnesHutTree::insert_into_quadrant( CircleActor* cp )
         vector( -1.f,  1.f )
     };
 
-    unsigned int quad;
-
-    if( cp->s.y() < center.y() )
-        quad = 0;
-    else
-        quad = 2;
-
-    if( cp->s.x() > center.x() )
-        quad += 1;
+    unsigned int quad = choose_quadrant( cp->s );
 
     if( ! children[ quad ] ) {
         float newDims = length / 2;
@@ -89,7 +95,7 @@ void BarnesHutTree::insert( CircleActor* cp )
     //      of x.
     
     // Update quadrant data.
-    massPosition += cp->s * cp->mass();
+    massPosition += cp->s * std::abs(cp->mass());
     totalMass    += cp->mass();
     centerOfMass = massPosition / totalMass;
 
@@ -141,7 +147,7 @@ Vector<float,2> BarnesHutTree::acceleration( Particle* part, AccelFunc f )
     //     current node's children.
 
     // 1. and 2.
-    if( is_leaf() || length / magnitude(r) < 0.75 ) {
+    if( is_leaf() || length / magnitude(r) < 0.05 ) {
         accSum = f( r, totalMass );
     }
  
@@ -155,6 +161,17 @@ Vector<float,2> BarnesHutTree::acceleration( Particle* part, AccelFunc f )
     return accSum;
 }
 
+void BarnesHutTree::collide( Particle* part, CollideFunc f )
+{
+    if( is_leaf() && actor ) {
+        f( part, actor );
+    } else {
+        unsigned int quad = choose_quadrant( part->s );
+        if( children[ quad ] )
+            children[quad]->collide( part, f );
+    }
+}
+
 bool BarnesHutTree::is_leaf()
 {
     return !(children[0]||children[1]||children[2]||children[3]);
@@ -163,6 +180,16 @@ bool BarnesHutTree::is_leaf()
 bool BarnesHutTree::is_empty()
 {
     return !actor && is_leaf();
+}
+
+Vector<float,2> BarnesHutTree::com()
+{
+    return centerOfMass;
+}
+
+float BarnesHutTree::mass()
+{
+    return totalMass;
 }
 
 BarnesHutTree::~BarnesHutTree()

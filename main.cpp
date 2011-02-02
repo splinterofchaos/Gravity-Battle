@@ -1044,6 +1044,31 @@ Vector<float,2> attract( const Vector<float,2>& r, float m )
     );
 }
 
+void collide_particle( Particle* part, CircleActor* cp )
+{
+    Vector<float,2> r = cp->s - part->s;
+    float combRad = cp->radius() + part->scale + 2;
+
+    if( cp->isAttractor )
+        combRad += 15;
+    if( ! cp->isActive )
+        combRad *= 2;
+    
+    if( magnitude(r) < combRad )
+    {
+        part->a -= magnitude (
+            r,
+            0.29f * Arena::scale * random( 0.8f, 1.2f )
+        );
+
+        if( part->v * r < 0 )
+        {
+            Vector<float,2> u = unit( r );
+            part->v = part->v - 2 * (part->v * u) * u;
+        }
+    }
+}
+
 int main( int, char** )
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
@@ -1235,6 +1260,15 @@ int main( int, char** )
                 particles[i].isVisible = true;
 
                 particles[i].a = tree.acceleration( &particles[i], attract );
+            }
+
+            for( ; treeAdder != cActors.end(); treeAdder++ )
+                tree.insert( treeAdder->get() );
+
+
+            for( unsigned int i=0; i < particles.size(); i++ )
+            {
+                tree.collide( &particles[i], collide_particle );
 
                 particles[i].move( time );
             }
@@ -1248,10 +1282,10 @@ int main( int, char** )
                     {
                         // Letting the particles go a little off-screen safely
                         // gives a better "endless space!" feeling.
-                        return p.s.x() < Arena::minX-400 || 
-                               p.s.x() > Arena::maxX+400 || 
-                               p.s.y() < Arena::minY-400 || 
-                               p.s.y() > Arena::maxY+400;
+                        return p.s.x() < Arena::minX-100 || 
+                               p.s.x() > Arena::maxX+100 || 
+                               p.s.y() < Arena::minY-100 || 
+                               p.s.y() > Arena::maxY+100;
                     }
                 ), 
                 particles.end() 

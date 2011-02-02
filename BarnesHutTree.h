@@ -26,6 +26,7 @@ class BarnesHutTree
 
     void init( CircleActor* cp );
 
+    int  choose_quadrant( const Vector<float,2>& pos );
     void insert_into_quadrant( CircleActor* cp );
 
   public:
@@ -37,12 +38,18 @@ class BarnesHutTree
     void clear(); // Erase all elements.
 
     typedef Vector<float,2> (*AccelFunc)( const Vector<float,2>&, float );
+    typedef void (*CollideFunc)( Particle*, CircleActor* );
 
     Vector<float,2> acceleration( Particle* part, AccelFunc f );
+    void collide( Particle* part, CollideFunc f );
 
     // Observers:
     bool is_leaf();
     bool is_empty();
+    
+    Vector<float,2> com();
+    float           mass();
+
 
     ~BarnesHutTree();
 };
