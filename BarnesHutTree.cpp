@@ -122,7 +122,7 @@ void BarnesHutTree::clear()
 
 Vector<float,2> BarnesHutTree::acceleration( Particle* part, AccelFunc f )
 {
-    Vector<float,2> accSum;
+    Vector<float,2> accSum = vector( 0, 0 );
     Vector<float,2> r = centerOfMass - part->s;
 
     if( is_empty() )
