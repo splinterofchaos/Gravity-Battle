@@ -1189,10 +1189,12 @@ int main( int, char** )
 
             
             BarnesHutTree tree( Arena::center_x(), Arena::center_y(), Arena::width() );
-            for( auto it = Orbital::attractors.begin(); 
-                 it != Orbital::attractors.end(); it++ )
+
+            CActors::iterator treeAdder = cActors.begin();
+            for( ; 
+                 treeAdder != cActors.end() && (*treeAdder)->isAttractor; treeAdder++ )
             {
-                tree.insert( it->lock().get() );
+                tree.insert( treeAdder->get() );
             }
 
             // This may seem not obvious, but it works.

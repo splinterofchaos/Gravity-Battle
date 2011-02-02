@@ -141,7 +141,7 @@ Vector<float,2> BarnesHutTree::acceleration( Particle* part, AccelFunc f )
     //     current node's children.
 
     // 1. and 2.
-    if( is_leaf() || length / magnitude(r) < 0.5 ) {
+    if( is_leaf() || length / magnitude(r) < 0.75 ) {
         accSum = f( r, totalMass );
     }
  

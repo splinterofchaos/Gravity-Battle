@@ -10,7 +10,7 @@ ifeq "$(OS)" "Windows_NT"
 	OUT     = run.exe
 else
 	# Linux
-	EXTRA = -fopenmp
+	EXTRA =
 	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer 
 	OUT     = run
 endif
