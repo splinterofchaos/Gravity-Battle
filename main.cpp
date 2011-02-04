@@ -99,7 +99,7 @@ bool wasPressed[N_WAS_PRESSED] = { 0, 0, 0, 0, 0, 0 };
 
 // FUNCTIONS //
 void arcade_mode( int dt );
-void dual_mode( int dt );
+void training_mode( int dt );
 void menu( int dt );
 
 std::string to_string( int x )
@@ -737,7 +737,7 @@ void arcade_mode( int dt )
     }
 }
 
-void dual_mode( int )
+void training_mode( int )
 {
     static bool chaos = false;
 
@@ -1020,7 +1020,7 @@ void menu( int )
         font->draw( "To the left for challenge mode. >>>", 650, 300 );
         font->draw( "<<< To the right for CHAOS mode.", 20, 300 );
         font->draw ( 
-            "Press and hold S or the down arrow to enter how-to-play mode.", 
+            "Press and hold S or the DOWN ARROW to enter training mode.", 
             350, Arena::maxY - 50 
         );
     }
@@ -1033,7 +1033,7 @@ void menu( int )
         if(      cActors[i]->s.y() < Arena::minX + cActors[i]->radius()  )
             reset( arcade_mode );
         else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() )
-            reset( dual_mode );
+            reset( training_mode );
         else if( Arena::maxX < cActors[i]->s.x() + cActors[i]->radius() )
             reset( challenge );
         else if( Arena::minX > cActors[i]->s.x() - cActors[i]->radius() )
