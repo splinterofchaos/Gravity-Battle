@@ -31,7 +31,7 @@ void Particle::draw()
     // If =a, particles will represent the gravities affecting them.
     // If =v, they will be drawn according to their motion.
     vector_type& direction = gravityField? a : v;
-    float max = gravityField? 0.001 : maxSpeed;
+    float max = gravityField? 0.001f : maxSpeed;
 
     float angle = std::atan2( direction.y(), direction.x() ) * (180/3.145f);
     float widthRatio = 1.0;
@@ -40,6 +40,9 @@ void Particle::draw()
         widthRatio += max / magnitude(direction) * 11;
     else
         widthRatio += magnitude(direction) / max * 11;
+
+    if( widthRatio > 15 )
+        widthRatio = 15;
 
     if( direction == a )
         angle += 90;
