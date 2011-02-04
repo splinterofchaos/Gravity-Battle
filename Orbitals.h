@@ -26,7 +26,7 @@ class Orbital : public CircleActor
 
     static const value_type RADIUS = 18;
     static const int ACTIVATION_DELAY = 2000;
-    static const float BOUNCINESS = 0.5;
+    static const float BOUNCINESS = 0.8;
 
     typedef std::tr1::weak_ptr<Player>   WeakPlayerPtr;
     typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;

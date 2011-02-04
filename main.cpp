@@ -94,8 +94,8 @@ bool           newHighScore = false;
 std::string    highScoreHandle( HANDLE_SIZE, 'x' );
 HighScoreTable highScoreTable; 
 
-enum WasPressed { Z, X, C, V, T, N_WAS_PRESSED };
-bool wasPressed[N_WAS_PRESSED] = { 0, 0, 0, 0, 0 };
+enum WasPressed { Z, X, C, V, B, ENTER, N_WAS_PRESSED };
+bool wasPressed[N_WAS_PRESSED] = { 0, 0, 0, 0, 0, 0 };
 
 // FUNCTIONS //
 void arcade_mode( int dt );
@@ -742,19 +742,21 @@ void dual_mode( int )
     static bool chaos = false;
 
     static const char* tips[ N_SPAWN_SLOTS ];
-    tips[ ORBITAL ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
-    tips[ TWISTER ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
+    tips[ ORBITAL  ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
+    tips[ TWISTER  ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
     tips[ NEGATIVE ] = "A negative is attracted to you, like an orbital, but repels all other enemies. It's mass is negative.";
-    tips[ STOPPER ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
-                      "\nThe only way to kill a stopper is to run into it while it's stopped.";
+    tips[ GREEDY   ] = "A greedy will only orbit the player, ignoring everything else.";
+    tips[ STOPPER  ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
+                       "\nThe only way to kill a stopper is to run into it while it's stopped.";
 
     static Color colors[ N_SPAWN_SLOTS ];
     colors[ ORBITAL  ] = Color( 0.4f, 0.4f, 1.0f );
     colors[ STOPPER  ] = Color( 0.7f, 0.7f, 0.7f );
     colors[ TWISTER  ] = Color( 1.0f, 0.1f, 0.1f );
     colors[ NEGATIVE ] = Color( 0.3f, 1.0f, 1.0f );
+    colors[ GREEDY   ] = Color( 1.0f, 0.0f, 1.0f );
 
-    if( wasPressed[T] ) {
+    if( wasPressed[ENTER] ) {
         chaos = ! chaos;
 
         int offset = !Orbital::target.expired();
@@ -788,6 +790,9 @@ void dual_mode( int )
     if( chaos ) {
         glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
         spawnList.writeln( "Press V to spawn a Negative." );
+
+        glColor3f( colors[GREEDY].r(), colors[GREEDY].g(), colors[GREEDY].b() );
+        spawnList.writeln( "Press B to spawn a Greedy." );
     }
 
     // A newly spawned enemy.
@@ -802,9 +807,12 @@ void dual_mode( int )
         spawnCode = STOPPER;
     else if( wasPressed[C] )
         spawnCode = TWISTER;
-    else if( chaos )
+    else if( chaos ) {
         if( wasPressed[V] )
             spawnCode = NEGATIVE;
+        else if( wasPressed[B] )
+            spawnCode = GREEDY;
+    }
 
     if( spawnCode != -1 ) {
         p = delegate_spawn( spawnCode );
@@ -1131,7 +1139,8 @@ int main( int, char** )
                   case 'x': wasPressed[X] = true; break;
                   case 'c': wasPressed[C] = true; break;
                   case 'v': wasPressed[V] = true; break;
-                  case 't': wasPressed[T] = true; break;
+                  case 'b': wasPressed[B] = true; break;
+                  case SDLK_RETURN: wasPressed[ENTER] = true; break;
 
                   default: break;
                 }
