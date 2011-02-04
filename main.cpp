@@ -457,7 +457,7 @@ void reset( GameLogic logic = 0 )
     scoreVal = 0;
 }
 
-enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, N_SPAWN_SLOTS };
+enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, GREEDY, N_SPAWN_SLOTS=9 };
 std::vector<Spawns> spawnSlots = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
@@ -474,7 +474,8 @@ WeakCActorPtr delegate_spawn( int spawnCode )
       case STOPPER: s = spawn<Stopper>(); break;
       case TWISTER: s = spawn<Twister>(); break;
       case NEGATIVE: s = spawn<Negative>(); break;
-      default: break;
+      case GREEDY : s = spawn<Greedy>();  break;
+      default: break; // Should never be reached.
     }
 
     return s;
@@ -508,9 +509,9 @@ void chaos_mode( int dt )
     play_song( menuSong );
 
     static std::vector<Spawns> chaosSlots = {
-        ORBITAL, ORBITAL,
-        ORBITAL, TWISTER, STOPPER, TWISTER,
-        NEGATIVE, ORBITAL, TWISTER 
+        ORBITAL, TWISTER, 
+        NEGATIVE, ORBITAL, STOPPER, GREEDY,
+        NEGATIVE, TWISTER, ORBITAL, TWISTER 
     };
 
     glColor3f( 1, 1, 0 );
@@ -614,7 +615,7 @@ void chaos_mode( int dt )
 
         spawnWait = gameTime + spawnDelay;
 
-        SharedCActorPtr spawn = standard_spawn( chaosSlots, 10*SECOND).lock();
+        SharedCActorPtr spawn = standard_spawn( chaosSlots, 40*SECOND).lock();
         Orbital::attractors.push_back( spawn );
         spawn->isAttractor = true;
     }

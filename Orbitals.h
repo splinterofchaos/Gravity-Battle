@@ -151,3 +151,15 @@ struct Negative : public Orbital
 
     value_type g_multiplier();
 };
+
+class Greedy : public Orbital
+{
+  public:
+    Greedy( const vector_type& pos, const vector_type& v );
+
+    Color color();
+
+    value_type mass() const;
+
+    State integrate( State state, int dt, value_type maxSpeed=0 );
+};

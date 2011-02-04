@@ -29,7 +29,7 @@ Orbital::Orbital( const Orbital::vector_type& pos,
     activationDelay = ACTIVATION_DELAY;
     isActive = false;
 
-    colorIntensity = random( 6, 10 ) / 10.0f;
+    colorIntensity = random( 7.0f, 14.0f ) / 10.0f;
 
     g = vector_type( 0, 0 );
 
@@ -541,4 +541,46 @@ Color Negative::color()
 Negative::value_type Negative::g_multiplier()
 {
     return 1 / 100.f;
+}
+
+Greedy::Greedy( const vector_type& pos, const vector_type& v )
+    : Orbital( pos, v )
+{
+}
+
+Color Greedy::color()
+{
+    return Color(1,0,1,1) * colorIntensity;
+}
+
+Greedy::value_type Greedy::mass() const
+{
+    return Orbital::mass() * 1.25f;
+}
+
+Greedy::State Greedy::integrate( State state, int dt, value_type maxSpeed )
+{
+    if( !isMovable )
+        return state;
+
+    if( isActive && !Orbital::target.expired() )
+    {
+        // Reset gravity accumulator.
+        g *= 0;
+
+        std::tr1::shared_ptr<CircleActor> attr = Orbital::target.lock();
+        vector_type r = attr->s - state.s;
+
+        g += magnitude ( 
+            r, attr->mass() * g_multiplier() / g_dist(r) * Arena::scale
+        );
+
+        state.a = g;
+    }
+    else
+    {
+        state.a *= 0;
+    }
+
+    return CircleActor::integrate( state, dt, maxSpeed );
 }
