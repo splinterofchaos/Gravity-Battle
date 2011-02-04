@@ -71,6 +71,8 @@ typedef std::vector<ActorPtr>      Actors;
 CActors   cActors;
 Particles particles;
 
+bool simpleParts;
+
 // Used everywhere to write text on the screen.
 std::shared_ptr<BitmapFont> font;
 
@@ -127,7 +129,6 @@ void configure( const Config& cfg )
     cfg.get( "velocityArrow",       &Orbital::velocityArrow );
     cfg.get( "accelerationArrow",   &Orbital::accelerationArrow );
     cfg.get( "motionBlur",          &motionBlur );
-    cfg.get( "scale",               &Arena::scale );
     cfg.get( "nHighScores",         &nHighScores );
     cfg.get( "fps",                 &showFrameTime );
 
@@ -151,10 +152,16 @@ void configure( const Config& cfg )
     std::string particleBehaviour;
     cfg.get( "particle-behaviour", &particleBehaviour );
 
-    if( particleBehaviour == "gravity-field" )
+    if( particleBehaviour == "gravity-field" ) {
         Particle::gravityField = true;
-    else
+        simpleParts = false;
+    } else if( particleBehaviour == "simple" ) {
         Particle::gravityField = false;
+        simpleParts = true;
+    } else {
+        Particle::gravityField = false;
+        simpleParts = false;
+    }
 }
 
 
@@ -1214,60 +1221,63 @@ int main( int, char** )
                 part->a *= 0;
                 part->isVisible = true;
 
-                CActors::iterator attr = cActors.begin();
-                for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
+                if( ! simpleParts )
                 {
-                    Vector<float,2> r = (*attr)->s - part->s;
-
-                    float combRad = (*attr)->radius() + part->scale + 15;
-                    if( ! (*attr)->isActive )
-                        combRad *= 2;
-
-                    if( magnitude(r) < combRad )
+                    CActors::iterator attr = cActors.begin();
+                    for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
                     {
-                        part->a -= magnitude (
-                            r,
-                            0.29f * Arena::scale * random( 0.8f, 1.2f )
-                        );
+                        Vector<float,2> r = (*attr)->s - part->s;
 
-                        if( part->v * r < 0 )
+                        float combRad = (*attr)->radius() + part->scale + 15;
+                        if( ! (*attr)->isActive )
+                            combRad *= 2;
+
+                        if( magnitude(r) < combRad )
                         {
-                            auto u = unit( r );
-                            part->v = part->v - 2 * (part->v * u) * u;
-                        }
-                    } else {
-                        part->a += magnitude (
-                            r, 
-                            (*attr)->mass() * (1.f/31.f) / 
+                            part->a -= magnitude (
+                                r,
+                                0.29f * Arena::scale * random( 0.8f, 1.2f )
+                            );
+
+                            if( part->v * r < 0 )
+                            {
+                                auto u = unit( r );
+                                part->v = part->v - 2 * (part->v * u) * u;
+                            }
+                        } else {
+                            part->a += magnitude (
+                                r, 
+                                (*attr)->mass() * (1.f/31.f) / 
                                 std::pow( magnitude( r ), 1.2f ) *
                                 Arena::scale 
-                        );
-                    }
-                }
-
-                for( ; attr != cActors.end(); attr++ )
-                {
-                    // This r is the negative of the one in the above loop.
-                    Vector<float,2> r = part->s - (*attr)->s;
-
-                    float combRad = (*attr)->radius() + part->scale + 4;
-                    if( ! (*attr)->isActive )
-                        combRad *= 2;
-
-                    if( magnitude(r) < combRad )
-                    {
-                        part->a += magnitude (
-                            r,
-                            0.01f * Arena::scale * random( 0.8f, 1.2f )
-                        );
-
-                        if( part->v * r < 0 )
-                        {
-                            auto u = unit( r );
-                            part->v = part->v - 2 * (part->v * u) * u;
+                            );
                         }
+                    }
 
-                        part->isVisible = false;
+                    for( ; attr != cActors.end(); attr++ )
+                    {
+                        // This r is the negative of the one in the above loop.
+                        Vector<float,2> r = part->s - (*attr)->s;
+
+                        float combRad = (*attr)->radius() + part->scale + 4;
+                        if( ! (*attr)->isActive )
+                            combRad *= 2;
+
+                        if( magnitude(r) < combRad )
+                        {
+                            part->a += magnitude (
+                                r,
+                                0.01f * Arena::scale * random( 0.8f, 1.2f )
+                            );
+
+                            if( part->v * r < 0 )
+                            {
+                                auto u = unit( r );
+                                part->v = part->v - 2 * (part->v * u) * u;
+                            }
+
+                            part->isVisible = false;
+                        }
                     }
                 }
 
