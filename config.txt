@@ -49,7 +49,7 @@ motionBlur = 0
 nHighScores = 10
 
 # Display frames per second? (0=off, else on.)
-fps = 1
+fps = 0
 
 # Music volume: Maximum is 128, minimum is zero.
 music-volume = 128

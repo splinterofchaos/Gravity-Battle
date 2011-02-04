@@ -517,7 +517,7 @@ void chaos_mode( int dt )
 
     static std::vector<Spawns> chaosSlots = {
         ORBITAL, TWISTER, 
-        NEGATIVE, ORBITAL, STOPPER, GREEDY,
+        TWISTER, ORBITAL, STOPPER, GREEDY,
         NEGATIVE, TWISTER, ORBITAL, TWISTER 
     };
 
