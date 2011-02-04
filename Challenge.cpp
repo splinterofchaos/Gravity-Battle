@@ -48,25 +48,9 @@ void Package::draw()
         glTranslatef( s.x(), s.y(), 0 );
         glColor3f( 1, 1, 1 );
 
-        const int N_VERTS = 4;
+        const int N_VERTS = 40;
 
-        std::vector<float> circle1( N_VERTS*2 + 2 );
-
-        // TODO: The fallowing just plain doesn't work. A circle is supposed to
-        // be drawn, but instead... just run the code as-is to see. Either the
-        // bug is in Draw.h's draw::circle or draw::draw. To remove the bug,
-        // call draw_shape.h's draw_circle instead. However, i am migrating to
-        // Draw.h, so the bug stays until Draw.h is bug free.
-
-        // Static initialization of loop.
-        auto end1 = draw::circle ( 
-            circle1.begin(), circle1.size(), 
-            RADIUS_TO_START
-        );
-
-        glDisable( GL_TEXTURE_2D );
-            draw::draw( circle1.data(), N_VERTS, GL_LINE_STRIP );
-        glEnable( GL_TEXTURE_2D );
+        draw_loop( RADIUS_TO_START, RADIUS_TO_START + 10, N_VERTS );
 
         glLoadIdentity();
     }
