@@ -161,5 +161,7 @@ class Greedy : public Orbital
 
     value_type mass() const;
 
+    void draw();
+
     State integrate( State state, int dt, value_type maxSpeed=0 );
 };

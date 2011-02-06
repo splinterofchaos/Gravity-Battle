@@ -558,6 +558,33 @@ Greedy::value_type Greedy::mass() const
     return Orbital::mass() * 1.25f;
 }
 
+void Greedy::draw()
+{
+    bool gl = gravityLine;
+
+    gravityLine = false;
+    Orbital::draw();
+    gravityLine = gl;
+
+    if( gravityLine && !Orbital::target.expired() ) {
+        float texCoords[] = {
+            0, 0,
+            1, 0,
+            1, 1, 
+            0, 1
+        };
+
+        vector_type accelerationLine[] = {
+            Orbital::target.lock()->s,
+            s,
+        };
+
+        draw::draw( &accelerationLine[0][0], 2, image.handle(), 
+                    texCoords, GL_LINE_STRIP );
+    }
+        
+}
+
 Greedy::State Greedy::integrate( State state, int dt, value_type maxSpeed )
 {
     if( !isMovable )
