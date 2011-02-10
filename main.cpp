@@ -1158,8 +1158,11 @@ int main( int, char** )
         float mult = 1.f; // Frametime multiplier.
 
         float timeAfter = float( gameTime - timePlayerDied ) / (float)SECOND;
-        if( timePlayerDied && timeAfter < 5.f ) {
-           mult = std::sqrt( timeAfter / 5.f );
+        if( timePlayerDied ) {
+            if( timeAfter <= 2.f ) 
+                mult = 0.1f;
+            else if( timeAfter > 2 && timeAfter < 6 )
+                mult = std::sqrt( (timeAfter-2) / (6.f-2.f) );
         }
 
         int DT = IDEAL_FRAME_TIME / 4;
