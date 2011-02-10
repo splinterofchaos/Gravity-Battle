@@ -38,7 +38,7 @@
 
 int spawnDelay;
 int spawnWait;
-int gameTime;
+Timer gameTimer;
 
 // How many particles to create proportionate to CircleActor::mass.
 int particleRatio = 200; 
@@ -409,7 +409,7 @@ bool delete_me( SharedCActorPtr& actor )
         // If the player's what just died...
         if( actor.get() == Orbital::target.lock().get() ) 
         {
-            timePlayerDied = gameTime;
+            timePlayerDied = gameTimer.time_ms();
             update_high_score();
         }
 
@@ -458,7 +458,8 @@ void reset( GameLogic logic = 0 )
 
     spawn_player( playerPos.x(), playerPos.y() );
 
-    gameTime   = 0;
+    gameTimer.reset();
+
     spawnDelay = 6000;
     spawnWait  = 30;
     timePlayerDied = 0;
@@ -492,7 +493,7 @@ WeakCActorPtr delegate_spawn( int spawnCode )
 
 WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
-    unsigned int rank = (float)slots.size() / maxTime * gameTime;
+    unsigned int rank = (float)slots.size() / maxTime * gameTimer.time_ms();
     if( rank > slots.size() )
         rank = slots.size();
 
@@ -526,7 +527,7 @@ void chaos_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) {
+    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) {
         glColor3f( 1, 1, 1 );
 
         font->draw( "Press r to reset, m for menu", 600, 200 );
@@ -604,7 +605,7 @@ void chaos_mode( int dt )
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
-    if( spawnWait <= gameTime ) 
+    if( spawnWait <= gameTimer.time_ms() ) 
     {
         if( ! Orbital::target.expired() )
         {
@@ -616,13 +617,14 @@ void chaos_mode( int dt )
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
+            spawnDelay = 
+                5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
         }
 
         if( spawnDelay < 1 * SECOND )
             spawnDelay = 1 * SECOND;
 
-        spawnWait = gameTime + spawnDelay;
+        spawnWait = gameTimer.time_ms() + spawnDelay;
 
         SharedCActorPtr spawn = standard_spawn( chaosSlots, 40*SECOND).lock();
         Orbital::attractors.push_back( spawn );
@@ -638,7 +640,7 @@ void arcade_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) 
+    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
     {
         glColor3f( 1, 1, 1 );
 
@@ -722,7 +724,7 @@ void arcade_mode( int dt )
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
-    if( spawnWait <= gameTime ) 
+    if( spawnWait <= gameTimer.time_ms() ) 
     {
         if( ! Orbital::target.expired() )
         {
@@ -734,13 +736,13 @@ void arcade_mode( int dt )
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
+            spawnDelay = 5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
         }
 
         if( spawnDelay < 1 * SECOND )
             spawnDelay = 1 * SECOND;
 
-        spawnWait = gameTime + spawnDelay;
+        spawnWait = gameTimer.time_ms() + spawnDelay;
 
         standard_spawn( spawnSlots, 10*SECOND );
     }
@@ -1341,8 +1343,8 @@ int main( int, char** )
         
         glLoadIdentity();
 
-        static int lastUpdate = gameTime;
-        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime ) {
+        static int lastUpdate = gameTimer.time_ms();
+        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTimer.time_ms() ) {
             configure( config );
             update_screen();
         }
@@ -1374,13 +1376,14 @@ int main( int, char** )
             b.writeln( ss.str() );
 
             ss.str( "" );
-            ss << "time: " << gameTime / SECOND;
+            ss << "time: " << gameTimer.time_sec();
             b.writeln( ss.str() );
         }
 
         frameTimer.reset();
         frameTimer.clamp_ms( MAX_FRAME_TIME );
-        gameTime += frameTimer.time_ms();
+
+        gameTimer.update();
     }
 
     std::for_each( Orbital::birthSfx, Orbital::birthSfx+Orbital::N_BIRTH_SFX, [](Sound& s) { s.reset(); } );
