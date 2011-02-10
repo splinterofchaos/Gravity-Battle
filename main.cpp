@@ -395,10 +395,6 @@ bool delete_me( SharedCActorPtr& actor )
             spawn_particle( actor->s, actor->v/6, actor->radius()/9,
                             actor->color() );
 
-        // Give the new particles a chance to spread out before they collide
-        // with surrounding cActors.
-        for( ; newParticles < particles.size(); newParticles++ )
-            particles[ newParticles++ ].move( 30 );
 
         // Add to score if player is alive.
         if( !Orbital::target.expired() )
@@ -1159,15 +1155,25 @@ int main( int, char** )
 
         gameLogic( frameTime );
 
-        // Update cActors.
-        const int DT = IDEAL_FRAME_TIME / 4;
-        static int time = 0;
+        float mult = 1.f; // Frametime multiplier.
+
+        float timeAfter = float( gameTime - timePlayerDied ) / (float)SECOND;
+        if( timePlayerDied && timeAfter < 5.f ) {
+           mult = std::sqrt( timeAfter / 5.f );
+        }
+
+        int DT = IDEAL_FRAME_TIME / 4;
+        if( timePlayerDied && timeAfter < 5 )
+            DT *= 0.5f;
+
+        static float time = 0;
+
         // For each time-step:
-        for( time += frameTime; time >= DT; time -= DT ) 
+        for( time += frameTime * mult; time >= DT; time -= DT ) 
         {
             for_each ( 
                 cActors.begin(), cActors.end(), 
-                []( std::tr1::shared_ptr<Actor> ptr ) { ptr->move(DT); }
+                [DT]( std::tr1::shared_ptr<Actor> ptr ) { ptr->move(DT); }
             );
 
             for( auto act1=cActors.begin(); act1+1 < cActors.end(); act1++ )
