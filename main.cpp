@@ -1343,12 +1343,9 @@ int main( int, char** )
         
         glLoadIdentity();
 
-        static int lastUpdate = gameTimer.time_ms();
-        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTimer.time_ms() ) {
-            configure( config );
-            update_screen();
-        }
-        
+        configure( config );
+        update_screen();
+
         if( paused )
             frameTimer.zero();
 
