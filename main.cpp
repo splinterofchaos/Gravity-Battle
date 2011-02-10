@@ -1356,11 +1356,11 @@ int main( int, char** )
             std::stringstream ss;
             TextBox b( *font, 10, 600 );
 
-            float val = frameTimer.time_ms();
+            float val = frameTimer.time_sec();
             if( !val )
                 val = 0.5;
 
-            ss << "fps: " << ( (float)SECOND / val );
+            ss << "fps: " << ( 1.f / val );
             b.writeln( ss.str() );
 
             ss.str( "" );
