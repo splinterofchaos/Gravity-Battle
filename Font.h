@@ -1,16 +1,12 @@
 
 #include <string>
 
-#if defined( _WIN32 )
-    #include <windows.h>
-#else
-    #include <GL/glx.h>
-#endif
+#include <SDL/SDL_ttf.h>
 
 
 class BitmapFont
 {
-    int      base;
+    TTF_Font* ttf;
 
 #if defined( _WIN32 )
     HDC hdc;

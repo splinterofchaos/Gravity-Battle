@@ -11,7 +11,7 @@ ifeq "$(OS)" "Windows_NT"
 else
 	# Linux
 	EXTRA =
-	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer 
+	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer -lSDL_ttf
 	OUT     = run
 endif
 
