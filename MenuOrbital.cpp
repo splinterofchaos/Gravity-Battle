@@ -41,7 +41,7 @@ CircleActor::State MenuOrbital::integrate( State state, int dt, value_type )
     return state;
 }
 
-void MenuOrbital::move( int dt )
+void MenuOrbital::move( float dt )
 {
     if( !isActive ) {
         activationDelay -= dt;

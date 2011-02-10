@@ -58,7 +58,7 @@ class Orbital : public CircleActor
     State on_off_screen( State state );
 
     State integrate( State state, int dt, value_type maxSpeed=0 );
-    void move( int dt );
+    void move( float dt );
 
     void draw_impl( float* verts, float zRotation=0, bool extra=true );
 
@@ -90,7 +90,7 @@ class Twister : public Orbital
 
     vector_type acceleration( const vector_type& r );
 
-    void move( int dt );
+    void move( float dt );
     void draw();
 
     int score_value();
@@ -121,7 +121,7 @@ class Stopper : public Orbital
 
     vector_type acceleration( const vector_type& r );
 
-    void move( int dt );
+    void move( float dt );
     void draw();
 
     int score_value();

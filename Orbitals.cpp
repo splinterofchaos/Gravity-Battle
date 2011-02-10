@@ -94,7 +94,7 @@ CircleActor::State Orbital::integrate( State state, int dt, value_type maxSpeed 
     return CircleActor::integrate( state, dt, maxSpeed );
 }
 
-void Orbital::move( int dt )
+void Orbital::move( float dt )
 {
     if( !isActive )
     {
@@ -349,7 +349,7 @@ Twister::vector_type Twister::acceleration( const vector_type& r )
     return magnitude( r, target.lock()->mass() / (r*r) ) * Arena::scale;
 }
 
-void Twister::move( int dt )
+void Twister::move( float dt )
 {
     Orbital::move( dt );
 
@@ -420,7 +420,7 @@ int Stopper::score_value()
     return 4;
 }
 
-void Stopper::move( int dt )
+void Stopper::move( float dt )
 {
     if( isMovable )
         Orbital::move( dt );

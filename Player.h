@@ -29,7 +29,7 @@ class Player : public CircleActor
 
     Player( const vector_type& position );
 
-    void move( int dt );
+    void move( float dt );
     void draw();
 
     int score_value();
@@ -47,7 +47,7 @@ struct Player2 : public Player
 
     Player2( const vector_type& pos );
 
-    void move( int dt );
+    void move( float dt );
 
     void collide_with( CircleActor& collider );
 

@@ -18,7 +18,7 @@ struct Package : public Orbital
 
     State on_off_screen( State state );
 
-    void move( int dt );
+    void move( float dt );
     void draw();
 
     Color color();

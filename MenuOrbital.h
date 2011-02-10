@@ -13,7 +13,7 @@ class MenuOrbital : public Orbital
     MenuOrbital( const vector_type& position, const vector_type& v );
 
     State integrate( State state, int dt, value_type maxSpeed=0 );
-    void move( int dt );
+    void move( float dt );
 
     void draw();
 

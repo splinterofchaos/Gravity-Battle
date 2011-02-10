@@ -40,7 +40,7 @@ class Actor
     }
 
     template< typename T >
-    void simple_integration( T& s, T& v, T& a, int dt, value_type maxSpeed=0 )
+    void simple_integration( T& s, T& v, T& a, float dt, value_type maxSpeed=0 )
     {
         v += a * dt;
 
@@ -79,7 +79,7 @@ class Actor
 
     // This class does not care about how the object is moved, but does set
     // up a simple, generic state integration.
-    virtual void move( int dt )
+    virtual void move( float dt )
     {
         previousS = s;
         simple_integration( s, v, a, dt );

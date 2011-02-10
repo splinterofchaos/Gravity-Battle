@@ -25,7 +25,7 @@ Package::State Package::on_off_screen( State s )
     return s;
 }
 
-void Package::move( int dt )
+void Package::move( float dt )
 {
     std::tr1::shared_ptr<Player> target = Orbital::target.lock();
     if( !started && target && 

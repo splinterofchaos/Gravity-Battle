@@ -1165,7 +1165,7 @@ int main( int, char** )
                 mult = std::sqrt( (timeAfter-2) / (6.f-2.f) );
         }
 
-        int DT = IDEAL_FRAME_TIME / 4;
+        float DT = IDEAL_FRAME_TIME / 4.f;
         if( timePlayerDied && timeAfter < 5 )
             DT *= 0.5f;
 

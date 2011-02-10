@@ -18,7 +18,7 @@ Player::Player( const Player::vector_type& position )
     invinsible = false;
 }
 
-void Player::move( int dt )
+void Player::move( float dt )
 {
     Uint8* keyStates = SDL_GetKeyState( 0 );
 
@@ -154,7 +154,7 @@ Player2::Player2( const vector_type& pos )
 {
 }
 
-void Player2::move( int dt )
+void Player2::move( float dt )
 {
     Uint8* keyStates = SDL_GetKeyState( 0 );
 
