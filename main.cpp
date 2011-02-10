@@ -22,6 +22,8 @@
 
 #include "Sound.h"
 
+#include "Timer.h"
+
 // 3rd party includes.
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -1084,7 +1086,7 @@ int main( int, char** )
 
     reset( menu ); 
 
-    int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
+    Timer frameTimer;
     while( quit == false )
     {
         static SDL_Event event;
@@ -1157,13 +1159,13 @@ int main( int, char** )
             }
 		}
 
-        gameLogic( frameTime );
+        gameLogic( frameTimer.time_ms() );
 
         // Update cActors.
         const int DT = IDEAL_FRAME_TIME / 4;
         static int time = 0;
         // For each time-step:
-        for( time += frameTime; time >= DT; time -= DT ) 
+        for( time += frameTimer.time_ms(); time >= DT; time -= DT ) 
         {
             for_each ( 
                 cActors.begin(), cActors.end(), 
@@ -1192,8 +1194,8 @@ int main( int, char** )
             // destabilize the physics system by making it integrate more time.
             // But when the frame time is ideal, this has no effect.
             float timeMult = 1;
-            if( frameTime > IDEAL_FRAME_TIME * 2.f/3 ) 
-                timeMult = (float)frameTime / (IDEAL_FRAME_TIME*2/3.f);
+            if( frameTimer.time_ms() > IDEAL_FRAME_TIME * 2.f/3 ) 
+                timeMult = (float)frameTimer.time_ms() / (IDEAL_FRAME_TIME*2/3.f);
             timeMult *= timeMult;
 
             int time = DT * timeMult;
@@ -1345,19 +1347,15 @@ int main( int, char** )
             update_screen();
         }
         
-        frameStart = frameEnd;
-        frameEnd = SDL_GetTicks();
-        frameTime = frameEnd - frameStart;
-
         if( paused )
-            frameTime = 0;
+            frameTimer.zero();
 
         if( showFrameTime ) {
             std::stringstream ss;
             TextBox b( *font, 10, 600 );
 
-            float val = frameTime;
-            if( !frameTime )
+            float val = frameTimer.time_ms();
+            if( !val )
                 val = 0.5;
 
             ss << "fps: " << ( (float)SECOND / val );
@@ -1380,10 +1378,9 @@ int main( int, char** )
             b.writeln( ss.str() );
         }
 
-        if( frameTime > MAX_FRAME_TIME )
-            frameTime = MAX_FRAME_TIME;
-
-        gameTime += frameTime;
+        frameTimer.reset();
+        frameTimer.clamp_ms( MAX_FRAME_TIME );
+        gameTime += frameTimer.time_ms();
     }
 
     std::for_each( Orbital::birthSfx, Orbital::birthSfx+Orbital::N_BIRTH_SFX, [](Sound& s) { s.reset(); } );
