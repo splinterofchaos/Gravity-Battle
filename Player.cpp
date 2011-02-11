@@ -121,7 +121,7 @@ Player::value_type Player::mass() const
     if( moreGravity )
         g = 100;
     else
-        g = 38;
+        g = DEFULAT_MASS;
 
     if( !copy.expired() )
         return g / 2;

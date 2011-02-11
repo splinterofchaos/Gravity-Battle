@@ -16,6 +16,8 @@ class Player : public CircleActor
     static const float RADIUS = 25;
 
   public:
+    static const value_type DEFULAT_MASS = 38;
+
     typedef std::tr1::weak_ptr<Player>   WeakPlayerPtr;
     typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;
 
