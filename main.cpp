@@ -598,7 +598,8 @@ void chaos_mode( int dt )
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
-    if( spawnWait <= gameTime ) 
+    spawnWait -= dt;
+    if( spawnWait < 0 ) 
     {
         if( ! Orbital::target.expired() )
         {
@@ -616,7 +617,7 @@ void chaos_mode( int dt )
         if( spawnDelay < 1 * SECOND )
             spawnDelay = 1 * SECOND;
 
-        spawnWait = gameTime + spawnDelay;
+        spawnWait = spawnDelay;
 
         SharedCActorPtr spawn = standard_spawn( chaosSlots, 40*SECOND).lock();
         Orbital::attractors.push_back( spawn );
@@ -716,7 +717,8 @@ void arcade_mode( int dt )
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
-    if( spawnWait <= gameTime ) 
+    spawnWait -= dt;
+    if( spawnWait < 0 ) 
     {
         if( ! Orbital::target.expired() )
         {
@@ -734,7 +736,7 @@ void arcade_mode( int dt )
         if( spawnDelay < 1 * SECOND )
             spawnDelay = 1 * SECOND;
 
-        spawnWait = gameTime + spawnDelay;
+        spawnWait = spawnDelay;
 
         standard_spawn( spawnSlots, 10*SECOND );
     }
@@ -1153,8 +1155,6 @@ int main( int, char** )
             }
 		}
 
-        gameLogic( frameTime );
-
         float mult = 1.f; // Frametime multiplier.
 
         float timeAfter = float( gameTime - timePlayerDied ) / (float)SECOND;
@@ -1165,6 +1165,8 @@ int main( int, char** )
                 // Smoothly return to normal time.
                 mult = std::sqrt( (timeAfter-4) / (9.f-4.f) );
         }
+
+        gameLogic( frameTime * mult );
 
         float DT = IDEAL_FRAME_TIME / 4.f;
 
