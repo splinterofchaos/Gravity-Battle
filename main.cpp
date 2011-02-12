@@ -1162,12 +1162,11 @@ int main( int, char** )
             if( timeAfter <= 4.f ) 
                 mult = 0.1f;
             else if( timeAfter > 2 && timeAfter < 9 )
+                // Smoothly return to normal time.
                 mult = std::sqrt( (timeAfter-4) / (9.f-4.f) );
         }
 
         float DT = IDEAL_FRAME_TIME / 4.f;
-        if( timePlayerDied && timeAfter < 5 )
-            DT *= 0.5f;
 
         static float time = 0;
 
