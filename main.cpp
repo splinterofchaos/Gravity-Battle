@@ -1159,10 +1159,10 @@ int main( int, char** )
 
         float timeAfter = float( gameTime - timePlayerDied ) / (float)SECOND;
         if( timePlayerDied ) {
-            if( timeAfter <= 2.f ) 
+            if( timeAfter <= 4.f ) 
                 mult = 0.1f;
-            else if( timeAfter > 2 && timeAfter < 6 )
-                mult = std::sqrt( (timeAfter-2) / (6.f-2.f) );
+            else if( timeAfter > 2 && timeAfter < 9 )
+                mult = std::sqrt( (timeAfter-4) / (9.f-4.f) );
         }
 
         float DT = IDEAL_FRAME_TIME / 4.f;
@@ -1205,7 +1205,7 @@ int main( int, char** )
                 timeMult = (float)frameTime / (IDEAL_FRAME_TIME*2/3.f);
             timeMult *= timeMult;
 
-            int time = DT * timeMult;
+            float time = DT * timeMult;
 
             // ALGORITHM FOR PARTICLE PHYSICS:
             //     For each particle, p:
