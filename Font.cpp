@@ -46,14 +46,16 @@ void BitmapFont::draw( const std::string& text, float x, float y )
         0, 1
     };
 
-    float verts[] = {
-        x, y, 
-        x + Message->w, y,
-        x + Message->w, y + Message->h,
-        x, y + Message->h
+    int verts[] = {
+        0,            0, 
+        Message->w/2, 0,
+        Message->w/2, Message->h/2,
+        0,            Message->h/2
     };
 
+    glTranslatef( x, y, 0 );
     draw::draw( verts, 4, tex, texCoords );
+    glLoadIdentity();
 
     glDeleteTextures( 1, &tex );
     SDL_FreeSurface( Message );
