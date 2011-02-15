@@ -47,10 +47,10 @@ void BitmapFont::draw( const std::string& text, float x, float y )
     };
 
     int verts[] = {
-        0,            0, 
-        Message->w/2, 0,
-        Message->w/2, Message->h/2,
-        0,            Message->h/2
+        0,          0, 
+        Message->w, 0,
+        Message->w, Message->h,
+        0,          Message->h
     };
 
     glTranslatef( x, y, 0 );
