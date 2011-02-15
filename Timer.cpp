@@ -7,12 +7,16 @@ const int Timer::SECOND = 1000;
 
 Timer::Timer()
 {
-    reset();
+    zero();
+
+    // I don't know why yet, but without this line, the game will freeze on
+    // start.
+    lastTime = 1;
 }
 
 void Timer::zero()
 {
-    update();
+    reset();
     lastTime = 0;
 }
 
