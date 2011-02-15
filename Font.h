@@ -4,7 +4,7 @@
 #include <SDL/SDL_ttf.h>
 
 
-class BitmapFont
+class TrueTypeFont
 {
     TTF_Font* ttf;
 
@@ -14,8 +14,8 @@ class BitmapFont
 #endif
 
   public:
-    BitmapFont();
-    ~BitmapFont();
+    TrueTypeFont();
+    ~TrueTypeFont();
 
     void draw( const std::string& text, float x, float y );
 
@@ -24,13 +24,13 @@ class BitmapFont
 
 class TextBox
 {
-    BitmapFont& font;
+    TrueTypeFont& font;
 
     float x, y; // Base position.
     unsigned int line;
 
   public:
-    TextBox( BitmapFont& font, float x, float y );
+    TextBox( TrueTypeFont& font, float x, float y );
 
     void write( const std::string& text="" );
     void writeln( const std::string& text="" );

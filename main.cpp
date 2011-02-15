@@ -74,7 +74,7 @@ Particles particles;
 bool simpleParts;
 
 // Used everywhere to write text on the screen.
-std::shared_ptr<BitmapFont> font;
+std::shared_ptr<TrueTypeFont> font;
 
 // True if the player has moved since the game started.
 bool playerHasMoved = false; 
@@ -210,7 +210,7 @@ bool make_sdl_gl_window( int w, int h )
 
     Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 2048 );
 
-    font.reset( new BitmapFont );
+    font.reset( new TrueTypeFont );
 
 #ifdef __WIN32
     set_vsync( 0 );

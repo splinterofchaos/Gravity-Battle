@@ -6,21 +6,21 @@
 
 #include <fstream>
 
-BitmapFont::BitmapFont()
+TrueTypeFont::TrueTypeFont()
 {
     TTF_Init();
 
-    ttf = TTF_OpenFont( "art/font/Aapex.ttf", 54 );
+    ttf = TTF_OpenFont( "art/font/xlmonoalt.ttf", 20 );
 
     if( ! ttf )
         throw "Could not load font.";
 }
 
-BitmapFont::~BitmapFont()
+TrueTypeFont::~TrueTypeFont()
 {
 }
 
-void BitmapFont::draw( const std::string& text, float x, float y )
+void TrueTypeFont::draw( const std::string& text, float x, float y )
 {
     SDL_Color c = { 1, 1, 1, 1 };
     SDL_Color v = { 0, 0, 0, 0 };
@@ -37,7 +37,7 @@ void BitmapFont::draw( const std::string& text, float x, float y )
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Message->w, Message->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, Message->pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, Message->w, Message->h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, Message->pixels);
 
     int texCoords[] = {
         0, 0,
@@ -61,7 +61,7 @@ void BitmapFont::draw( const std::string& text, float x, float y )
     SDL_FreeSurface( Message );
 }
 
-TextBox::TextBox( BitmapFont& font, float x, float y )
+TextBox::TextBox( TrueTypeFont& font, float x, float y )
     : font(font), x(x), y(y), line(0)
 {
 }
@@ -86,5 +86,5 @@ void TextBox::write( const std::string& text )
 void TextBox::writeln( const std::string& text )
 {
      font.draw( text, x, y );
-     y += BitmapFont::LINE_HEIGHT;
+     y += TrueTypeFont::LINE_HEIGHT;
 }
