@@ -1034,6 +1034,8 @@ void menu( int )
 
         if( ! playerIncreasedGravity )
             b.writeln( "SPACEBAR to dash." );
+
+        b.writeln( "Press P to pause." );
     } else {
         glColor3f( 0.5, 0.5, 1 );
 
@@ -1199,7 +1201,7 @@ int main( int, char** )
 
         // For each time-step:
         static int time = 0;
-        for( time += frameTimer.time_ms(); time >= DT; time -= DT ) 
+        for( time += frameTimer.time_ms(); !paused && time >= DT; time -= DT ) 
         {
             for_each ( 
                 cActors.begin(), cActors.end(), 
@@ -1347,9 +1349,9 @@ int main( int, char** )
             );
         }
 
-        for( auto it=cActors.begin(); it < cActors.end() ; it++ ) {
-            (*it)->draw();
-        }
+        if( ! paused )
+            for( auto it=cActors.begin(); it < cActors.end() ; it++ ) 
+                (*it)->draw();
 
         int partsDrawn = 0;
         for( auto it=particles.begin(); it < particles.end(); it++ )
@@ -1370,13 +1372,24 @@ int main( int, char** )
             Arena::minX, Arena::maxY
         };
 
+        if( paused ) {
+            glColor3f( 1, 1, 1 );
+            TextBox b( *font, 200, 250 );
+            b.writeln( "Thank you for playing ORBITAL CHAOS." );
+            b.writeln( "I hope you enjoy. It is my first game." );
+            b.writeln( "Please refer questions, comments, etc., to my email hakusa@gmail.com." );
+            b.writeln( "The source code is available at https://github.com/splinterofchaos/Gravity-Battle" );
+        }
+
         glColor3f( 1, 1, 1 );
         draw::draw( boarder, 4, GL_LINE_LOOP );
         
         glLoadIdentity();
 
-        static int lastUpdate = gameTimer.time_ms();
-        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTimer.time_ms() ) {
+        static Timer realTimer;
+        realTimer.update();
+        static int lastUpdate = realTimer.time_ms();
+        if( lastUpdate + IDEAL_FRAME_TIME/2 <= realTimer.time_ms() ) {
             configure( config );
             update_screen();
         }
