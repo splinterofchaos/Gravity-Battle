@@ -1191,7 +1191,9 @@ int main( int, char** )
         if( Keyboard::key_down(' ') )
             playerIncreasedGravity = true;
 
-        float DT = IDEAL_FRAME_TIME / 4.f;
+        float DT = IDEAL_FRAME_TIME * ( 1.f / 4.f );
+        if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 6*SECOND )
+            DT /= 2;
 
         gameLogic( frameTimer.time_ms() );
 
