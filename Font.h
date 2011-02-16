@@ -8,11 +8,6 @@ class TrueTypeFont
 {
     TTF_Font* ttf;
 
-#if defined( _WIN32 )
-    HDC hdc;
-#else
-#endif
-
   public:
     TrueTypeFont();
     ~TrueTypeFont();
