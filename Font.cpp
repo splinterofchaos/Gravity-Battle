@@ -1,66 +1,67 @@
 
 #include "Font.h"
+#include "Draw.h"
 
 #include <GL/gl.h>
 
-BitmapFont::BitmapFont()
-#if defined( _WIN32 )
-    : hdc( wglGetCurrentDC() )
-#endif
+#include <fstream>
+
+TrueTypeFont::TrueTypeFont()
 {
-#if defined( _WIN32 )
-    SelectObject( hdc, GetStockObject(SYSTEM_FONT) );
-    wglUseFontBitmaps( hdc, 0, 255, 1000 );
-    base = 1000;
-#else
-    base = glGenLists( 256 );
-    Display* display = XOpenDisplay(0);
-    XFontStruct* fontInfo = 
-        XLoadQueryFont ( 
-            display, 
-            "-adobe-helvsetica-medium-r-normal--18-*-*-*-p-*-iso8859-1" 
-        );
+    TTF_Init();
 
-    if( ! fontInfo ) {
-        fontInfo = XLoadQueryFont( display, "fixed" );
-        if( ! fontInfo ) {
-            XCloseDisplay( display );
-            throw;
-        }
-    }
+    ttf = TTF_OpenFont( "art/font/xlmonoalt.ttf", 20 );
 
-    int first = fontInfo->min_char_or_byte2;
-    int last  = fontInfo->max_char_or_byte2;
-    glXUseXFont( fontInfo->fid, first, last-first+1, base+first );
-
-    XFreeFont( display, fontInfo );
-
-    XCloseDisplay( display );
-#endif
+    if( ! ttf )
+        throw "Could not load font.";
 }
 
-BitmapFont::~BitmapFont()
+TrueTypeFont::~TrueTypeFont()
 {
-    glDeleteLists( base, 255 );
 }
 
-void BitmapFont::draw( const std::string& text, float x, float y )
+void TrueTypeFont::draw( const std::string& text, float x, float y )
 {
-    glDisable( GL_TEXTURE_2D );
+    SDL_Color c = { 1, 1, 1, 1 };
+    SDL_Color v = { 0, 0, 0, 0 };
+    SDL_Surface *Message = TTF_RenderText_Shaded(ttf, text.c_str(), c, v);
 
-    // Alert that we're about to offset the display lists with glListBase
-    glPushAttrib(GL_LIST_BIT);                  
+    if( ! Message )
+        return;
 
-    glRasterPos2f( x, y );
-    glListBase( base );
-    glCallLists( text.size(), GL_UNSIGNED_BYTE, text.c_str() );
+    unsigned int tex = 0;
 
-    glEnable( GL_TEXTURE_2D );
+    glGenTextures( 1, &tex );
+    glBindTexture( GL_TEXTURE_2D, tex );
 
-    glPopAttrib();
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, Message->w, Message->h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, Message->pixels);
+
+    int texCoords[] = {
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1
+    };
+
+    int verts[] = {
+        0,          0, 
+        Message->w, 0,
+        Message->w, Message->h,
+        0,          Message->h
+    };
+
+    glTranslatef( x, y, 0 );
+    draw::draw( verts, 4, tex, texCoords );
+    glLoadIdentity();
+
+    glDeleteTextures( 1, &tex );
+    SDL_FreeSurface( Message );
 }
 
-TextBox::TextBox( BitmapFont& font, float x, float y )
+TextBox::TextBox( TrueTypeFont& font, float x, float y )
     : font(font), x(x), y(y), line(0)
 {
 }
@@ -85,5 +86,5 @@ void TextBox::write( const std::string& text )
 void TextBox::writeln( const std::string& text )
 {
      font.draw( text, x, y );
-     y += BitmapFont::LINE_HEIGHT;
+     y += TrueTypeFont::LINE_HEIGHT;
 }

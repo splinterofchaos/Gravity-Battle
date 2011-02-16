@@ -1,9 +1,8 @@
  
-#include "Draw.h"
-
 #include "Player.h"
 
-#include <SDL/SDL.h> // For 
+#include "Keyboard.h"
+#include "Draw.h"
 
 Texture Player::shield;
 Texture Player::body;
@@ -20,27 +19,25 @@ Player::Player( const Player::vector_type& position )
 
 void Player::move( float dt )
 {
-    Uint8* keyStates = SDL_GetKeyState( 0 );
-
     const value_type ACC   = 0.012;
 
     // TODO: The value of SPEED seems not to affect this function. Why?
     const value_type SPEED = 0.0000002;
 
-    if( keyStates[ SDLK_a ] || keyStates[ SDLK_LEFT  ] )
+    if( Keyboard::key_down('a') || Keyboard::key_down( Keyboard::LEFT  ) )
         a.x( a.x() - ACC );
-    if( keyStates[ SDLK_d ] || keyStates[ SDLK_RIGHT ] )
+    if( Keyboard::key_down('d') || Keyboard::key_down( Keyboard::RIGHT ) )
         a.x( a.x() + ACC );
-    if( keyStates[ SDLK_w ] || keyStates[ SDLK_UP    ] )
+    if( Keyboard::key_down('w') || Keyboard::key_down( Keyboard::UP    ) )
         a.y( a.y() - ACC );
-    if( keyStates[ SDLK_s ] || keyStates[ SDLK_DOWN  ] )
+    if( Keyboard::key_down('s') || Keyboard::key_down( Keyboard::DOWN  ) )
         a.y( a.y() + ACC );
 
     if( magnitude(a) > ACC )
         magnitude( a, ACC );
 
     // Used in Player::mass called by CircleActor::move.
-    moreGravity = keyStates[ SDLK_SPACE ];
+    moreGravity = Keyboard::key_down(' ');;
 
     if( moreGravity )
         a *= 1.05;
@@ -121,7 +118,7 @@ Player::value_type Player::mass() const
     if( moreGravity )
         g = 100;
     else
-        g = 38;
+        g = DEFULAT_MASS;
 
     if( !copy.expired() )
         return g / 2;

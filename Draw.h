@@ -52,8 +52,9 @@ template< typename T, typename U >
 void draw( T* verts, size_t nVerts, int texture, U* coords, GLenum mode )
 {
     if( texture ) {
-        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
         glEnable( GL_TEXTURE_2D );
+
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
         glBindTexture( GL_TEXTURE_2D, texture );
         glTexCoordPointer( 2, opengl_traits<U>::GL_TYPE, 0, coords );

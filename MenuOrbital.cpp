@@ -1,6 +1,7 @@
 
 #include "MenuOrbital.h"
 #include "Random.h"
+#include "Player.h"
 
 #include <cmath>
 
@@ -18,10 +19,10 @@ MenuOrbital::MenuOrbital( const vector_type& pos, const vector_type& )
 
 CircleActor::State MenuOrbital::integrate( State state, int dt, value_type )
 {
-    stateTime  += float(dt) / 800;
-    stateAngle += float(dt) / 1000;
-
     Orbital::SharedPlayerPtr target = Orbital::target.lock();
+
+    stateTime  += float(dt) / 800 * target->mass() / Player::DEFULAT_MASS;
+    stateAngle += float(dt) / 1000;
 
     value_type magnitude = cos( stateTime * 3 );
     value_type amplitude = 4000 / target->mass();

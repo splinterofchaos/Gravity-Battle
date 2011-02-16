@@ -6,12 +6,12 @@
 ifeq "$(OS)" "Windows_NT"
 	# Openmp seems to do more bad than good, so don't include it.
 	EXTRA =
-	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lopengl32 -lgdi32
+	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lopengl32 -lgdi32 -lSDL_ttf
 	OUT     = run.exe
 else
 	# Linux
 	EXTRA =
-	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer 
+	LDFLAGS = -lGL -lX11 -lSDL -lSDL_mixer -lSDL_ttf
 	OUT     = run
 endif
 
@@ -23,10 +23,13 @@ CFLAGS  += -Wall -Wextra
 compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -O3 -c 
 link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -O3 -o ${OUT}
 
-OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o
+OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o .Keyboard.o
 
 ${OUT} : ${OBJ} main.cpp makefile
 	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
+
+.Keyboard.o : Keyboard.h Keyboard.cpp
+	${compile} Keyboard.cpp -o .Keyboard.o
 
 .Sound.o : Sound.h Sound.cpp
 	${compile} Sound.cpp -o .Sound.o
