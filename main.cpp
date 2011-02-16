@@ -1109,7 +1109,7 @@ int main( int, char** )
                     h = w * ratio;
 
                 float wOff = ( event.resize.w - w ) / 2;
-                float hOff = SCREEN_HEIGHT - h;
+                float hOff = ( event.resize.h - h ) / 2;
 
                 glViewport( wOff, hOff, w, h );
                 glMatrixMode(GL_PROJECTION);
