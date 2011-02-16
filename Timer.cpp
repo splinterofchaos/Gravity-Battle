@@ -33,13 +33,13 @@ int Timer::reset()
     return startTime = update();
 }
 
-void Timer::clamp_ms( int ms )
+void Timer::clamp_ms( float ms )
 {
     if( lastTime > ms )
         lastTime = ms;
 }
 
-int Timer::time_ms()
+float Timer::time_ms()
 {
     return lastTime;
 }
