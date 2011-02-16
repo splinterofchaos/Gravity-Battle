@@ -16,11 +16,14 @@
 #include "Font.h"
 
 #include "Config.h"
+
 #include "Parsing.h" // For high score highScoreTable generation.
 
 #include "Draw.h"
 
 #include "Sound.h"
+
+#include "Keyboard.h"
 
 // 3rd party includes.
 #include <SDL/SDL.h>
@@ -95,9 +98,6 @@ const size_t   HANDLE_SIZE  = 4;
 bool           newHighScore = false;
 std::string    highScoreHandle( HANDLE_SIZE, 'x' );
 HighScoreTable highScoreTable; 
-
-enum WasPressed { Z, X, C, V, B, ENTER, N_WAS_PRESSED };
-bool wasPressed[N_WAS_PRESSED] = { 0, 0, 0, 0, 0, 0 };
 
 // FUNCTIONS //
 void arcade_mode( int dt );
@@ -763,7 +763,8 @@ void training_mode( int )
     colors[ NEGATIVE ] = Color( 0.3f, 1.0f, 1.0f );
     colors[ GREEDY   ] = Color( 1.0f, 0.0f, 1.0f );
 
-    if( wasPressed[ENTER] ) {
+    // \r as in enter
+    if( Keyboard::key_state('\r') ) {
         chaos = ! chaos;
 
         int offset = !Orbital::target.expired();
@@ -808,16 +809,16 @@ void training_mode( int )
     int spawnCode = -1;
     static int recentSpawn = -1;
 
-    if( wasPressed[Z] )
+    if( Keyboard::key_state('z') )
         spawnCode = ORBITAL;
-    else if( wasPressed[X] )
+    else if( Keyboard::key_state('x') )
         spawnCode = STOPPER;
-    else if( wasPressed[C] )
+    else if( Keyboard::key_state('c') )
         spawnCode = TWISTER;
     else if( chaos ) {
-        if( wasPressed[V] )
+        if( Keyboard::key_state('v') )
             spawnCode = NEGATIVE;
-        else if( wasPressed[B] )
+        else if( Keyboard::key_state('b') )
             spawnCode = GREEDY;
     }
 
@@ -833,8 +834,6 @@ void training_mode( int )
         TextBox b( *font, 150, 650 );
         b.write( tips[recentSpawn] );
     }
-
-    std::fill( wasPressed, wasPressed+N_WAS_PRESSED, false );
 
     if( chaos && !p.expired() ) {
         Orbital::attractors.push_back( p );
@@ -1087,6 +1086,8 @@ int main( int, char** )
     int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
     while( quit == false )
     {
+        Keyboard::update();
+
         static SDL_Event event;
 		while( SDL_PollEvent(&event) )
 		{
@@ -1095,15 +1096,24 @@ int main( int, char** )
               case SDL_QUIT: quit = true; break;
 
               case SDL_KEYDOWN:
-                switch( event.key.keysym.sym )
-                {
-                  case 'p': paused = !paused;    break;
+                Keyboard::add_key_status( event.key.keysym.sym, Keyboard::PRESSED );
+            }
+        }
 
-                  case 'r': reset();             break;
-                  case 'm': reset( menu );       break;
-                  case SDLK_ESCAPE: quit = true; break;
+        // The fallowing code assumes a key state is one non-zero for when
+        // pressed. This is true because we don't inform the keyboard of key-up
+        // events.
+        if( Keyboard::key_state('p') )
+            paused = ! paused;
+        if( Keyboard::key_state('r') )
+            reset();
+        if( Keyboard::key_state('m') )
+            reset( menu );
+        if( Keyboard::key_state( Keyboard::ESQ ) )
+            quit = true;
 
-                  case '1': 
+        if( Keyboard::key_state('1') ) 
+        {
                     // Do this in case the user updated prediction- Length or
                     // Precision.
                     fileConfig.reload( "config.txt" );
@@ -1121,41 +1131,33 @@ int main( int, char** )
 
                     config["predictionPrecision"] = 
                         fileConfig["predictionPrecision"];
-
-                    break;
-
+        }
+        
 #define FLIP_VALUE(handle) config[#handle] = (config[#handle]=="1")? "0" : "1"
-                  case '2': FLIP_VALUE(gravityLine);   break;
-                  case '3': FLIP_VALUE(velocityArrow); break;
-                  case '4': FLIP_VALUE(accelerationArrow); break;
+        if( Keyboard::key_state('2') )
+            FLIP_VALUE(gravityLine);
+        if( Keyboard::key_state('3') )
+            FLIP_VALUE(velocityArrow);
+        if( Keyboard::key_state('4') )
+            FLIP_VALUE(accelerationArrow);
+        if( Keyboard::key_state('5') )
+        {
+            FLIP_VALUE(motionBlur);                         
+            if( config["motionBlur"]=="1" )
+                glAccum( GL_LOAD, 1 );
+        }
 
-                  case '5': FLIP_VALUE(motionBlur);                         
-                            if( config["motionBlur"]=="1" )
-                                glAccum( GL_LOAD, 1 );
-                  break;
-
-                  case 'f': FLIP_VALUE( fps ); break;
+        if( Keyboard::key_state('f') )
+            FLIP_VALUE( fps );
 #undef FLIP_VALUE
 
-                  case 'w': case 'a': case 's': case 'd': 
-                  case SDLK_LEFT: case SDLK_RIGHT: case SDLK_UP: case SDLK_DOWN:
-                            playerHasMoved = true; break;
-                  case SDLK_SPACE: playerIncreasedGravity = true; break;
+        int motionKeys[] = { 'w', 'a', 's', 'd', Keyboard::RIGHT, Keyboard::LEFT, Keyboard::UP, Keyboard::DOWN, 0 };
+        for( int* it=motionKeys; *it != 0; it++ )
+            if( Keyboard::key_down( *it ) )
+                playerHasMoved = true;
 
-                  case 'z': wasPressed[Z] = true; break;
-                  case 'x': wasPressed[X] = true; break;
-                  case 'c': wasPressed[C] = true; break;
-                  case 'v': wasPressed[V] = true; break;
-                  case 'b': wasPressed[B] = true; break;
-                  case SDLK_RETURN: wasPressed[ENTER] = true; break;
-
-                  default: break;
-                }
-                break;
-
-              default: break;
-            }
-		}
+        if( Keyboard::key_down(' ') )
+            playerIncreasedGravity = true;
 
         gameLogic( frameTime );
 
