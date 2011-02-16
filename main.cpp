@@ -204,7 +204,7 @@ void set_vsync( int interval = 1 )
 
 bool make_sdl_gl_window( int w, int h )
 {
-    if( ! SDL_SetVideoMode(w, h, 32, SDL_OPENGL) )
+    if( ! SDL_SetVideoMode(w, h, 32, SDL_OPENGL|SDL_RESIZABLE) )
         return false;
     init_gl( w, h );
 
@@ -1096,7 +1096,28 @@ int main( int, char** )
               case SDL_QUIT: quit = true; break;
 
               case SDL_KEYDOWN:
-                Keyboard::add_key_status( event.key.keysym.sym, Keyboard::PRESSED );
+                Keyboard::add_key_status( event.key.keysym.sym, Keyboard::PRESSED ); break;
+
+              case SDL_VIDEORESIZE:
+                float ratio = (float)SCREEN_HEIGHT / SCREEN_WIDTH;
+                float w=event.resize.w, h=event.resize.h;
+
+                if( w*ratio > h ) 
+                    // h is the limiting factor.
+                    w = h / ratio;
+                else
+                    h = w * ratio;
+
+                float wOff = ( event.resize.w - w ) / 2;
+                float hOff = SCREEN_HEIGHT - h;
+
+                glViewport( wOff, hOff, w, h );
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                glOrtho( 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, -10, 10 );
+                glMatrixMode(GL_MODELVIEW);
+
+                break;
             }
         }
 
