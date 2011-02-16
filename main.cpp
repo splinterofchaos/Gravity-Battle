@@ -24,6 +24,7 @@
 #include "Sound.h"
 
 #include "Keyboard.h"
+#include "Timer.h"
 
 // 3rd party includes.
 #include <SDL/SDL.h>
@@ -39,7 +40,7 @@
 
 int spawnDelay;
 int spawnWait;
-int gameTime;
+Timer gameTimer;
 
 // How many particles to create proportionate to CircleActor::mass.
 int particleRatio = 200; 
@@ -414,7 +415,7 @@ bool delete_me( SharedCActorPtr& actor )
 
     if( actor->deleteMe )
     {
-        size_t newParticles = particles.size();
+        particles.size();
 
         // Explode.
         for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
@@ -429,7 +430,7 @@ bool delete_me( SharedCActorPtr& actor )
         // If the player's what just died...
         if( actor.get() == Orbital::target.lock().get() ) 
         {
-            timePlayerDied = gameTime;
+            timePlayerDied = gameTimer.time_ms();
             update_high_score();
         }
 
@@ -478,7 +479,8 @@ void reset( GameLogic logic = 0 )
 
     spawn_player( playerPos.x(), playerPos.y() );
 
-    gameTime   = 0;
+    gameTimer.reset();
+
     spawnDelay = 6000;
     spawnWait  = 30;
     timePlayerDied = 0;
@@ -512,7 +514,7 @@ WeakCActorPtr delegate_spawn( int spawnCode )
 
 WeakCActorPtr standard_spawn( const std::vector<Spawns>& slots, int maxTime )
 {
-    unsigned int rank = (float)slots.size() / maxTime * gameTime;
+    unsigned int rank = (float)slots.size() / maxTime * gameTimer.time_ms();
     if( rank > slots.size() )
         rank = slots.size();
 
@@ -546,7 +548,7 @@ void chaos_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) {
+    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) {
         glColor3f( 1, 1, 1 );
 
         font->draw( "Press r to reset, m for menu", 600, 200 );
@@ -637,7 +639,8 @@ void chaos_mode( int dt )
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
+            spawnDelay = 
+                5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
         }
 
         if( spawnDelay < 1 * SECOND )
@@ -659,7 +662,7 @@ void arcade_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTime < timePlayerDied + 30*SECOND ) 
+    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
     {
         glColor3f( 1, 1, 1 );
 
@@ -756,7 +759,7 @@ void arcade_mode( int dt )
             //      2000 = a sqrt(5*100*100) 
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTime) * (20.f/std::sqrt(5));
+            spawnDelay = 5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
         }
 
         if( spawnDelay < 1 * SECOND )
@@ -1107,7 +1110,7 @@ int main( int, char** )
 
     reset( menu ); 
 
-    int frameStart=SDL_GetTicks(), frameEnd=frameStart, frameTime=0;
+    Timer frameTimer;
     while( quit == false )
     {
         Keyboard::update();
@@ -1188,25 +1191,13 @@ int main( int, char** )
         if( Keyboard::key_down(' ') )
             playerIncreasedGravity = true;
 
-        float mult = 1.f; // Frametime multiplier.
-
-        float timeAfter = float( gameTime - timePlayerDied ) / (float)SECOND;
-        if( timePlayerDied ) {
-            if( timeAfter <= 4.f ) 
-                mult = 0.1f;
-            else if( timeAfter > 2 && timeAfter < 9 )
-                // Smoothly return to normal time.
-                mult = std::sqrt( (timeAfter-4) / (9.f-4.f) );
-        }
-
-        gameLogic( frameTime * mult );
-
         float DT = IDEAL_FRAME_TIME / 4.f;
 
-        static float time = 0;
+        gameLogic( frameTimer.time_ms() );
 
         // For each time-step:
-        for( time += frameTime * mult; time >= DT; time -= DT ) 
+        static int time = 0;
+        for( time += frameTimer.time_ms(); time >= DT; time -= DT ) 
         {
             for_each ( 
                 cActors.begin(), cActors.end(), 
@@ -1235,8 +1226,8 @@ int main( int, char** )
             // destabilize the physics system by making it integrate more time.
             // But when the frame time is ideal, this has no effect.
             float timeMult = 1;
-            if( frameTime > IDEAL_FRAME_TIME * 2.f/3 ) 
-                timeMult = (float)frameTime / (IDEAL_FRAME_TIME*2/3.f);
+            if( frameTimer.time_ms() > IDEAL_FRAME_TIME * 2.f/3 ) 
+                timeMult = (float)frameTimer.time_ms() / (IDEAL_FRAME_TIME*2/3.f);
             timeMult *= timeMult;
 
             float time = DT * timeMult;
@@ -1382,28 +1373,24 @@ int main( int, char** )
         
         glLoadIdentity();
 
-        static int lastUpdate = gameTime;
-        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTime ) {
+        static int lastUpdate = gameTimer.time_ms();
+        if( lastUpdate + IDEAL_FRAME_TIME/2 <= gameTimer.time_ms() ) {
             configure( config );
             update_screen();
         }
         
-        frameStart = frameEnd;
-        frameEnd = SDL_GetTicks();
-        frameTime = frameEnd - frameStart;
-
         if( paused )
-            frameTime = 0;
+            frameTimer.zero();
 
         if( showFrameTime ) {
             std::stringstream ss;
             TextBox b( *font, 10, 600 );
 
-            float val = frameTime;
-            if( !frameTime )
+            float val = frameTimer.time_sec();
+            if( !val )
                 val = 0.5;
 
-            ss << "fps: " << ( (float)SECOND / val );
+            ss << "fps: " << ( 1.f / val );
             b.writeln( ss.str() );
 
             ss.str( "" );
@@ -1419,14 +1406,28 @@ int main( int, char** )
             b.writeln( ss.str() );
 
             ss.str( "" );
-            ss << "time: " << gameTime / SECOND;
+            ss << "time: " << gameTimer.time_sec();
             b.writeln( ss.str() );
         }
 
-        if( frameTime > MAX_FRAME_TIME )
-            frameTime = MAX_FRAME_TIME;
+        frameTimer.reset();
+        frameTimer.clamp_ms( MAX_FRAME_TIME );
 
-        gameTime += frameTime;
+        float mult = 1.f; // Frametime multiplier.
+
+        float timeAfter = float( gameTimer.time_ms() - timePlayerDied ) / (float)SECOND;
+        if( timePlayerDied ) {
+            if( timeAfter <= 4.f ) 
+                mult = 0.1f;
+            else if( timeAfter > 2 && timeAfter < 9 )
+                // Smoothly return to normal time.
+                mult = std::sqrt( (timeAfter-4) / (9.f-4.f) );
+        }
+
+
+        frameTimer.clamp_ms( frameTimer.time_ms() * mult );
+
+        gameTimer.update();
     }
 
     std::for_each( Orbital::birthSfx, Orbital::birthSfx+Orbital::N_BIRTH_SFX, [](Sound& s) { s.reset(); } );
