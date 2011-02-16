@@ -1,25 +1,16 @@
 
 #include <string>
 
-#if defined( _WIN32 )
-    #include <windows.h>
-#else
-    #include <GL/glx.h>
-#endif
+#include <SDL/SDL_ttf.h>
 
 
-class BitmapFont
+class TrueTypeFont
 {
-    int      base;
-
-#if defined( _WIN32 )
-    HDC hdc;
-#else
-#endif
+    TTF_Font* ttf;
 
   public:
-    BitmapFont();
-    ~BitmapFont();
+    TrueTypeFont();
+    ~TrueTypeFont();
 
     void draw( const std::string& text, float x, float y );
 
@@ -28,13 +19,13 @@ class BitmapFont
 
 class TextBox
 {
-    BitmapFont& font;
+    TrueTypeFont& font;
 
     float x, y; // Base position.
     unsigned int line;
 
   public:
-    TextBox( BitmapFont& font, float x, float y );
+    TextBox( TrueTypeFont& font, float x, float y );
 
     void write( const std::string& text="" );
     void writeln( const std::string& text="" );
