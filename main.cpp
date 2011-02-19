@@ -1076,6 +1076,34 @@ void menu( int )
     }
 }
 
+void load_resources()
+{
+    Player::body.load(   "art/Orbital.bmp" );
+    Player::shield.load( "art/Sheild2.bmp" );
+    Orbital::image.load( "art/Orbital.bmp" );
+
+    Orbital::birthSfx[0].load( "art/sfx/Birth.wav" );
+    Orbital::birthSfx[1].load( "art/sfx/Birth1.wav" );
+    Orbital::birthSfx[2].load( "art/sfx/Birth2.wav" );
+
+    Orbital::wallSfx[0].load( "art/sfx/Hit-wall.wav" );
+    Orbital::wallSfx[1].load( "art/sfx/Hit-wall1.wav" );
+    Orbital::wallSfx[2].load( "art/sfx/Hit-wall2.wav" );
+
+    Stopper::switchSfx[0].load( "art/sfx/Stopper-change.wav" );
+    Stopper::switchSfx[1].load( "art/sfx/Stopper-change1.wav" );
+    Stopper::switchSfx[2].load( "art/sfx/Stopper-change2.wav" );
+    Stopper::switchSfx[3].load( "art/sfx/Stopper-change3.wav" );
+}
+
+void destroy_resources()
+{
+    auto f = []( Sound& s ) { s.reset(); };
+    std::for_each( Orbital::birthSfx,  Orbital::birthSfx+Orbital::N_BIRTH_SFX, f );
+    std::for_each( Orbital::wallSfx,   Orbital::wallSfx+Orbital::N_WALL_SFX,   f );
+    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS,  f );
+}
+
 int main( int, char** )
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
@@ -1093,22 +1121,7 @@ int main( int, char** )
         return 1;
     make_sdl_gl_window( (int)Arena::maxX, (int)Arena::maxY );
 
-    Player::body.load(   "art/Orbital.bmp" );
-    Player::shield.load( "art/Sheild2.bmp" );
-    Orbital::image.load( "art/Orbital.bmp" );
-
-    Orbital::birthSfx[0].load( "art/sfx/Birth.wav" );
-    Orbital::birthSfx[1].load( "art/sfx/Birth1.wav" );
-    Orbital::birthSfx[2].load( "art/sfx/Birth2.wav" );
-
-    Orbital::wallSfx[0].load( "art/sfx/Hit-wall.wav" );
-    Orbital::wallSfx[1].load( "art/sfx/Hit-wall1.wav" );
-    Orbital::wallSfx[2].load( "art/sfx/Hit-wall2.wav" );
-
-    Stopper::switchSfx[0].load( "art/sfx/Stopper-change.wav" );
-    Stopper::switchSfx[1].load( "art/sfx/Stopper-change1.wav" );
-    Stopper::switchSfx[2].load( "art/sfx/Stopper-change2.wav" );
-    Stopper::switchSfx[3].load( "art/sfx/Stopper-change3.wav" );
+    load_resources();
 
     reset( menu ); 
 
@@ -1445,10 +1458,7 @@ int main( int, char** )
         gameTimer.update();
     }
 
-    std::for_each( Orbital::birthSfx, Orbital::birthSfx+Orbital::N_BIRTH_SFX, [](Sound& s) { s.reset(); } );
-    std::for_each( Orbital::wallSfx, Orbital::wallSfx+Orbital::N_WALL_SFX,    [](Sound& s) { s.reset(); } );
-    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS, [](Sound& s) { s.reset(); } );
-    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS, [](Sound& s) { s.reset(); } );
+    destroy_resources();
 
     Mix_CloseAudio();
 
