@@ -49,7 +49,7 @@ class Texture
 //    }
 //    int state;
 
-    void load( const std::string& filename );
+    bool load( const std::string& filename );
 
     GLuint handle();
 };

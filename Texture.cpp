@@ -39,7 +39,7 @@ Texture::Texture( const std::string& filename )
         load( filename );
 }
 
-void Texture::load( const std::string& filaname )
+bool Texture::load( const std::string& filaname )
 {
     Ref ref; // Reference to the Item we'll be working on.
 
@@ -52,26 +52,29 @@ void Texture::load( const std::string& filaname )
 
     ref = get_ref();
 
-    // If this Item already exists, and is loaded (refcount!=0), we're all set.
-    if( get_ref() != -1u && registery[ref].refCount++ != 0 ) {
-        return;
-    } else {
-        // Otherwise, make it.
-        registery.push_back( Item(key,0,1) );
-        ref = registery.size() - 1;
-    }
+    // If this Item already exists, and is loaded, we're all set.
+    if( get_ref() != -1u && registery[ref].refCount++ != 0 )
+        return true;
+
+    // Otherwise, make it.
+    registery.push_back( Item(key,0,1) );
+    ref = registery.size() - 1;
 
     glGenTextures( 1, &registery[ref].glHandle );
 
     // Use SDL to lead the image for simplicity.
-    SDL_Surface *sdlSurface = SDL_LoadBMP( filaname.c_str() ); 
+    SDL_Surface* sdlSurface = SDL_LoadBMP( filaname.c_str() ); 
     
     if( sdlSurface ) 
     { 
         gen_texture( registery[ref].glHandle, sdlSurface );
 
         SDL_FreeSurface( sdlSurface );
+
+        return true;
     } 
+
+    return false;
 }
 
 void Texture::reset()
@@ -90,6 +93,7 @@ Texture::~Texture()
 GLuint Texture::handle()
 {
     Ref ref = get_ref();
+
     if( ref != -1u )
         return registery[ ref ].glHandle; 
     else
