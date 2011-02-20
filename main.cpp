@@ -1456,8 +1456,8 @@ int main( int, char** )
     while( Mix_Init(0) )
         Mix_Quit();
 
+    glFinish();
     SDL_Quit();
-    glFlush();
 
     return 0;
 }
