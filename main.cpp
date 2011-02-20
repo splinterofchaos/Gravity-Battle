@@ -1104,6 +1104,62 @@ void destroy_resources()
     std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS,  f );
 }
 
+void keyboard_events()
+{
+    if( Keyboard::key_state('r') )
+        reset();
+    if( Keyboard::key_state('m') )
+        reset( menu );
+
+    if( Keyboard::key_state('1') ) 
+    {
+        // Do this in case the user updated prediction- Length or
+        // Precision.
+        fileConfig.reload( "config.txt" );
+
+        bool tmp;
+        if( config.get("predictionLength",&tmp), ! tmp )
+            if( fileConfig.get("predictionLength",&tmp), tmp )
+                config["predictionLength"] = 
+                    fileConfig["predictionLength"];
+            else
+                config["predictionLength"] = 
+                    defaultConfig["predictionLength"];
+        else
+            config["predictionLength"] = "0";
+
+        config["predictionPrecision"] = 
+            fileConfig["predictionPrecision"];
+    }
+
+#define FLIP_VALUE(handle) config[#handle] = (config[#handle]=="1")? "0" : "1"
+    if( Keyboard::key_state('2') )
+        FLIP_VALUE(gravityLine);
+    if( Keyboard::key_state('3') )
+        FLIP_VALUE(velocityArrow);
+    if( Keyboard::key_state('4') )
+        FLIP_VALUE(accelerationArrow);
+    if( Keyboard::key_state('5') )
+    {
+        FLIP_VALUE(motionBlur);                         
+        if( config["motionBlur"]=="1" )
+            glAccum( GL_LOAD, 1 );
+    }
+
+    if( Keyboard::key_state('f') )
+        FLIP_VALUE( fps );
+#undef FLIP_VALUE
+
+    int motionKeys[] = { 'w', 'a', 's', 'd', Keyboard::RIGHT, Keyboard::LEFT, Keyboard::UP, Keyboard::DOWN, 0 };
+    for( int* it=motionKeys; *it != 0; it++ )
+        if( Keyboard::key_down( *it ) )
+            playerHasMoved = true;
+
+    if( Keyboard::key_down(' ') )
+        playerIncreasedGravity = true;
+
+}
+
 int main( int, char** )
 {
     const int IDEAL_FRAME_TIME = SECOND / 60;
@@ -1147,64 +1203,13 @@ int main( int, char** )
             }
         }
 
-        // The fallowing code assumes a key state is one non-zero for when
-        // pressed. This is true because we don't inform the keyboard of key-up
-        // events.
+        keyboard_events();
+
+        // These lines use local vars thus couldn't be in keyboard_events.
         if( Keyboard::key_state('p') )
             paused = ! paused;
-        if( Keyboard::key_state('r') )
-            reset();
-        if( Keyboard::key_state('m') )
-            reset( menu );
         if( Keyboard::key_state( Keyboard::ESQ ) )
             quit = true;
-
-        if( Keyboard::key_state('1') ) 
-        {
-                    // Do this in case the user updated prediction- Length or
-                    // Precision.
-                    fileConfig.reload( "config.txt" );
-
-                    bool tmp;
-                    if( config.get("predictionLength",&tmp), ! tmp )
-                        if( fileConfig.get("predictionLength",&tmp), tmp )
-                            config["predictionLength"] = 
-                                fileConfig["predictionLength"];
-                        else
-                            config["predictionLength"] = 
-                                defaultConfig["predictionLength"];
-                    else
-                        config["predictionLength"] = "0";
-
-                    config["predictionPrecision"] = 
-                        fileConfig["predictionPrecision"];
-        }
-        
-#define FLIP_VALUE(handle) config[#handle] = (config[#handle]=="1")? "0" : "1"
-        if( Keyboard::key_state('2') )
-            FLIP_VALUE(gravityLine);
-        if( Keyboard::key_state('3') )
-            FLIP_VALUE(velocityArrow);
-        if( Keyboard::key_state('4') )
-            FLIP_VALUE(accelerationArrow);
-        if( Keyboard::key_state('5') )
-        {
-            FLIP_VALUE(motionBlur);                         
-            if( config["motionBlur"]=="1" )
-                glAccum( GL_LOAD, 1 );
-        }
-
-        if( Keyboard::key_state('f') )
-            FLIP_VALUE( fps );
-#undef FLIP_VALUE
-
-        int motionKeys[] = { 'w', 'a', 's', 'd', Keyboard::RIGHT, Keyboard::LEFT, Keyboard::UP, Keyboard::DOWN, 0 };
-        for( int* it=motionKeys; *it != 0; it++ )
-            if( Keyboard::key_down( *it ) )
-                playerHasMoved = true;
-
-        if( Keyboard::key_down(' ') )
-            playerIncreasedGravity = true;
 
         float DT = IDEAL_FRAME_TIME * ( 1.f / 4.f );
         if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 6*SECOND )
