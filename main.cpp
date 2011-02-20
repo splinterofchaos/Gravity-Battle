@@ -1257,26 +1257,32 @@ int main( int, char** )
             // ALGORITHM FOR PARTICLE PHYSICS:
             //     For each particle, p:
             //         For each attractor, a:
-            //             If particle is colliding with a:
+            //             If p is colliding with a:
             //                 Repel.
             //             else:
             //                 Attract
             //
             //         For each circle actor, c:
-            //             Repel if close.
+            //             Repel if p is close.
             //
-            //         Move particle.
-            //
-            // A particle is repelled when near a circle actor or attractor.
-            // Since all attractors are circle actors, the repulsion is added
-            // twice. Attractors need more repulsion than non-attractors
-            // so adding it twice is fine.
+            //         Move p.
 
             for( auto part=particles.begin(); part < particles.end(); part++ )
             {
                 part->a *= 0;
                 part->isVisible = true;
 
+                auto repel = []( Particles::iterator p, const Vector<float,2>& r, float mult )
+                {
+                    p->a -= magnitude( r, mult * random(0.8f, 1.2f) );
+
+                    if( p->v * r < 0 ) {
+                        auto u = unit( r );
+                        p->v = p->v - 2 * (p->v*u) * u;
+                    }
+                };
+
+                // When parts aren't simple (default), do calculations.
                 if( ! simpleParts )
                 {
                     CActors::iterator attr = cActors.begin();
@@ -1290,16 +1296,7 @@ int main( int, char** )
 
                         if( magnitude(r) < combRad )
                         {
-                            part->a -= magnitude (
-                                r,
-                                0.29f * Arena::scale * random( 0.8f, 1.2f )
-                            );
-
-                            if( part->v * r < 0 )
-                            {
-                                auto u = unit( r );
-                                part->v = part->v - 2 * (part->v * u) * u;
-                            }
+                            repel( part, r, 0.29f * 0.6f );
                         } else {
                             part->a += magnitude (
                                 r, 
@@ -1321,21 +1318,10 @@ int main( int, char** )
 
                         if( magnitude(r) < combRad )
                         {
-                            part->a += magnitude (
-                                r,
-                                0.01f * Arena::scale * random( 0.8f, 1.2f )
-                            );
-
-                            if( part->v * r < 0 )
-                            {
-                                auto u = unit( r );
-                                part->v = part->v - 2 * (part->v * u) * u;
-                            }
-
-                            part->isVisible = false;
+                            repel( part, r, 0.01f * 0.6f );
                         }
                     }
-                }
+                } // if not simple parts
 
                 part->move( time );
             }
