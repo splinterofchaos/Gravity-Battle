@@ -1318,7 +1318,7 @@ int main( int, char** )
 
                         if( magnitude(r) < combRad )
                         {
-                            repel( part, r, 0.01f * 0.6f );
+                            repel( part, r, -0.01f * 0.6f );
                         }
                     }
                 } // if not simple parts
