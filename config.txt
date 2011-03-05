@@ -4,7 +4,7 @@
 
 # How many particles to spawn, proportionate to the exploder's mass.
 # It the game runs slowly after a collision, this is the variable to turn down.
-particleRatio = 100
+particle-ratio = 100
 
 # How large should the particles be? 1 is default.
 particle-size = 1.0
@@ -29,36 +29,34 @@ particle-opacity = 30
 # How time increments to predict. To turn the prediction line off, set this to
 # 0.  Setting it too high may cause slow down or crash, but it can look pretty
 # interesting if you set it to different values. Try 1000, 50, etc.
-predictionLength = 0
+prediction-length = 0
 
 # How precise should the predictions be?
 # Lower value equals higher precision and a shorter, but smoother prediction
 # line. 
-predictionPrecision = 10
+prediction-precision = 10
 
 # OTHER OPTIONS #
 
 # A line can be drawn from the enemy to the player to help you understand the
 # relationship of all the objects on screen.
-gravityLine = 0
+gravity-line = 0
 
 # These options sets whether or not to draw an arrow representing the
 # velocities or accelerations of your enemies. 0 for off, non-zero for on.
-velocityArrow     = 0
-accelerationArrow = 0
+velocity-arrow     = 0
+acceleration-arrow = 0
 
 # Add motion blur; 0 for off, non-zero for on. 
 # This is mostly eye candy and can make it harder to play.
-motionBlur = 0
+motion-blur = 0
 
-# How many high scores should be saved.
+# How many high scores should be saved?
 nHighScores = 10
 
 # Display frames per second? (0=off, else on.)
 fps = 0
 
-# Music volume: Maximum is 128, minimum is zero.
+# Music and Sound volumes: Maximum is 128, minimum is zero.
 music-volume = 128
-
-# Sound effects volume: Maximum is 128, minimum is zero.
-sfx-volume = 128
+sfx-volume   = 128

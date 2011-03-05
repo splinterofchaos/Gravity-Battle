@@ -7,19 +7,19 @@
 
 void Config::set_defaults()
 {
-    vars["particleRatio"] = "200";
-    vars["particle-size"] = "1";
+    vars["particle-ratio"]     = "200";
+    vars["particle-size"]      = "1";
+    vars["particle-opacity"]   = "30";
     vars["particle-behaviour"] = "orbit";
-    vars["particle-opacity"] = "30";
 
-    vars["predictionLength"]    = "100";
-    vars["predictionPrecision"] =  "10";
+    vars["prediction-length"]    = "0";
+    vars["prediction-precision"] = "10";
 
-    vars["gravityLine"]       = "1";
-    vars["velocityArrow"]     = "0";
-	vars["accelerationArrow"] = "0";
+    vars["gravity-line"]       = "1";
+    vars["velocity-arrow"]     = "0";
+	vars["acceleration-arrow"] = "0";
 
-    vars["motionBlur"] = "0";
+    vars["motion-blur"] = "0";
 
     vars["nHighScores"] = "10";
 

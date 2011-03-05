@@ -123,16 +123,16 @@ float to_float( std::string str )
 
 void configure( const Config& cfg )
 {
-    cfg.get( "particleRatio",       &particleRatio );
-    cfg.get( "predictionLength",    &Orbital::predictionLength );
-    cfg.get( "predictionPrecision", &Orbital::predictionPrecision );
-    cfg.get( "gravityLine",         &Orbital::gravityLine );
-    cfg.get( "velocityArrow",       &Orbital::velocityArrow );
-    cfg.get( "accelerationArrow",   &Orbital::accelerationArrow );
-    cfg.get( "motionBlur",          &motionBlur );
-    cfg.get( "nHighScores",         &nHighScores );
-    cfg.get( "fps",                 &showFrameTime );
-    cfg.get( "particle-size",       &Particle::sizeMult );
+    cfg.get( "particle-ratio",       &particleRatio );
+    cfg.get( "prediction-length",    &Orbital::predictionLength );
+    cfg.get( "prediction-precision", &Orbital::predictionPrecision );
+    cfg.get( "gravity-line",         &Orbital::gravityLine );
+    cfg.get( "velocity-arrow",       &Orbital::velocityArrow );
+    cfg.get( "acceleration-arrow",   &Orbital::accelerationArrow );
+    cfg.get( "motion-blur",          &motionBlur );
+    cfg.get( "nHighScores",          &nHighScores );
+    cfg.get( "fps",                  &showFrameTime );
+    cfg.get( "particle-size",        &Particle::sizeMult );
 
     float opacityTmp;
     cfg.get( "particle-opacity", &opacityTmp );
