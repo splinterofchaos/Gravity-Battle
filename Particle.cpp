@@ -7,11 +7,12 @@
 
 bool  Particle::gravityField = false;
 float Particle::opacity = 30;
+float Particle::sizeMult = 1;
 
 Particle::Particle( const vector_type& pos, const vector_type& v, 
                     value_type minSpeed, value_type maxSpeed, float scale,
                     const Color& c )   
-    : Actor( pos ), c( c ), scale( scale ), maxSpeed( maxSpeed )
+    : Actor( pos ), c( c ), scale( scale*sizeMult ), maxSpeed( maxSpeed )
 {
     value_type speed = random( minSpeed, maxSpeed );
     float angle = random_angle();

@@ -6,6 +6,9 @@
 # It the game runs slowly after a collision, this is the variable to turn down.
 particleRatio = 100
 
+# How large should the particles be? 1 is default.
+particle-size = 1.0
+
 # How should particles behave? 
 # simple: particles will move in straight lines until off screen.
 #         Use this option if you encounter performance problems.

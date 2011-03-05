@@ -8,6 +8,7 @@
 void Config::set_defaults()
 {
     vars["particleRatio"] = "200";
+    vars["particle-size"] = "1";
     vars["particle-behaviour"] = "orbit";
     vars["particle-opacity"] = "30";
 

@@ -132,6 +132,7 @@ void configure( const Config& cfg )
     cfg.get( "motionBlur",          &motionBlur );
     cfg.get( "nHighScores",         &nHighScores );
     cfg.get( "fps",                 &showFrameTime );
+    cfg.get( "particle-size",       &Particle::sizeMult );
 
     float opacityTmp;
     cfg.get( "particle-opacity", &opacityTmp );
