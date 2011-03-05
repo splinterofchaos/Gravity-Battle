@@ -11,7 +11,8 @@ class Particle : public Actor
     value_type maxSpeed;
     bool isVisible;
 
-    static bool gravityField;
+    static bool  gravityField;
+    static float opacity;
 
     Particle( const vector_type& pos, const vector_type& v, value_type minSpeed,
               value_type maxSpeed, float scale, const Color& c );

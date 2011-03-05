@@ -8,6 +8,8 @@
 void Config::set_defaults()
 {
     vars["particleRatio"] = "200";
+    vars["particle-behaviour"] = "orbit";
+    vars["particle-opacity"] = "30";
 
     vars["predictionLength"]    = "100";
     vars["predictionPrecision"] =  "10";
@@ -21,8 +23,6 @@ void Config::set_defaults()
     vars["nHighScores"] = "10";
 
     vars["fps"] = "0";
-
-    vars["particle-behaviour"] = "orbit";
 
     // Values out of 128 for SDL_mixer.
     vars["music-volume"] = "100";

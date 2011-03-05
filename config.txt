@@ -15,6 +15,9 @@ particleRatio = 100
 particle-behaviour = orbit
 #particle-behaviour = gravity-field
 
+# What percentage should particles be visible?
+particle-opacity = 30
+
 # PATH PREDICTION #
 
 # A prediction line, showing the path enemies will fallow, can be drawn to help

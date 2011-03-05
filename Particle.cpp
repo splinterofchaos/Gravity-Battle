@@ -5,7 +5,8 @@
 
 #include <cmath>
 
-bool Particle::gravityField = false;
+bool  Particle::gravityField = false;
+float Particle::opacity = 30;
 
 Particle::Particle( const vector_type& pos, const vector_type& v, 
                     value_type minSpeed, value_type maxSpeed, float scale,
@@ -62,7 +63,7 @@ void Particle::draw()
     };
 
     glTranslatef( s.x(), s.y(), 1 );
-    glColor4f( c.r(), c.g(), c.b(), c.a() );
+    glColor4f( c.r(), c.g(), c.b(), opacity );
     glRotatef( angle, 0, 0, 1 );
 
     draw::draw( verts, 4, 1, texCoords );

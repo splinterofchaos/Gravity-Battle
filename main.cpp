@@ -133,7 +133,9 @@ void configure( const Config& cfg )
     cfg.get( "nHighScores",         &nHighScores );
     cfg.get( "fps",                 &showFrameTime );
 
-
+    float opacityTmp;
+    cfg.get( "particle-opacity", &opacityTmp );
+    Particle::opacity = opacityTmp / 100.f;
 
     int volume;
     cfg.get( "music-volume", &volume );
