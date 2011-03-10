@@ -1116,36 +1116,36 @@ void keyboard_events()
 
     if( Keyboard::key_state('1') ) 
     {
-        // Do this in case the user updated prediction- Length or
-        // Precision.
+        // Do this in case the user updated prediction- length or
+        // precision.
         fileConfig.reload( "config.txt" );
 
         bool tmp;
-        if( config.get("predictionLength",&tmp), ! tmp )
-            if( fileConfig.get("predictionLength",&tmp), tmp )
-                config["predictionLength"] = 
-                    fileConfig["predictionLength"];
+        if( config.get("prediction-length",&tmp), ! tmp )
+            if( fileConfig.get("prediction-length",&tmp), tmp )
+                config["prediction-length"] = 
+                    fileConfig["prediction-length"];
             else
-                config["predictionLength"] = 
-                    defaultConfig["predictionLength"];
+                config["prediction-length"] = 
+                    defaultConfig["prediction-length"];
         else
-            config["predictionLength"] = "0";
+            config["prediction-length"] = "0";
 
-        config["predictionPrecision"] = 
-            fileConfig["predictionPrecision"];
+        config["prediction-precision"] = 
+            fileConfig["prediction-precision"];
     }
 
 #define FLIP_VALUE(handle) config[#handle] = (config[#handle]=="1")? "0" : "1"
     if( Keyboard::key_state('2') )
-        FLIP_VALUE(gravityLine);
+        FLIP_VALUE(gravity-line);
     if( Keyboard::key_state('3') )
-        FLIP_VALUE(velocityArrow);
+        FLIP_VALUE(velocity-arrow);
     if( Keyboard::key_state('4') )
-        FLIP_VALUE(accelerationArrow);
+        FLIP_VALUE(acceleration-arrow);
     if( Keyboard::key_state('5') )
     {
-        FLIP_VALUE(motionBlur);                         
-        if( config["motionBlur"]=="1" )
+        FLIP_VALUE(motion-blur);                         
+        if( config["motion-blur"]=="1" )
             glAccum( GL_LOAD, 1 );
     }
 
