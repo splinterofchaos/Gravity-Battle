@@ -35,13 +35,13 @@ void rm_comments( std::string* str )
         str->erase( commentStart, str->size() );
 }
 
-Variable evaluate_expression( const std::wstring& str )
+Variable evaluate_expression( const std::string& str )
 {
     Variable ret;
     
     // Lazy, but easy solution.
-    std::wstringstream ss( str );
-    wchar_t c;
+    std::stringstream ss( str );
+    char c;
 
     ss >> ret.handle;
     ss >> c;
