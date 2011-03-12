@@ -35,15 +35,17 @@ void rm_comments( std::string* str )
         str->erase( commentStart, str->size() );
 }
 
-Variable evaluate_expression( const std::string& str )
+Variable evaluate_expression( const std::wstring& str )
 {
     Variable ret;
     
     // Lazy, but easy solution.
-    std::stringstream ss( str );
-    char c;
+    std::wstringstream ss( str );
+    wchar_t c;
 
-    ss >> ret.handle >> c >> ret.value;
+    ss >> ret.handle;
+    ss >> c;
+    ss >> ret.value;
 
     // I could check that handle and value are proper alphanum, or that nothing
     // is after the expression besides comments, i don't think it's currently

@@ -6,7 +6,7 @@ class Goal;
 
 struct Package : public Orbital
 {
-    static const float RADIUS_TO_START = 200;
+    static const float RADIUS_TO_START;
 
     typedef std::tr1::weak_ptr<Goal> WeakGoalPtr;
     static WeakGoalPtr goal;

@@ -13,10 +13,10 @@ class Player : public CircleActor
     bool isVisible;
     bool moreGravity;
 
-    static const float RADIUS = 25;
+    static const float RADIUS;
 
   public:
-    static const value_type DEFULAT_MASS = 38;
+    static const value_type DEFULAT_MASS;
 
     typedef std::tr1::weak_ptr<Player>   WeakPlayerPtr;
     typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;

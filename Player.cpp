@@ -10,6 +10,9 @@ Texture Player::body;
 Player::WeakPlayerPtr Player::original;
 Player::WeakPlayerPtr Player::copy;
 
+const float Player::RADIUS = 25;
+const Player::value_type Player::DEFULAT_MASS = 38;
+
 Player::Player( const Player::vector_type& position )
     : CircleActor( position ), isVisible( true )
 {

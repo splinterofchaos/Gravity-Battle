@@ -8,6 +8,16 @@
 
 Texture Orbital::image;
 Orbital::Attractors Orbital::attractors;
+
+const Orbital::value_type Orbital::RADIUS = 18;
+const int   Orbital::ACTIVATION_DELAY = 2000;
+const float Orbital::BOUNCINESS = 0.8;
+
+const Stopper::value_type Stopper::RADIUS = 34;
+const Stopper::value_type Stopper::STOPPED_RADIUS = 29;
+
+const float Negative::RADIUS = 10;
+
 unsigned int Orbital::predictionLength    = 0;
 unsigned int Orbital::predictionPrecision = 17;
 unsigned int Orbital::gravityLine         = 0;
@@ -102,8 +112,6 @@ void Orbital::move( float dt )
         if( activationDelay <= 0 )
             isActive = true;
     }
-
-    vector_type vOrig = v;
 
     // Will call Orbital::integrate.
     CircleActor::move( dt );

@@ -20,6 +20,7 @@
 #include <algorithm>  // For transform, copy, etc.
 #include <functional> // For plus<>, etc.
 #include <cmath> // For sqrt.
+#include <cstdlib> // For ptrdiff_t
 
 #define BIN_OP_TEMPLATE template< typename T, typename U, size_t S >
 #define BIN_OP_RET_TYPE Vector<T,S> /* TODO: This should use type promotion. */
@@ -37,7 +38,7 @@ public:
     typedef       T*  iterator;       
     typedef const T*  const_iterator;
     typedef size_t    size_type;
-    typedef ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef T         value_type;
     typedef std::reverse_iterator<iterator>       reverse_iterator;
     typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
