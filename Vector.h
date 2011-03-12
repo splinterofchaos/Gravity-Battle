@@ -21,6 +21,11 @@
 #include <functional> // For plus<>, etc.
 #include <cmath> // For sqrt.
 
+#define BIN_OP_TEMPLATE template< typename T, typename U, size_t S >
+#define BIN_OP_RET_TYPE Vector<T,S> /* TODO: This should use type promotion. */
+#define VEC1        Vector<T,S>
+#define VEC2        Vector<U,S>
+
 // Based on std::array, but with more mathematical intents.
 template< class T, unsigned int S >
 class Vector 
@@ -212,50 +217,139 @@ public:
         std::transform( begin(), end(), v.begin(), std::negate<value_type>() );
         return v;
     }
+
+    friend 
+    Vector<T,S> operator * ( const Vector<T,S>& a, const T b )
+    {
+        Vector<T,S> c;
+        std::transform ( 
+            a.begin(), a.end(), c.begin(), 
+            std::bind1st( std::multiplies<T>(), b )
+        );
+
+        return c;
+    }
+
+    friend 
+    BIN_OP_RET_TYPE operator * ( const T a, const Vector<T,S>& b )
+    {
+        return b * a;
+    }
+
+    // Dot product.
+    friend 
+    typename BIN_OP_RET_TYPE::value_type operator * ( const Vector<T,S>& a, const Vector<T,S>& b )
+    {
+        T sum = 0;
+
+        typedef typename Vector<T,S>::const_iterator I1;
+        typedef typename Vector<T,S>::const_iterator I2;
+
+        I1 i1 = a.begin(), end = a.end();
+        I2 i2 = b.begin();
+
+        for( ; i1 != end; i1++, i2++ )
+            sum += (*i1) * (*i2);
+
+        return sum;
+    }
+
+    template< typename U > friend 
+    Vector<T,S> operator + ( const Vector<T,S>& a, const Vector<U,S>& b )
+    {
+        Vector<T,S> c;
+        std::transform (
+            a.begin(), a.end(), b.begin(), c.begin(), std::plus<T>() 
+        );
+
+        return c;
+    }
+
+    template< typename U > friend 
+    Vector<T,S> operator - ( const Vector<T,S>& a, const Vector<U,S>& b )
+    {
+        Vector<T,S> c;
+        std::transform (
+            a.begin(), a.end(), b.begin(), c.begin(), std::minus<T>() 
+        );
+
+        return c;
+    }
+
+    friend
+    T magnitude_sqr( const Vector<T,S>& v )
+    {
+        T mag2 = 0;
+        for( size_t i=0; i < static_size; i++ )
+            mag2 += v[i] * v[i];
+        return mag2;
+    }
+
+    friend
+    T magnitude( const Vector<T,S>& v )
+    {
+        return std::sqrt( magnitude_sqr(v) );
+    }
+
+    friend
+    Vector<T,S> magnitude( const Vector<T,S>& v, T newMag )
+    {
+        return unit(v) * newMag;
+    }
+
+    friend
+    Vector<T,S> unit( const Vector<T,S>& v )
+    {
+        T x = magnitude_sqr( v );
+
+        if( x ) {
+            // x = ||v||
+            x = std::sqrt( x );
+            // normal(v) == v / ||v||
+            return v / x;
+        } else {
+            return v;
+        }
+    }
+
+    template< typename U > friend 
+    bool operator == ( const Vector<T,S>& a, const Vector<U,S>& b )
+    {
+        return std::equal( a.begin(), a.end(), b.begin() );
+    }
+
+    template< typename U > friend 
+    bool operator != ( const Vector<T,S>& a, const Vector<U,S>& b )
+    {
+        return !( a == b );
+    }
+
+
+    friend
+    Vector<T,S> operator / ( const Vector<T,S>& a, const T b )
+    {
+        Vector<T,S> c;
+        std::transform ( 
+            a.begin(), a.end(), c.begin(), 
+            std::bind2nd( std::divides<T>(), b )
+        );
+
+        return c;
+    }
+
+    friend
+    Vector<T,S> operator / ( const T a, const Vector<T,S>& b )
+    {
+        Vector<T,S> c;
+        std::transform ( 
+            b.begin(), b.end(), c.begin(), 
+            std::bind1st( std::divides<T>(), a )
+        );
+
+        return c;
+    }
+
 };
-
-#define BIN_OP_TEMPLATE template< typename T, typename U, size_t S >
-#define BIN_OP_RET_TYPE Vector<T,S> /* TODO: This should use type promotion. */
-#define VEC1        Vector<T,S>
-#define VEC2        Vector<U,S>
-
-BIN_OP_TEMPLATE
-bool operator == ( const VEC1& a, const VEC2& b )
-{
-    return std::equal( a.begin(), a.end(), b.begin() );
-}
-
-BIN_OP_TEMPLATE
-bool operator != ( const VEC1& a, const VEC2& b )
-{
-    return !( a == b );
-}
-
-BIN_OP_TEMPLATE
-BIN_OP_RET_TYPE operator + ( const VEC1& a, const VEC2& b )
-{
-    typedef typename BIN_OP_RET_TYPE::value_type value_type;
-
-    BIN_OP_RET_TYPE c;
-    std::transform (
-        a.begin(), a.end(), b.begin(), c.begin(), std::plus<value_type>() 
-    );
-    
-    return c;
-}
-
-BIN_OP_TEMPLATE
-BIN_OP_RET_TYPE operator - ( const VEC1& a, const VEC2& b )
-{
-    typedef typename BIN_OP_RET_TYPE::value_type value_type;
-
-    BIN_OP_RET_TYPE c;
-    std::transform (
-        a.begin(), a.end(), b.begin(), c.begin(), std::minus<value_type>() 
-    );
-
-    return c;
-}
 
 #if defined( USE_RVAL_REFS_ )
 BIN_OP_TEMPLATE
@@ -307,71 +401,6 @@ VEC2&& operator - ( const VEC1& a, VEC2&& b )
 }
 #endif
 
-BIN_OP_TEMPLATE
-BIN_OP_RET_TYPE operator * ( const VEC1& a, const U b )
-{
-    typedef typename BIN_OP_RET_TYPE::value_type value_type;
-
-    BIN_OP_RET_TYPE c;
-    std::transform ( 
-        a.begin(), a.end(), c.begin(), 
-        std::bind1st( std::multiplies<value_type>(), b )
-    );
-    
-    return c;
-}
-
-BIN_OP_TEMPLATE
-BIN_OP_RET_TYPE operator * ( const U a, const VEC1& b )
-{
-    return b * a;
-}
-
-// Dot product.
-BIN_OP_TEMPLATE
-typename BIN_OP_RET_TYPE::value_type operator * ( const VEC1& a, const VEC2& b )
-{
-    typename BIN_OP_RET_TYPE::value_type sum = 0;
-
-    typedef typename VEC1::const_iterator I1;
-    typedef typename VEC2::const_iterator I2;
-
-    I1 i1 = a.begin(), end = a.end();
-    I2 i2 = b.begin();
-
-    for( ; i1 != end; i1++, i2++ )
-        sum += (*i1) * (*i2);
-
-    return sum;
-}
-
-BIN_OP_TEMPLATE
-BIN_OP_RET_TYPE operator / ( const VEC1& a, const U b )
-{
-    typedef typename BIN_OP_RET_TYPE::value_type value_type;
-
-    BIN_OP_RET_TYPE c;
-    std::transform ( 
-        a.begin(), a.end(), c.begin(), 
-        std::bind2nd( std::divides<value_type>(), b )
-    );
-
-    return c;
-}
-
-BIN_OP_TEMPLATE
-BIN_OP_RET_TYPE operator / ( const U a, const VEC1& b )
-{
-    typedef typename BIN_OP_RET_TYPE::value_type value_type;
-
-    BIN_OP_RET_TYPE c;
-    std::transform ( 
-        b.begin(), b.end(), c.begin(), 
-        std::bind1st( std::divides<value_type>(), a )
-    );
-
-    return c;
-}
 
 BIN_OP_TEMPLATE
 typename BIN_OP_RET_TYPE::value_type dot( const VEC1& a, const VEC2& b )
@@ -414,41 +443,6 @@ BIN_OP_RET_TYPE projection( const VEC1& a, const VEC2& b )
 
 #define UNARY_OP_TEMPLATE template< typename T, size_t S >
 #define VEC Vector<T,S>
-
-UNARY_OP_TEMPLATE
-T magnitude_sqr( const VEC& v )
-{
-    return v * v;
-}
-
-UNARY_OP_TEMPLATE
-T magnitude( const VEC& v )
-{
-    return std::sqrt( magnitude_sqr(v) );
-}
-
-UNARY_OP_TEMPLATE
-VEC magnitude( const VEC& v, T newMag )
-{
-    T mag = magnitude( v );
-    T k = newMag / mag; // Rate of change.
-    return v * k;
-}
-
-UNARY_OP_TEMPLATE
-VEC unit( const VEC& v )
-{
-    T x = magnitude_sqr( v );
-
-    if( x ) {
-        // x = ||v||
-        x = std::sqrt( x );
-        // normal(v) == v / ||v||
-        return v / x;
-    } else {
-        return v;
-    }
-}
 
 template< typename T >
 Vector<T,2> clockwise_tangent( const Vector<T,2>& v )
