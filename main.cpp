@@ -1105,6 +1105,10 @@ void destroy_resources()
     std::for_each( Orbital::birthSfx,  Orbital::birthSfx+Orbital::N_BIRTH_SFX, f );
     std::for_each( Orbital::wallSfx,   Orbital::wallSfx+Orbital::N_WALL_SFX,   f );
     std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS,  f );
+
+    Player::body.reset();
+    Player::shield.reset();
+    Orbital::image.reset();
 }
 
 void keyboard_events()

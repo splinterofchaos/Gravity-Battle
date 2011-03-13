@@ -25,8 +25,6 @@ class Texture
         }
     };
 
-    void reset();
-
     typedef std::vector< Item > Registry;
     static Registry registery;
 
@@ -35,6 +33,7 @@ class Texture
     Ref get_ref();
 
     Key key;
+    bool ok;
 
   public:
     Texture();
@@ -50,6 +49,7 @@ class Texture
 //    int state;
 
     bool load( const std::string& filename );
+    void reset();
 
     GLuint handle();
 };

@@ -24,7 +24,7 @@ Texture::Ref Texture::get_ref()
 
 Texture::Texture()
 {
-    //state = IMAGE_NOT_LOADED;
+    ok = false;
 }
 
 Texture::Texture( const std::string& filename )
@@ -33,6 +33,7 @@ Texture::Texture( const std::string& filename )
 
     Ref ref = get_ref();
 
+    ok = true;
     if( ref != -1u ) 
         registery[ ref ].refCount++;
     else 
@@ -53,7 +54,7 @@ bool Texture::load( const std::string& filaname )
     ref = get_ref();
 
     // If this Item already exists, and is loaded, we're all set.
-    if( get_ref() != -1u && registery[ref].refCount++ != 0 )
+    if( ref != -1u && ref < registery.size() && registery[ref].refCount++ != 0 )
         return true;
 
     // Otherwise, make it.
@@ -71,18 +72,27 @@ bool Texture::load( const std::string& filaname )
 
         SDL_FreeSurface( sdlSurface );
 
-        return true;
+        ok = true;
     } 
+    else
+    {
+        ok = false;
+    }
 
-    return false;
+    return ok;
 }
 
 void Texture::reset()
 {
+    if( ! ok )
+        return;
+
     Ref ref = get_ref();
     if( ref != -1u && --registery[ ref ].refCount <= 0 ) {
         glDeleteTextures( 1, &registery[ ref ].glHandle );
     }
+
+    ok = false;
 }
 
 Texture::~Texture()
