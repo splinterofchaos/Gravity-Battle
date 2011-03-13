@@ -69,7 +69,7 @@ TextBox::TextBox( TrueTypeFont& font, float x, float y )
 void TextBox::write( const std::string& text )
 {
     // This algorithm REQUIRES that end initialize to 0 - 1.
-    unsigned int i, end = 0 - 1;
+    std::string::size_type i, end = 0 - 1;
 
     do {
         // This prevents i from referencing the \n char.
