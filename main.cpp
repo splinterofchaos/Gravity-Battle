@@ -76,6 +76,7 @@ CActors   cActors;
 Particles particles;
 
 bool simpleParts;
+bool showExtraText = true;
 
 // Used everywhere to write text on the screen.
 std::shared_ptr<TrueTypeFont> font;
@@ -805,32 +806,35 @@ void training_mode( int )
 
     TextBox intro( *font, 50, 50 );
 
-    intro.writeln( "This is how-to-play mode." );
-    intro.writeln( "Move around with WASD (like in an FPS) or the arrow keys." );
-    intro.writeln( "Spawn enemies to practice dealing with them." );
-    intro.writeln( "    Don't worry, you're invincible here.." );
-    intro.writeln();
-    intro.writeln( "Press ENTER to switch between chaos/arcade physics. (Some enemies only available in chaos mode.)" );
-    intro.writeln();
-    intro.writeln( "To return to the menu, press M." );
-    
-    TextBox spawnList( *font, 650, 50 );
+    if( showExtraText ) 
+    {
+        intro.writeln( "This is how-to-play mode." );
+        intro.writeln( "Move around with WASD (like in an FPS) or the arrow keys." );
+        intro.writeln( "Spawn enemies to practice dealing with them." );
+        intro.writeln( "    Don't worry, you're invincible here.." );
+        intro.writeln();
+        intro.writeln( "Press ENTER to switch between chaos/arcade physics. (Some enemies only available in chaos mode.)" );
+        intro.writeln();
+        intro.writeln( "To return to the menu, press M." );
 
-    glColor3f( colors[ORBITAL].r(), colors[ORBITAL].g(), colors[ORBITAL].b() );
-    spawnList.writeln( "Press Z to spawn an Orbital." );
+        TextBox spawnList( *font, 650, 50 );
 
-    glColor3f( colors[STOPPER].r(), colors[STOPPER].g(), colors[STOPPER].b() );
-    spawnList.writeln( "Press X to spawn a Stopper." );
+        glColor3f( colors[ORBITAL].r(), colors[ORBITAL].g(), colors[ORBITAL].b() );
+        spawnList.writeln( "Press Z to spawn an Orbital." );
 
-    glColor3f( colors[TWISTER].r(), colors[TWISTER].g(), colors[TWISTER].b() );
-    spawnList.writeln( "Press C to spawn a Twister." );
+        glColor3f( colors[STOPPER].r(), colors[STOPPER].g(), colors[STOPPER].b() );
+        spawnList.writeln( "Press X to spawn a Stopper." );
 
-    if( chaos ) {
-        glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
-        spawnList.writeln( "Press V to spawn a Negative." );
+        glColor3f( colors[TWISTER].r(), colors[TWISTER].g(), colors[TWISTER].b() );
+        spawnList.writeln( "Press C to spawn a Twister." );
 
-        glColor3f( colors[GREEDY].r(), colors[GREEDY].g(), colors[GREEDY].b() );
-        spawnList.writeln( "Press B to spawn a Greedy." );
+        if( chaos ) {
+            glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
+            spawnList.writeln( "Press V to spawn a Negative." );
+
+            glColor3f( colors[GREEDY].r(), colors[GREEDY].g(), colors[GREEDY].b() );
+            spawnList.writeln( "Press B to spawn a Greedy." );
+        }
     }
 
     // A newly spawned enemy.
@@ -1029,7 +1033,8 @@ void menu( int )
         for( int i=0; i < 3; i++ )
             spawn<MenuOrbital>();
 
-    if( ! playerHasMoved ) {
+    if( ! playerHasMoved ) 
+    {
         glColor3f( 1, 1, 0 );
 
         TextBox b( *font, 270, 350 );
@@ -1039,17 +1044,24 @@ void menu( int )
             b.writeln( "SPACEBAR to dash." );
 
         b.writeln( "Press P to pause." );
-    } else {
-        glColor3f( 0.5, 0.5, 1 );
+    } 
+    else 
+    {
+        if( showExtraText ) 
+        {
+            glColor3f( 0.5, 0.5, 1 );
 
-        // Use a box for config prints.
-        TextBox b( *font, 500, 350 );
-        b.writeln( "Press 1 to switch on/off prediction lines.");
-        b.writeln( "Press 2 to switch on/off gravity lines." );
-        b.writeln( "Press 3 to switch on/off velocity arrows." );
-        b.writeln( "Press 4 to switch on/off acceleration arrows." );
-        b.writeln( "Press 5 to switch on/off motion blur." );
-        b.writeln( "To permanently change, edit config.txt" );
+            // Use a box for config prints.
+            TextBox b( *font, 500, 350 );
+            b.writeln( "Press 1 to switch on/off prediction lines.");
+            b.writeln( "Press 2 to switch on/off gravity lines." );
+            b.writeln( "Press 3 to switch on/off velocity arrows." );
+            b.writeln( "Press 4 to switch on/off acceleration arrows." );
+            b.writeln( "Press 5 to switch on/off motion blur." );
+            b.writeln( "To permanently change, edit config.txt" );
+            b.writeln();
+            b.writeln( "Press E to hide this text." );
+        }
 
         glColor3f( 1, 0.5, 0.5 );
 
@@ -1161,6 +1173,8 @@ void keyboard_events()
     if( Keyboard::key_down(' ') )
         playerIncreasedGravity = true;
 
+    if( Keyboard::key_state('e') )
+        showExtraText = !showExtraText;
 }
 
 int main( int, char** )
