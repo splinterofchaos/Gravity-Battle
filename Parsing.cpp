@@ -53,7 +53,7 @@ Variable evaluate_expression( const std::string& str )
     
     // Just make sure it's an actual assignment. This also makes sure two
     // handles aren't written before the assignment.
-    if( c == '=' )
+    if( c == '=' && ss )
         return ret;
     else
         return VARIABLE_ERROR;

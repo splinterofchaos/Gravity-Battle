@@ -20,8 +20,8 @@ CC = g++
 
 CFLAGS  += -Wall -Wextra
 
-compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -O3 -c 
-link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -O3 -o ${OUT}
+compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -g -c 
+link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -g -o ${OUT}
 
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o .Timer.o .Keyboard.o
 
