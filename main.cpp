@@ -739,19 +739,37 @@ void arcade_mode( int dt )
     // If the player is alive, increase the score.
     if( !Orbital::target.expired() ) 
     {
-        if( cActors.size() <= 2 )
+        float sum = 0;
+        unsigned int nEnemies = 0;
+        unsigned int nActive = 0;
+        for( size_t i=1; i < cActors.size(); i++ ) 
+        {
+            if( cActors[i]->isActive )
+            {
+                nActive++;
+                if( cActors[i]->isMovable ) 
+                {
+                    sum += cActors[i]->score_value();
+                    nEnemies++;
+                }
+            }
+        }
+
+        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
+
+        if( cActors.size() == nActive+1 && nEnemies < 2 )
         {
             enum SpawnPoints {
                 ORBITAL = 1,
-                STOPPER = 1,
-                TWISTER = 2
+                STOPPER = 2,
+                TWISTER = 3
             };
 
-            int points = scoreVal / 1000.f + 3;
+            int points = std::sqrt(scoreVal) / 10.f + 3.f;
 
-            int orbitalChance = 1.0f * scoreVal + 1;
-            int stopperChance = 1.0f * scoreVal + 4;
-            int twisterChance = 2.0f * scoreVal - 1000;
+            int orbitalChance = 1.3f * scoreVal + 1;
+            int stopperChance = 1.0f * scoreVal + 3;
+            int twisterChance = 2.0f * scoreVal - 250*2;
 
             if( twisterChance < 0 )
                 twisterChance = 0;
@@ -766,7 +784,7 @@ void arcade_mode( int dt )
                 if( pick <= orbitalChance ) {
                     code    =      Spawns::ORBITAL;
                     points -= SpawnPoints::ORBITAL;
-                } else if( pick <= stopperChance ) {
+                } else if( pick <= stopperChance+orbitalChance ) {
                     code    =      Spawns::STOPPER;
                     points -= SpawnPoints::STOPPER;
                 } else {
@@ -778,16 +796,6 @@ void arcade_mode( int dt )
             }
 
         }
-
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive && cActors[i]->isMovable ) {
-                sum += cActors[i]->score_value();
-                nEnemies++;
-            }
-
-        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 }
 
