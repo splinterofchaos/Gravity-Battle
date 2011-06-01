@@ -739,6 +739,46 @@ void arcade_mode( int dt )
     // If the player is alive, increase the score.
     if( !Orbital::target.expired() ) 
     {
+        if( cActors.size() <= 2 )
+        {
+            enum SpawnPoints {
+                ORBITAL = 1,
+                STOPPER = 1,
+                TWISTER = 2
+            };
+
+            int points = scoreVal / 1000.f + 3;
+
+            int orbitalChance = 1.0f * scoreVal + 1;
+            int stopperChance = 1.0f * scoreVal + 4;
+            int twisterChance = 2.0f * scoreVal - 1000;
+
+            if( twisterChance < 0 )
+                twisterChance = 0;
+
+            int sum = orbitalChance + stopperChance + twisterChance;
+
+            while( points > 0 )
+            {
+                int pick = random( 0, sum );
+                Spawns code = N_SPAWN_SLOTS;
+
+                if( pick <= orbitalChance ) {
+                    code    =      Spawns::ORBITAL;
+                    points -= SpawnPoints::ORBITAL;
+                } else if( pick <= stopperChance ) {
+                    code    =      Spawns::STOPPER;
+                    points -= SpawnPoints::STOPPER;
+                } else {
+                    code    =      Spawns::TWISTER;
+                    points -= SpawnPoints::TWISTER;
+                }
+
+                delegate_spawn( code );
+            }
+
+        }
+
         float sum = 0;
         unsigned int nEnemies = 0;
         for( size_t i=1; i < cActors.size(); i++ )
@@ -748,30 +788,6 @@ void arcade_mode( int dt )
             }
 
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
-    }
-
-    spawnWait -= dt;
-    if( spawnWait < 0 ) 
-    {
-        if( ! Orbital::target.expired() )
-        {
-            // This is calibrated to be 3 seconds when gameTime=50 seconds.
-            // PROOF:
-            //  D = delay, T = gameTime
-            //  If D = 5000 - a sqrt(T) and D(50,000) = 2:
-            //      3000 = 5000 - a sqrt(50000)
-            //      2000 = a sqrt(5*100*100) 
-            //      2000 = 100 * a * sqrt(5)
-            //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
-        }
-
-        if( spawnDelay < 1 * SECOND )
-            spawnDelay = 1 * SECOND;
-
-        spawnWait = spawnDelay;
-
-        standard_spawn( spawnSlots, 10*SECOND );
     }
 }
 
