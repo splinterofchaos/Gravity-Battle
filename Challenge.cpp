@@ -6,6 +6,7 @@
 
 Package::WeakGoalPtr Package::goal;
 
+const float Package::RADIUS_TO_START = 200;
 const float Obsticle::SIZE = 15;
 const float Goal::SIZE = 23;
 

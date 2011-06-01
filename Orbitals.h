@@ -24,9 +24,9 @@ class Orbital : public CircleActor
     typedef std::vector< std::tr1::weak_ptr<CircleActor> > Attractors;
     static Attractors attractors;
 
-    static const value_type RADIUS = 18;
-    static const int ACTIVATION_DELAY = 2000;
-    static const float BOUNCINESS = 0.8;
+    static const value_type RADIUS;
+    static const int ACTIVATION_DELAY;
+    static const float BOUNCINESS;
 
     typedef std::tr1::weak_ptr<Player>   WeakPlayerPtr;
     typedef std::tr1::shared_ptr<Player> SharedPlayerPtr;
@@ -114,8 +114,8 @@ class Stopper : public Orbital
     static const int N_SWITCHS = 4;
     static Sound switchSfx[N_SWITCHS];
 
-    static const value_type RADIUS = 34;
-    static const value_type STOPPED_RADIUS = 29;
+    static const value_type RADIUS;
+    static const value_type STOPPED_RADIUS;
 
     Stopper( const vector_type& pos, const vector_type& v );
 
@@ -138,7 +138,7 @@ class Stopper : public Orbital
 
 struct Negative : public Orbital
 {
-	static const float RADIUS = 10; 
+	static const float RADIUS; 
 
 	Negative( const vector_type& pos, const vector_type& v );
 

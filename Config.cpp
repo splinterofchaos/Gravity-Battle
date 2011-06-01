@@ -53,7 +53,7 @@ bool Config::reload( const std::string& filename )
         rm_comments(   &line );
         rm_whitespace( &line );
 
-        if( line.size() == 0 )
+        if( line.size() <= 1 )
             continue;
 
         // Check for errors in var after checking it against the possible

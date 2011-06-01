@@ -19,13 +19,22 @@ struct Variable
 {
     std::string handle, value;
 
+    Variable()
+    {
+    }
+
+    Variable( const std::string& handle, const std::string& value )
+        : handle( handle ), value( value )
+    {
+    }
+
     bool operator == ( const Variable& other )
     {
         return handle==other.handle && value==other.value;
     }
 };
 
-const Variable VARIABLE_ERROR = { "ERROR", "ERROR" };
+const Variable VARIABLE_ERROR( "ERROR", "ERROR" );
 
 // Reads an expression (e.g. var = 5), and returns a variable ({"var","5"}).
 // Returns VARIABLE_ERROR if not in expression form.

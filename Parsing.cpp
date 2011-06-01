@@ -43,7 +43,9 @@ Variable evaluate_expression( const std::string& str )
     std::stringstream ss( str );
     char c;
 
-    ss >> ret.handle >> c >> ret.value;
+    ss >> ret.handle;
+    ss >> c;
+    ss >> ret.value;
 
     // I could check that handle and value are proper alphanum, or that nothing
     // is after the expression besides comments, i don't think it's currently
@@ -51,7 +53,7 @@ Variable evaluate_expression( const std::string& str )
     
     // Just make sure it's an actual assignment. This also makes sure two
     // handles aren't written before the assignment.
-    if( c == '=' )
+    if( c == '=' && ss )
         return ret;
     else
         return VARIABLE_ERROR;
