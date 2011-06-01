@@ -760,12 +760,12 @@ void arcade_mode( int dt )
         if( cActors.size() == nActive+1 && nEnemies < 2 )
         {
             enum SpawnPoints {
-                ORBITAL = 1,
-                STOPPER = 2,
+                ORBITAL = 2,
+                STOPPER = 1,
                 TWISTER = 3
             };
 
-            int points = std::sqrt(scoreVal) / 10.f + 3.f;
+            int points = std::sqrt(scoreVal) / 5.f + 3.f;
 
             int orbitalChance = 1.3f * scoreVal + 1;
             int stopperChance = 1.0f * scoreVal + 3;
