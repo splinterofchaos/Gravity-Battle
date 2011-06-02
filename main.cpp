@@ -47,7 +47,7 @@ int particleRatio = 200;
 
 // Used for high score consistency. Increment when a change may effect scoring
 // in any way--pretty much any game rule change at all.
-const int VERSION = 9;
+const int VERSION = 10;
 
 // SDL uses milliseconds so i will too.
 const int SECOND = 1000;
@@ -741,37 +741,61 @@ void arcade_mode( int dt )
     {
         float sum = 0;
         unsigned int nEnemies = 0;
-        for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive && cActors[i]->isMovable ) {
-                sum += cActors[i]->score_value();
-                nEnemies++;
-            }
-
-        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
-    }
-
-    spawnWait -= dt;
-    if( spawnWait < 0 ) 
-    {
-        if( ! Orbital::target.expired() )
+        unsigned int nActive = 0;
+        for( size_t i=1; i < cActors.size(); i++ ) 
         {
-            // This is calibrated to be 3 seconds when gameTime=50 seconds.
-            // PROOF:
-            //  D = delay, T = gameTime
-            //  If D = 5000 - a sqrt(T) and D(50,000) = 2:
-            //      3000 = 5000 - a sqrt(50000)
-            //      2000 = a sqrt(5*100*100) 
-            //      2000 = 100 * a * sqrt(5)
-            //      a = 20 / sqrt(5)
-            spawnDelay = 5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
+            if( cActors[i]->isActive )
+            {
+                nActive++;
+                if( cActors[i]->isMovable ) 
+                {
+                    sum += cActors[i]->score_value();
+                    nEnemies++;
+                }
+            }
         }
 
-        if( spawnDelay < 1 * SECOND )
-            spawnDelay = 1 * SECOND;
+        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
 
-        spawnWait = spawnDelay;
+        if( cActors.size() == nActive+1 && nEnemies < 2 )
+        {
+            enum SpawnPoints {
+                ORBITAL = 2,
+                STOPPER = 1,
+                TWISTER = 3
+            };
 
-        standard_spawn( spawnSlots, 10*SECOND );
+            int points = std::sqrt(scoreVal) / 5.f + 3.f;
+
+            int orbitalChance = 1.3f * scoreVal + 1;
+            int stopperChance = 1.0f * scoreVal + 3;
+            int twisterChance = 2.0f * scoreVal - 250*2;
+
+            if( twisterChance < 0 )
+                twisterChance = 0;
+
+            int sum = orbitalChance + stopperChance + twisterChance;
+
+            while( points > 0 )
+            {
+                int pick = random( 0, sum );
+                Spawns code = N_SPAWN_SLOTS;
+
+                if( pick <= orbitalChance ) {
+                    code    =      Spawns::ORBITAL;
+                    points -= SpawnPoints::ORBITAL;
+                } else if( pick <= stopperChance+orbitalChance ) {
+                    code    =      Spawns::STOPPER;
+                    points -= SpawnPoints::STOPPER;
+                } else {
+                    code    =      Spawns::TWISTER;
+                    points -= SpawnPoints::TWISTER;
+                }
+
+                delegate_spawn( code );
+            }
+
+        }
     }
 }
 
