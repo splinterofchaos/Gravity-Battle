@@ -219,13 +219,13 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
             }
 
             pathOfOrbit[i] = p.s;
-            if( false ) {
-                pathColors[i] = c * magnitude(p.v) * 4;
-            } else {
-                pathColors[i] = 
-                    c * (float(NUM_PREDICTIONS-i)/NUM_PREDICTIONS) * 4;
-                pathColors[i].a( 0.7 );
-            }
+            pathColors[i] = 
+                c * ((NUM_PREDICTIONS-i/1.5f)/NUM_PREDICTIONS);
+
+            float time = float(i) / predictionPrecision * (predictionPrecision/10.f);
+            float alpha = ( int(time) % 2 )? 0.4f : 1.0f;
+
+            pathColors[i].a( alpha );
         } // For( i = (0,NUM_PREDICTIONS] )
 
         glDisable( GL_TEXTURE_2D );
