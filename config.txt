@@ -4,7 +4,7 @@
 
 # How many particles to spawn, proportionate to the exploder's mass.
 # It the game runs slowly after a collision, this is the variable to turn down.
-particle-ratio = 100
+particle-ratio = 80
 
 # How large should the particles be? 1 is default.
 particle-size = 1.0
