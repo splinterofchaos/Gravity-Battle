@@ -407,6 +407,8 @@ void update_high_score()
     out << highScoreTable;
 }
 
+// This is called for each actor and returns true if it should be deleted.
+// It may seem unclean, but it also handles all on-death events.
 bool delete_me( SharedCActorPtr& actor )
 {
     static Sound explosions[] = { 
@@ -438,11 +440,15 @@ bool delete_me( SharedCActorPtr& actor )
             update_high_score();
         }
 
+        // Let it be heard.
         explosions[ random(0, N_EXPLOSIONS) ].play();
     }
+
     return actor->deleteMe;
 }
 
+// Resets whatever mode the game is in. 
+// If no mode is given, it resets the current mode.
 void reset( GameLogic logic = 0 )
 {
     if( logic )
@@ -456,6 +462,7 @@ void reset( GameLogic logic = 0 )
 
     newHighScore = false;
 
+    // If we're switching to a different mode...
     if( logic && logic != gameLogic ) {
         gameLogic = logic;
 
@@ -465,7 +472,7 @@ void reset( GameLogic logic = 0 )
         for( size_t i=0; i < cActors.size(); i++ )
             cActors[i]->deleteMe = true;
 
-        // But don't kill the player!
+        // But don't explode the player!
         if( target )
             target->deleteMe = false;
 
@@ -474,6 +481,10 @@ void reset( GameLogic logic = 0 )
         // Normal resets clear the screen.
         particles.clear();
     }
+
+    // We need to clear cActors, but keep the player. We'll clear it
+    // completely, then respawn the player in the same place so the user
+    // doesn't notice..
 
     Actor::vector_type playerPos( 350, 300 );
     if( target )
@@ -505,11 +516,11 @@ WeakCActorPtr delegate_spawn( int spawnCode )
 
     switch( spawnCode )
     {
-      case ORBITAL: s = spawn<Orbital>(); break;
-      case STOPPER: s = spawn<Stopper>(); break;
-      case TWISTER: s = spawn<Twister>(); break;
+      case ORBITAL:  s = spawn<Orbital>(); break;
+      case STOPPER:  s = spawn<Stopper>(); break;
+      case TWISTER:  s = spawn<Twister>(); break;
       case NEGATIVE: s = spawn<Negative>(); break;
-      case GREEDY : s = spawn<Greedy>();  break;
+      case GREEDY :  s = spawn<Greedy>();  break;
       default: break; // Should never be reached.
     }
 
@@ -552,7 +563,12 @@ void chaos_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) {
+    // If the player died in the past 30 seconds...
+    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
+    {
+        // We need to print a message to tell the user how to restart or
+        // navigate to the menu, and the high scores list.
+
         glColor3f( 1, 1, 1 );
 
         font->draw( "Press r to reset, m for menu", 600, 200 );
@@ -619,6 +635,8 @@ void chaos_mode( int dt )
     // If the player is alive...
     if( !Orbital::target.expired() ) 
     {
+        // Increase the score.
+
         float sum = 0;
         unsigned int nEnemies = 0;
         for( size_t i=1; i < cActors.size(); i++ )
@@ -630,6 +648,7 @@ void chaos_mode( int dt )
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
     }
 
+    // Time to spawn a new enemy?
     spawnWait -= dt;
     if( spawnWait < 0 ) 
     {
@@ -638,9 +657,9 @@ void chaos_mode( int dt )
             // This is calibrated to be 3 seconds when gameTime=50 seconds.
             // PROOF:
             //  D = delay, T = gameTime
-            //  If D = 5000 - a sqrt(T) and D(50,000) = 2:
-            //      3000 = 5000 - a sqrt(50000)
-            //      2000 = a sqrt(5*100*100) 
+            //  If D = 5000 - a sqrt(T) and D(50,000) = 2000:
+            //      3000 = 5000 - a sqrt(50000) 
+            //      2000 = a sqrt(5*100*100)
             //      2000 = 100 * a * sqrt(5)
             //      a = 20 / sqrt(5)
             spawnDelay = 
@@ -757,6 +776,8 @@ void arcade_mode( int dt )
 
         scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
 
+        // If cActors has only active enemies + the player 
+        // and there's one or zero enemies...
         if( cActors.size() == nActive+1 && nEnemies < 2 )
         {
             enum SpawnPoints {
@@ -765,6 +786,7 @@ void arcade_mode( int dt )
                 TWISTER = 3
             };
 
+            // An arbitrary equation. Not very tested.
             int points = std::sqrt(scoreVal) / 5.f + 3.f;
 
             int orbitalChance = 1.3f * scoreVal + 1;
@@ -801,8 +823,14 @@ void arcade_mode( int dt )
 
 void training_mode( int )
 {
+    // This is a sandbox mode where the player can't die and s/he can manually
+    // spawn any enemy in the game.
+
+    // The player can try both chaos and arcade mode. In chaos mode, all
+    // cActors become attractors.
     static bool chaos = false;
 
+    // Tips will appear on the bottom of the screen after an enemy is spawned. 
     static const char* tips[ N_SPAWN_SLOTS ];
     tips[ ORBITAL  ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
     tips[ TWISTER  ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
@@ -811,6 +839,7 @@ void training_mode( int )
     tips[ STOPPER  ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
                        "\nThe only way to kill a stopper is to run into it while it's stopped.";
 
+    // These colors correlate, somewhat, to the colors of the enemies.
     static Color colors[ N_SPAWN_SLOTS ];
     colors[ ORBITAL  ] = Color( 0.4f, 0.4f, 1.0f );
     colors[ STOPPER  ] = Color( 0.7f, 0.7f, 0.7f );
@@ -818,7 +847,7 @@ void training_mode( int )
     colors[ NEGATIVE ] = Color( 0.3f, 1.0f, 1.0f );
     colors[ GREEDY   ] = Color( 1.0f, 0.0f, 1.0f );
 
-    // \r as in enter
+    // Swap the mode when enter is pressed.
     if( Keyboard::key_state('\r') ) {
         chaos = ! chaos;
 
@@ -901,6 +930,8 @@ void training_mode( int )
 
 void package_delivery( int dt )
 {
+    // In this mode, the player must guide the "package" to the "goal".
+
     static Music menuSong( "art/music/Magic.ogg" );
 
     if( ! menuSong.playing() )
@@ -926,10 +957,9 @@ void package_delivery( int dt )
     // Will get reinitialized if loading new level.
     std::tr1::shared_ptr<Package> package = weakPackage.lock();
 
+    // If we have a player but not package/obstacles/target, initialize them.
     if( cActors.size() == 1 && target ) 
     {
-        // Initialize.
-
         std::stringstream filename;
         filename << "challenge/package/level" << packageLevel;
 
@@ -974,7 +1004,7 @@ void package_delivery( int dt )
                     }
 
                 }
-            }
+            } // End parse file.
         }
         else 
         {
@@ -1099,12 +1129,12 @@ void menu( int )
         );
     }
 
-    // Enter arcade mode when the orbital reaches the top of the screen.
+    // Enter the next mode when the orbital reaches the edge of the screen.
     for( size_t i=0; i < cActors.size(); i++ ) {
         if( !cActors[i]->isActive )
             continue;
 
-        if(      cActors[i]->s.y() < Arena::minX + cActors[i]->radius()  )
+        if(      cActors[i]->s.y() < Arena::minX + cActors[i]->radius() )
             reset( arcade_mode );
         else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() )
             reset( training_mode );
