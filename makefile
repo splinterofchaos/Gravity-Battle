@@ -18,7 +18,7 @@ endif
  
 CC = g++ 
 
-CFLAGS  += -Wall -Wextra -Ofast
+CFLAGS  += -Wall -Wextra -O3
 
 compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -c 
 link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -o ${OUT}

@@ -1428,81 +1428,110 @@ int main( int, char** )
             );
         }
 
-        if( ! paused )
-            for( auto it=cActors.begin(); it < cActors.end() ; it++ ) 
-                (*it)->draw();
-
         int partsDrawn = 0;
-        for( auto it=particles.begin(); it < particles.end(); it++ )
-            if( it->s.x() > Arena::minX && 
-                it->s.x() < Arena::maxX && 
-                it->s.y() > Arena::minY && 
-                it->s.y() < Arena::maxY )
-            {
-                it->draw();
-                partsDrawn++;
-            }
-
-
-        float boarder[] = {
-            Arena::minX, Arena::minY,
-            Arena::maxX, Arena::minY,
-            Arena::maxX, Arena::maxY,
-            Arena::minX, Arena::maxY
-        };
-
-        if( paused ) {
-            glColor3f( 1, 1, 1 );
-            TextBox b( *font, 200, 250 );
-            b.writeln( "Thank you for playing ORBITAL CHAOS." );
-            b.writeln( "I hope you enjoy. It is my first game." );
-            b.writeln( "Please refer questions, comments, etc., to my email hakusa@gmail.com." );
-            b.writeln( "The source code is available at https://github.com/splinterofchaos/Gravity-Battle" );
-        }
-
-        glColor3f( 1, 1, 1 );
-        draw::draw( boarder, 4, GL_LINE_LOOP );
-        
-        glLoadIdentity();
 
         static Timer realTimer;
         realTimer.update();
         static int lastUpdate = realTimer.time_ms();
-        if( lastUpdate + IDEAL_FRAME_TIME/2 <= realTimer.time_ms() ) {
+        if( IDEAL_FRAME_TIME < realTimer.time_ms() ) 
+        {
+            realTimer.zero();
+
+            if( ! paused )
+                for( auto it=cActors.begin(); it < cActors.end() ; it++ ) 
+                    (*it)->draw();
+
+            static int texCoords[] = {
+                0, 0,
+                1, 0,
+                1, 1, 
+                0, 1
+            };
+
+            glEnable( GL_TEXTURE_2D );
+
+            glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+            glBindTexture( GL_TEXTURE_2D, 1 );
+            glTexCoordPointer( 2, GL_INT, 0, texCoords );
+            for( auto it=particles.begin(); it < particles.end(); it++ )
+            {
+
+                if( it->s.x() > Arena::minX && 
+                    it->s.x() < Arena::maxX && 
+                    it->s.y() > Arena::minY && 
+                    it->s.y() < Arena::maxY )
+                {
+
+                    it->draw();
+                    partsDrawn++;
+                }
+            }
+
+                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+                glDisable( GL_TEXTURE_2D );
+
+
+            float boarder[] = {
+                Arena::minX, Arena::minY,
+                Arena::maxX, Arena::minY,
+                Arena::maxX, Arena::maxY,
+                Arena::minX, Arena::maxY
+            };
+
+            if( paused ) {
+                glColor3f( 1, 1, 1 );
+                TextBox b( *font, 200, 250 );
+                b.writeln( "Thank you for playing ORBITAL CHAOS." );
+                b.writeln( "I hope you enjoy. It is my first game." );
+                b.writeln( "Please refer questions, comments, etc., to my email hakusa@gmail.com." );
+                b.writeln( "The source code is available at https://github.com/splinterofchaos/Gravity-Battle" );
+            }
+
+            glColor3f( 1, 1, 1 );
+            draw::draw( boarder, 4, GL_LINE_LOOP );
+
+            glLoadIdentity();
+
+            if( showFrameTime ) 
+            {
+                std::stringstream ss;
+                TextBox b( *font, 10, 600 );
+
+                float val = frameTimer.time_sec();
+                if( !val )
+                    val = 0.5;
+
+                ss << "fps: " << ( 1.f / val );
+                b.writeln( ss.str() );
+
+                ss.str( "" );
+                ss << "parts: " << particles.size();
+                b.writeln( ss.str() );
+
+                ss.str( "" );
+                ss << "parts on screen: " << partsDrawn;
+                b.writeln( ss.str() );
+
+                ss.str( "" );
+                ss << "spawn delay: " << spawnDelay;
+                b.writeln( ss.str() );
+
+                ss.str( "" );
+                ss << "time: " << gameTimer.time_sec();
+                b.writeln( ss.str() );
+            }
+
             configure( config );
             update_screen();
+        }
+        else
+        {
+            SDL_Delay( 5 );
         }
         
         if( paused )
             frameTimer.zero();
-
-        if( showFrameTime ) {
-            std::stringstream ss;
-            TextBox b( *font, 10, 600 );
-
-            float val = frameTimer.time_sec();
-            if( !val )
-                val = 0.5;
-
-            ss << "fps: " << ( 1.f / val );
-            b.writeln( ss.str() );
-
-            ss.str( "" );
-            ss << "parts: " << particles.size();
-            b.writeln( ss.str() );
-
-            ss.str( "" );
-            ss << "parts on screen: " << partsDrawn;
-            b.writeln( ss.str() );
-
-            ss.str( "" );
-            ss << "spawn delay: " << spawnDelay;
-            b.writeln( ss.str() );
-
-            ss.str( "" );
-            ss << "time: " << gameTimer.time_sec();
-            b.writeln( ss.str() );
-        }
 
         frameTimer.reset();
         frameTimer.clamp_ms( MAX_FRAME_TIME );

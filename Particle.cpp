@@ -56,18 +56,11 @@ void Particle::draw()
         -scale * widthRatio,  scale,
     };
 
-    int texCoords[] = {
-        0, 0,
-        1, 0,
-        1, 1, 
-        0, 1
-    };
-
     glTranslatef( s.x(), s.y(), 1 );
     glColor4f( c.r(), c.g(), c.b(), opacity );
     glRotatef( angle, 0, 0, 1 );
 
-    draw::draw( verts, 4, 1, texCoords );
+    draw::draw( verts, 4 );
 
     glDisable( GL_DEPTH_TEST );
     glLoadIdentity();
