@@ -106,6 +106,7 @@ struct Mode
     UpdateFunc update;
     UpdateFunc onDeath;
     UpdateFunc score;
+    UpdateFunc spawn;
 
     Mode( const std::string& name )
         : name( name )
@@ -113,6 +114,7 @@ struct Mode
         update  = null_update;
         onDeath = null_update;
         score   = null_update;
+        spawn   = null_update;
     }
 };
 
@@ -128,6 +130,9 @@ void chaos_mode( int dt );
 void on_death( int dt );
 void score( int dt );
 
+void arcade_spawn( int dt );
+void chaos_spawn( int dt );
+
 Mode arcadeMode( "Arcade" );
 Mode trainingMode( "Training" );
 Mode menuMode( "Menu" );
@@ -139,10 +144,12 @@ void initialize_modes()
     arcadeMode.update  = arcade_mode;
     arcadeMode.onDeath = on_death;
     arcadeMode.score   = score;
+    arcadeMode.spawn   = arcade_spawn;
 
     chaosMode.update  = chaos_mode;
     chaosMode.onDeath = on_death;
     chaosMode.score   = score;
+    chaosMode.spawn   = chaos_spawn;
 
     trainingMode.update = training_mode;
 
@@ -594,38 +601,28 @@ void play_song( Music& song )
         Mix_FadeOutMusic( 2500 );
 }
 
-void chaos_mode( int dt )
-{ 
-    static Music menuSong( "art/music/Stuck Zipper.ogg" );
-    play_song( menuSong );
-
+void chaos_spawn( int dt )
+{
     static std::vector<Spawns> chaosSlots = {
         ORBITAL, TWISTER, 
         NEGATIVE, ORBITAL, STOPPER, GREEDY,
         NEGATIVE, TWISTER, ORBITAL, TWISTER 
     };
 
-    glColor3f( 1, 1, 0 );
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
-
     // Time to spawn a new enemy?
     spawnWait -= dt;
     if( spawnWait < 0 ) 
     {
-        if( ! Orbital::target.expired() )
-        {
-            // This is calibrated to be 3 seconds when gameTime=50 seconds.
-            // PROOF:
-            //  D = delay, T = gameTime
-            //  If D = 5000 - a sqrt(T) and D(50,000) = 2000:
-            //      3000 = 5000 - a sqrt(50000) 
-            //      2000 = a sqrt(5*100*100)
-            //      2000 = 100 * a * sqrt(5)
-            //      a = 20 / sqrt(5)
-            spawnDelay = 
-                5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
-        }
-
+        // This is calibrated to be 3 seconds when gameTime=50 seconds.
+        // PROOF:
+        //  D = delay, T = gameTime
+        //  If D = 5000 - a sqrt(T) and D(50,000) = 2000:
+        //      3000 = 5000 - a sqrt(50000) 
+        //      2000 = a sqrt(5*100*100)
+        //      2000 = 100 * a * sqrt(5)
+        //      a = 20 / sqrt(5)
+        spawnDelay = 
+            5*SECOND - std::sqrt(gameTimer.time_ms()) * (20.f/std::sqrt(5));
         if( spawnDelay < 1 * SECOND )
             spawnDelay = 1 * SECOND;
 
@@ -635,6 +632,16 @@ void chaos_mode( int dt )
         Orbital::attractors.push_back( spawn );
         spawn->isAttractor = true;
     }
+}
+
+void chaos_mode( int dt )
+{ 
+    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    play_song( menuSong );
+
+    glColor3f( 1, 1, 0 );
+    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+
 }
 
 void score( int dt )
@@ -658,14 +665,8 @@ void score( int dt )
     scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
 }
 
-void arcade_mode( int dt )
+void arcade_spawn( int dt )
 {
-    static Music menuSong( "art/music/Stuck Zipper.ogg" );
-    play_song( menuSong );
-
-    glColor3f( 1, 1, 0 );
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
-
     int nMoving = 0;
     for( size_t i=1; i < cActors.size(); i++ ) 
         nMoving += cActors[i]->isActive && cActors[i]->isMovable;
@@ -712,6 +713,15 @@ void arcade_mode( int dt )
         }
 
     }
+}
+
+void arcade_mode( int dt )
+{
+    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    play_song( menuSong );
+
+    glColor3f( 1, 1, 0 );
+    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 }
 
 
@@ -1265,10 +1275,12 @@ int main( int, char** )
 
         mode->update( frameTimer.time_ms() );
 
-        if( !timePlayerDied )
+        if( !timePlayerDied ) {
             mode->score( frameTimer.time_ms() );
-        else
+            mode->spawn( frameTimer.time_ms() );
+        } else {
             mode->onDeath( frameTimer.time_ms() );
+        }
 
         // For each time-step:
         static int time = 0;
