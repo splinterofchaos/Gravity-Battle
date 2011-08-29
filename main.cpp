@@ -98,6 +98,8 @@ HighScoreTable highScoreTable;
 
 struct Mode
 {
+    static void null_update(int) { }
+
     std::string name;
 
     typedef void (*UpdateFunc) (int dt);
@@ -105,8 +107,10 @@ struct Mode
     UpdateFunc onDeath;
 
     Mode( const std::string& name )
-        : name( name ), update( 0 ), onDeath( 0 )
+        : name( name )
     {
+        update = null_update;
+        onDeath = null_update;
     }
 };
 
@@ -1269,7 +1273,7 @@ int main( int, char** )
 
         mode->update( frameTimer.time_ms() );
 
-        if( timePlayerDied && mode->onDeath > 0 )
+        if( timePlayerDied )
             mode->onDeath( frameTimer.time_ms() );
 
         // For each time-step:
