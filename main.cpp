@@ -100,14 +100,10 @@ struct Mode
 {
     typedef void (*UpdateFunc) (int dt);
     UpdateFunc update;
+    UpdateFunc onDeath;
 
     Mode()
-        : update( 0 )
-    {
-    }
-
-    Mode( UpdateFunc f )
-        : update( f )
+        : update( 0 ), onDeath( 0 )
     {
     }
 };
@@ -121,11 +117,27 @@ void menu( int dt );
 void package_delivery( int dt );
 void chaos_mode( int dt );
 
-Mode arcadeMode( arcade_mode );
-Mode trainingMode( training_mode );
-Mode menuMode( menu );
-Mode packageMode( package_delivery );
-Mode chaosMode( chaos_mode );
+void arcade_on_death( int dt );
+
+Mode arcadeMode;
+Mode trainingMode;
+Mode menuMode;
+Mode packageMode;
+Mode chaosMode;
+
+void initialize_modes()
+{
+    arcadeMode.update  = arcade_mode;
+    arcadeMode.onDeath = arcade_on_death;
+
+    trainingMode.update = training_mode;
+
+    menuMode.update = menu;
+
+    packageMode.update = package_delivery;
+
+    chaosMode.update = chaos_mode;
+}
 
 std::string to_string( int x )
 {
@@ -706,7 +718,76 @@ void arcade_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
+    // If the player is alive, increase the score.
+    if( !Orbital::target.expired() ) 
+    {
+        float sum = 0;
+        unsigned int nEnemies = 0;
+        unsigned int nActive = 0;
+        for( size_t i=1; i < cActors.size(); i++ ) 
+        {
+            if( cActors[i]->isActive )
+            {
+                nActive++;
+                if( cActors[i]->isMovable ) 
+                {
+                    sum += cActors[i]->score_value();
+                    nEnemies++;
+                }
+            }
+        }
+
+        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
+
+        // If cActors has only active enemies + the player 
+        // and there's one or zero enemies...
+        if( cActors.size() == nActive+1 && nEnemies < 2 )
+        {
+            enum SpawnPoints {
+                ORBITAL = 2,
+                STOPPER = 1,
+                TWISTER = 3
+            };
+
+            // An arbitrary equation. Not very tested.
+            int points = std::sqrt(scoreVal) / 5.f + 3.f;
+
+            int orbitalChance = 1.3f * scoreVal + 1;
+            int stopperChance = 1.0f * scoreVal + 3;
+            int twisterChance = 2.0f * scoreVal - 250*2;
+
+            if( twisterChance < 0 )
+                twisterChance = 0;
+
+            int sum = orbitalChance + stopperChance + twisterChance;
+
+            while( points > 0 )
+            {
+                int pick = random( 0, sum );
+                Spawns code = N_SPAWN_SLOTS;
+
+                if( pick <= orbitalChance ) {
+                    code    =      Spawns::ORBITAL;
+                    points -= SpawnPoints::ORBITAL;
+                } else if( pick <= stopperChance+orbitalChance ) {
+                    code    =      Spawns::STOPPER;
+                    points -= SpawnPoints::STOPPER;
+                } else {
+                    code    =      Spawns::TWISTER;
+                    points -= SpawnPoints::TWISTER;
+                }
+
+                delegate_spawn( code );
+            }
+
+        }
+    }
+}
+
+
+void arcade_on_death( int dt )
+{
+    if( gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
     {
         glColor3f( 1, 1, 1 );
 
@@ -775,72 +856,8 @@ void arcade_mode( int dt )
             b.writeln( ss.str() );
         }
     }
-
-    // If the player is alive, increase the score.
-    if( !Orbital::target.expired() ) 
-    {
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        unsigned int nActive = 0;
-        for( size_t i=1; i < cActors.size(); i++ ) 
-        {
-            if( cActors[i]->isActive )
-            {
-                nActive++;
-                if( cActors[i]->isMovable ) 
-                {
-                    sum += cActors[i]->score_value();
-                    nEnemies++;
-                }
-            }
-        }
-
-        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
-
-        // If cActors has only active enemies + the player 
-        // and there's one or zero enemies...
-        if( cActors.size() == nActive+1 && nEnemies < 2 )
-        {
-            enum SpawnPoints {
-                ORBITAL = 2,
-                STOPPER = 1,
-                TWISTER = 3
-            };
-
-            // An arbitrary equation. Not very tested.
-            int points = std::sqrt(scoreVal) / 5.f + 3.f;
-
-            int orbitalChance = 1.3f * scoreVal + 1;
-            int stopperChance = 1.0f * scoreVal + 3;
-            int twisterChance = 2.0f * scoreVal - 250*2;
-
-            if( twisterChance < 0 )
-                twisterChance = 0;
-
-            int sum = orbitalChance + stopperChance + twisterChance;
-
-            while( points > 0 )
-            {
-                int pick = random( 0, sum );
-                Spawns code = N_SPAWN_SLOTS;
-
-                if( pick <= orbitalChance ) {
-                    code    =      Spawns::ORBITAL;
-                    points -= SpawnPoints::ORBITAL;
-                } else if( pick <= stopperChance+orbitalChance ) {
-                    code    =      Spawns::STOPPER;
-                    points -= SpawnPoints::STOPPER;
-                } else {
-                    code    =      Spawns::TWISTER;
-                    points -= SpawnPoints::TWISTER;
-                }
-
-                delegate_spawn( code );
-            }
-
-        }
-    }
 }
+
 
 void training_mode( int )
 {
@@ -1275,6 +1292,8 @@ int main( int, char** )
 
     load_resources();
 
+    initialize_modes();
+
     reset( &menuMode ); 
 
     Timer frameTimer;
@@ -1312,6 +1331,9 @@ int main( int, char** )
             DT /= 2;
 
         mode->update( frameTimer.time_ms() );
+
+        if( timePlayerDied && mode->onDeath > 0 )
+            mode->onDeath( frameTimer.time_ms() );
 
         // For each time-step:
         static int time = 0;
