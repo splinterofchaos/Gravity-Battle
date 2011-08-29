@@ -105,12 +105,14 @@ struct Mode
     typedef void (*UpdateFunc) (int dt);
     UpdateFunc update;
     UpdateFunc onDeath;
+    UpdateFunc score;
 
     Mode( const std::string& name )
         : name( name )
     {
-        update = null_update;
+        update  = null_update;
         onDeath = null_update;
+        score   = null_update;
     }
 };
 
@@ -124,6 +126,7 @@ void package_delivery( int dt );
 void chaos_mode( int dt );
 
 void on_death( int dt );
+void score( int dt );
 
 Mode arcadeMode( "Arcade" );
 Mode trainingMode( "Training" );
@@ -135,15 +138,17 @@ void initialize_modes()
 {
     arcadeMode.update  = arcade_mode;
     arcadeMode.onDeath = on_death;
+    arcadeMode.score   = score;
+
+    chaosMode.update  = chaos_mode;
+    chaosMode.onDeath = on_death;
+    chaosMode.score   = score;
 
     trainingMode.update = training_mode;
 
     menuMode.update = menu;
 
     packageMode.update = package_delivery;
-
-    chaosMode.update = chaos_mode;
-    chaosMode.onDeath = on_death;
 }
 
 std::string to_string( int x )
@@ -603,22 +608,6 @@ void chaos_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    // If the player is alive...
-    if( !Orbital::target.expired() ) 
-    {
-        // Increase the score.
-
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        for( size_t i=1; i < cActors.size(); i++ )
-            if( cActors[i]->isActive && cActors[i]->isMovable ) {
-                sum += cActors[i]->score_value();
-                nEnemies++;
-            }
-
-        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
-    }
-
     // Time to spawn a new enemy?
     spawnWait -= dt;
     if( spawnWait < 0 ) 
@@ -648,6 +637,27 @@ void chaos_mode( int dt )
     }
 }
 
+void score( int dt )
+{
+    float sum = 0;
+    unsigned int nEnemies = 0;
+    unsigned int nActive = 0;
+    for( size_t i=1; i < cActors.size(); i++ ) 
+    {
+        if( cActors[i]->isActive )
+        {
+            nActive++;
+            if( cActors[i]->isMovable ) 
+            {
+                sum += cActors[i]->score_value();
+                nEnemies++;
+            }
+        }
+    }
+
+    scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
+}
+
 void arcade_mode( int dt )
 {
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
@@ -656,69 +666,51 @@ void arcade_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    // If the player is alive, increase the score.
-    if( !Orbital::target.expired() ) 
+    int nMoving = 0;
+    for( size_t i=1; i < cActors.size(); i++ ) 
+        nMoving += cActors[i]->isActive && cActors[i]->isMovable;
+
+    // If cActors has only active enemies + the player 
+    // and there's one or zero enemies...
+    if( nMoving <= 1 && cActors.back()->isActive )
     {
-        float sum = 0;
-        unsigned int nEnemies = 0;
-        unsigned int nActive = 0;
-        for( size_t i=1; i < cActors.size(); i++ ) 
+        enum SpawnPoints {
+            ORBITAL = 2,
+            STOPPER = 1,
+            TWISTER = 3
+        };
+
+        // An arbitrary equation. Not very tested.
+        int points = std::sqrt(scoreVal) / 5.f + 3.f;
+
+        int orbitalChance = 1.3f * scoreVal + 1;
+        int stopperChance = 1.0f * scoreVal + 3;
+        int twisterChance = 2.0f * scoreVal - 250*2;
+
+        if( twisterChance < 0 )
+            twisterChance = 0;
+
+        int sum = orbitalChance + stopperChance + twisterChance;
+
+        while( points > 0 )
         {
-            if( cActors[i]->isActive )
-            {
-                nActive++;
-                if( cActors[i]->isMovable ) 
-                {
-                    sum += cActors[i]->score_value();
-                    nEnemies++;
-                }
-            }
-        }
+            int pick = random( 0, sum );
+            Spawns code = N_SPAWN_SLOTS;
 
-        scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
-
-        // If cActors has only active enemies + the player 
-        // and there's one or zero enemies...
-        if( cActors.size() == nActive+1 && nEnemies < 2 )
-        {
-            enum SpawnPoints {
-                ORBITAL = 2,
-                STOPPER = 1,
-                TWISTER = 3
-            };
-
-            // An arbitrary equation. Not very tested.
-            int points = std::sqrt(scoreVal) / 5.f + 3.f;
-
-            int orbitalChance = 1.3f * scoreVal + 1;
-            int stopperChance = 1.0f * scoreVal + 3;
-            int twisterChance = 2.0f * scoreVal - 250*2;
-
-            if( twisterChance < 0 )
-                twisterChance = 0;
-
-            int sum = orbitalChance + stopperChance + twisterChance;
-
-            while( points > 0 )
-            {
-                int pick = random( 0, sum );
-                Spawns code = N_SPAWN_SLOTS;
-
-                if( pick <= orbitalChance ) {
-                    code    =      Spawns::ORBITAL;
-                    points -= SpawnPoints::ORBITAL;
-                } else if( pick <= stopperChance+orbitalChance ) {
-                    code    =      Spawns::STOPPER;
-                    points -= SpawnPoints::STOPPER;
-                } else {
-                    code    =      Spawns::TWISTER;
-                    points -= SpawnPoints::TWISTER;
-                }
-
-                delegate_spawn( code );
+            if( pick <= orbitalChance ) {
+                code    =      Spawns::ORBITAL;
+                points -= SpawnPoints::ORBITAL;
+            } else if( pick <= stopperChance+orbitalChance ) {
+                code    =      Spawns::STOPPER;
+                points -= SpawnPoints::STOPPER;
+            } else {
+                code    =      Spawns::TWISTER;
+                points -= SpawnPoints::TWISTER;
             }
 
+            delegate_spawn( code );
         }
+
     }
 }
 
@@ -1273,7 +1265,9 @@ int main( int, char** )
 
         mode->update( frameTimer.time_ms() );
 
-        if( timePlayerDied )
+        if( !timePlayerDied )
+            mode->score( frameTimer.time_ms() );
+        else
             mode->onDeath( frameTimer.time_ms() );
 
         // For each time-step:
