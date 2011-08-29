@@ -98,12 +98,14 @@ HighScoreTable highScoreTable;
 
 struct Mode
 {
+    std::string name;
+
     typedef void (*UpdateFunc) (int dt);
     UpdateFunc update;
     UpdateFunc onDeath;
 
-    Mode()
-        : update( 0 ), onDeath( 0 )
+    Mode( const std::string& name )
+        : name( name ), update( 0 ), onDeath( 0 )
     {
     }
 };
@@ -117,18 +119,18 @@ void menu( int dt );
 void package_delivery( int dt );
 void chaos_mode( int dt );
 
-void arcade_on_death( int dt );
+void on_death( int dt );
 
-Mode arcadeMode;
-Mode trainingMode;
-Mode menuMode;
-Mode packageMode;
-Mode chaosMode;
+Mode arcadeMode( "Arcade" );
+Mode trainingMode( "Training" );
+Mode menuMode( "Menu" );
+Mode packageMode( "Package" );
+Mode chaosMode( "Chaos" );
 
 void initialize_modes()
 {
     arcadeMode.update  = arcade_mode;
-    arcadeMode.onDeath = arcade_on_death;
+    arcadeMode.onDeath = on_death;
 
     trainingMode.update = training_mode;
 
@@ -137,6 +139,7 @@ void initialize_modes()
     packageMode.update = package_delivery;
 
     chaosMode.update = chaos_mode;
+    chaosMode.onDeath = on_death;
 }
 
 std::string to_string( int x )
@@ -596,75 +599,6 @@ void chaos_mode( int dt )
     glColor3f( 1, 1, 0 );
     font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
 
-    // If the player died in the past 30 seconds...
-    if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
-    {
-        // We need to print a message to tell the user how to restart or
-        // navigate to the menu, and the high scores list.
-
-        glColor3f( 1, 1, 1 );
-
-        font->draw( "Press r to reset, m for menu", 600, 200 );
-
-        // Draw high scores to screen.
-        TextBox b( *font, 470, 250 );
-        b.writeln( "Scores stored in Chaos Scores.txt:" );
-        b.writeln( "" );
-
-        // To draw text with a gradient, keep track of these:
-        float color = 1;
-        float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
-
-        // Find the largest handle and score for to make nice
-        // columns for printing.
-        size_t largestHandleSize = 0;
-        size_t largestScoreSize = 0;
-        for( HighScoreTable::iterator it=highScoreTable.begin();
-             it != highScoreTable.end(); it++ )
-        {
-            if( it->second.size() > largestHandleSize )
-                largestHandleSize = it->second.size();
-
-            unsigned int nDigits = std::log10( it->first );
-            
-            if( nDigits > largestScoreSize )
-                largestScoreSize = nDigits;
-        }
-
-        // Use this to format the text.
-        std::stringstream ss;
-        ss.precision( 3 );
-        ss.fill( '.' );
-
-        const int HANDLE_WIDTH = largestHandleSize + 2;
-        const int SCORE_WIDTH  = largestScoreSize  + 5;
-
-        // Assume highScoreTable is newly initialized by update_high_score. 
-        for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
-             it!=highScoreTable.rend(); it++ ) 
-        {
-            ss.str( "" );
-
-            ss << std::setw(HANDLE_WIDTH) << std::left << it->second;
-
-            // internal is the only iostream object that seems to work here.
-            // The obvious fixed << right did not work.
-            ss << std::setw(SCORE_WIDTH) << std::fixed << std::internal <<
-                it->first;
-
-            glColor3f( color, color, 0 );
-            color += dcolor;
-
-            // Let the player know his/hew awesome score.
-            if( it->second == highScoreHandle ) {
-                glColor3f( 1, 0, 0 );
-                ss << " ** NEW HIGH SCORE";
-            }
-
-            b.writeln( ss.str() );
-        }
-    }
-
     // If the player is alive...
     if( !Orbital::target.expired() ) 
     {
@@ -785,7 +719,7 @@ void arcade_mode( int dt )
 }
 
 
-void arcade_on_death( int dt )
+void on_death( int dt )
 {
     if( gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
     {
@@ -794,8 +728,11 @@ void arcade_on_death( int dt )
         font->draw( "Press r to reset, m for menu", 600, 200 );
 
         // Draw high scores to screen.
+        std::string line;
         TextBox b( *font, 470, 250 );
-        b.writeln( "Scores stored in 'Arcade Scores.txt:'" );
+
+        line = std::string("Scores stored in '") + mode->name + " Scores.txt'";
+        b.writeln( line );
         b.writeln( "" );
 
         // The table should include two columns, handles and scores, both
