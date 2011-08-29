@@ -108,9 +108,13 @@ struct Mode
     UpdateFunc score;
     UpdateFunc spawn;
 
+    bool chaos;
+
     Mode( const std::string& name )
         : name( name )
     {
+        chaos = false;
+
         update  = null_update;
         onDeath = null_update;
         score   = null_update;
@@ -132,6 +136,7 @@ void score( int dt );
 
 void arcade_spawn( int dt );
 void chaos_spawn( int dt );
+void training_spawn( int dt );
 
 Mode arcadeMode( "Arcade" );
 Mode trainingMode( "Training" );
@@ -150,8 +155,10 @@ void initialize_modes()
     chaosMode.onDeath = on_death;
     chaosMode.score   = score;
     chaosMode.spawn   = chaos_spawn;
+    chaosMode.chaos   = true;
 
     trainingMode.update = training_mode;
+    trainingMode.spawn  = training_spawn;
 
     menuMode.update = menu;
 
@@ -391,7 +398,7 @@ std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
 void update_high_score()
 {
     std::string tableFile = 
-        mode==&arcadeMode? "Arcade Scores.txt" : "Chaos Scores.txt";
+        mode->name + " Scores.txt";
 
     // Get the old scores first.
     std::string oldVersion = "1";
@@ -801,24 +808,10 @@ void on_death( int dt )
     }
 }
 
-
 void training_mode( int )
 {
     // This is a sandbox mode where the player can't die and s/he can manually
     // spawn any enemy in the game.
-
-    // The player can try both chaos and arcade mode. In chaos mode, all
-    // cActors become attractors.
-    static bool chaos = false;
-
-    // Tips will appear on the bottom of the screen after an enemy is spawned. 
-    static const char* tips[ N_SPAWN_SLOTS ];
-    tips[ ORBITAL  ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
-    tips[ TWISTER  ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
-    tips[ NEGATIVE ] = "A negative is attracted to you, like an orbital, but repels all other enemies. It's mass is negative.";
-    tips[ GREEDY   ] = "A greedy will only orbit the player, ignoring everything else.";
-    tips[ STOPPER  ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
-                       "\nThe only way to kill a stopper is to run into it while it's stopped.";
 
     // These colors correlate, somewhat, to the colors of the enemies.
     static Color colors[ N_SPAWN_SLOTS ];
@@ -830,7 +823,7 @@ void training_mode( int )
 
     // Swap the mode when enter is pressed.
     if( Keyboard::key_state('\r') ) {
-        chaos = ! chaos;
+        mode->chaos = ! mode->chaos;
 
         int offset = !Orbital::target.expired();
         for_each( cActors.begin()+offset, cActors.end(), []( CActors::value_type a ) { a->deleteMe = true; } );
@@ -862,7 +855,7 @@ void training_mode( int )
         glColor3f( colors[TWISTER].r(), colors[TWISTER].g(), colors[TWISTER].b() );
         spawnList.writeln( "Press C to spawn a Twister." );
 
-        if( chaos ) {
+        if( mode->chaos ) {
             glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
             spawnList.writeln( "Press V to spawn a Negative." );
 
@@ -870,6 +863,18 @@ void training_mode( int )
             spawnList.writeln( "Press B to spawn a Greedy." );
         }
     }
+}
+
+void training_spawn( int dt )
+{
+    // Tips will appear on the bottom of the screen after an enemy is spawned. 
+    static const char* tips[ N_SPAWN_SLOTS ];
+    tips[ ORBITAL  ] = "Orbitals are the most common spawns, and most enemies share at lease something in common with them.";
+    tips[ TWISTER  ] = "While an orbital's motion is circular, the twister's motion is elliptical, like the earth around the sun.";
+    tips[ NEGATIVE ] = "A negative is attracted to you, like an orbital, but repels all other enemies. It's mass is negative.";
+    tips[ GREEDY   ] = "A greedy will only orbit the player, ignoring everything else.";
+    tips[ STOPPER  ] = "Stoppers are slow, big, though light orbitals. When hit, one will stop; if it again, it will move again."
+                       "\nThe only way to kill a stopper is to run into it while it's stopped.";
 
     // A newly spawned enemy.
     std::tr1::weak_ptr<CircleActor> p;
@@ -883,7 +888,7 @@ void training_mode( int )
         spawnCode = STOPPER;
     else if( Keyboard::key_state('c') )
         spawnCode = TWISTER;
-    else if( chaos ) {
+    else if( mode->chaos ) {
         if( Keyboard::key_state('v') )
             spawnCode = NEGATIVE;
         else if( Keyboard::key_state('b') )
@@ -896,14 +901,14 @@ void training_mode( int )
     }
 
     if( recentSpawn != -1 ) {
-        glColor3f( colors[recentSpawn].r(), colors[recentSpawn].g(), colors[recentSpawn].b() );
+        glColor3f( 1, 1, 1 );
 
         // Textbox::write offers newline detection. Font::draw does not.
         TextBox b( *font, 150, 650 );
         b.write( tips[recentSpawn] );
     }
 
-    if( chaos && !p.expired() ) {
+    if( mode->chaos && !p.expired() ) {
         Orbital::attractors.push_back( p );
         p.lock()->isAttractor = true;
     }
@@ -1350,6 +1355,7 @@ int main( int, char** )
                 // When parts aren't simple (default), do calculations.
                 if( ! simpleParts )
                 {
+                    // Integration.
                     CActors::iterator attr = cActors.begin();
                     for( ; attr < cActors.end() && (*attr)->isAttractor; attr++ )
                     {
@@ -1372,6 +1378,7 @@ int main( int, char** )
                         }
                     }
 
+                    // Collision.
                     for( ; attr != cActors.end(); attr++ )
                     {
                         // This r is the negative of the one in the above loop.
