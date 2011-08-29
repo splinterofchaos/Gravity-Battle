@@ -59,11 +59,6 @@ std::ofstream loggit( "log" );
 
 bool motionBlur = false;
 
-// Every frame, all actors are drawn and moved. This points to what decides how
-// they are created, how the player scores, and highscore generation. 
-typedef void(*GameLogic)(int dt );
-GameLogic gameLogic;
-
 typedef std::tr1::shared_ptr< CircleActor > SharedCActorPtr;
 typedef std::tr1::weak_ptr< CircleActor >   WeakCActorPtr;
 typedef std::tr1::weak_ptr<Actor>           ActorPtr;
@@ -101,10 +96,36 @@ bool           newHighScore = false;
 std::string    highScoreHandle( HANDLE_SIZE, 'x' );
 HighScoreTable highScoreTable; 
 
+struct Mode
+{
+    typedef void (*UpdateFunc) (int dt);
+    UpdateFunc update;
+
+    Mode()
+        : update( 0 )
+    {
+    }
+
+    Mode( UpdateFunc f )
+        : update( f )
+    {
+    }
+};
+
+Mode* mode = 0;
+
 // FUNCTIONS //
 void arcade_mode( int dt );
 void training_mode( int dt );
 void menu( int dt );
+void package_delivery( int dt );
+void chaos_mode( int dt );
+
+Mode arcadeMode( arcade_mode );
+Mode trainingMode( training_mode );
+Mode menuMode( menu );
+Mode packageMode( package_delivery );
+Mode chaosMode( chaos_mode );
 
 std::string to_string( int x )
 {
@@ -339,7 +360,7 @@ std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
 void update_high_score()
 {
     std::string tableFile = 
-        gameLogic==arcade_mode? "Arcade Scores.txt" : "Chaos Scores.txt";
+        mode==&arcadeMode? "Arcade Scores.txt" : "Chaos Scores.txt";
 
     // Get the old scores first.
     std::string oldVersion = "1";
@@ -449,9 +470,9 @@ bool delete_me( SharedCActorPtr& actor )
 
 // Resets whatever mode the game is in. 
 // If no mode is given, it resets the current mode.
-void reset( GameLogic logic = 0 )
+void reset( Mode* newMode = 0 )
 {
-    if( logic )
+    if( newMode )
         Mix_FadeOutMusic( 200 );
 
     Arena::minX = Arena::minY = 3;
@@ -463,8 +484,8 @@ void reset( GameLogic logic = 0 )
     newHighScore = false;
 
     // If we're switching to a different mode...
-    if( logic && logic != gameLogic ) {
-        gameLogic = logic;
+    if( newMode && newMode != mode ) {
+        mode = newMode;
 
         packageLevel = 0;
 
@@ -1135,13 +1156,13 @@ void menu( int )
             continue;
 
         if(      cActors[i]->s.y() < Arena::minX + cActors[i]->radius() )
-            reset( arcade_mode );
+            reset( &arcadeMode );
         else if( Arena::maxY < cActors[i]->s.y() + cActors[i]->radius() )
-            reset( training_mode );
+            reset( &trainingMode );
         else if( Arena::maxX < cActors[i]->s.x() + cActors[i]->radius() )
-            reset( challenge );
+            reset( &packageMode );
         else if( Arena::minX > cActors[i]->s.x() - cActors[i]->radius() )
-            reset( chaos_mode );
+            reset( &chaosMode );
     }
 }
 
@@ -1182,7 +1203,7 @@ void keyboard_events()
     if( Keyboard::key_state('r') )
         reset();
     if( Keyboard::key_state('m') )
-        reset( menu );
+        reset( &menuMode );
 
     if( Keyboard::key_state('1') ) 
     {
@@ -1254,7 +1275,7 @@ int main( int, char** )
 
     load_resources();
 
-    reset( menu ); 
+    reset( &menuMode ); 
 
     Timer frameTimer;
     while( quit == false )
@@ -1290,7 +1311,7 @@ int main( int, char** )
         if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 6*SECOND )
             DT /= 2;
 
-        gameLogic( frameTimer.time_ms() );
+        mode->update( frameTimer.time_ms() );
 
         // For each time-step:
         static int time = 0;
