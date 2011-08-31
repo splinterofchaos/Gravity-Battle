@@ -61,11 +61,11 @@ bool motionBlur = false;
 
 typedef std::tr1::shared_ptr< CircleActor > SharedCActorPtr;
 typedef std::tr1::weak_ptr< CircleActor >   WeakCActorPtr;
-typedef std::tr1::weak_ptr<Actor>           ActorPtr;
+typedef std::tr1::weak_ptr< Actor >         ActorPtr;
 
 typedef std::vector< SharedCActorPtr > CActors;
+typedef std::vector< ActorPtr > Actors;
 typedef std::vector< Particle > Particles;
-typedef std::vector<ActorPtr>      Actors;
 
 CActors   cActors;
 Particles particles;
@@ -99,10 +99,18 @@ HighScoreTable highScoreTable;
 struct Mode
 {
     static void null_update(int) { }
+    static void null_event()     { }
+
+    typedef std::tr1::shared_ptr< TextLine >    LinePtr;
+    typedef std::vector< LinePtr >  LineList;
+    LineList  lines;
 
     std::string name;
 
     typedef void (*UpdateFunc) (int dt);
+    typedef void (*EventFunc)  ();
+
+    EventFunc  init;
     UpdateFunc update;
     UpdateFunc onDeath;
     UpdateFunc score;
@@ -115,6 +123,7 @@ struct Mode
     {
         chaos = false;
 
+        init    = null_event;
         update  = null_update;
         onDeath = null_update;
         score   = null_update;
@@ -125,6 +134,8 @@ struct Mode
 Mode* mode = 0;
 
 // FUNCTIONS //
+void arcade_init();
+
 void arcade_mode( int dt );
 void training_mode( int dt );
 void menu( int dt );
@@ -510,6 +521,9 @@ bool delete_me( SharedCActorPtr& actor )
 // If no mode is given, it resets the current mode.
 void reset( Mode* newMode = 0 )
 {
+    if( mode )
+        mode->lines.clear();
+
     if( newMode )
         Mix_FadeOutMusic( 200 );
 
@@ -560,6 +574,8 @@ void reset( Mode* newMode = 0 )
     timePlayerDied = 0;
 
     scoreVal = 0;
+
+    mode->init();
 }
 
 enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, GREEDY, N_SPAWN_SLOTS=9 };
@@ -722,13 +738,26 @@ void arcade_spawn( int dt )
     }
 }
 
+void arcade_init()
+{
+    Mode::LinePtr line ( 
+        new TextLine( font.get(), "Score: " + to_string((int)scoreVal),
+                      vector(100,100) )
+    );
+    mode->lines.push_back( line );
+}
+
 void arcade_mode( int dt )
 {
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
     play_song( menuSong );
 
-    glColor3f( 1, 1, 0 );
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+    Mode::LinePtr line ( 
+        new TextLine( font.get(), "Score: " + to_string((int)scoreVal),
+                      vector(100,100) )
+    );
+
+    mode->lines[0]->str( "Score: " + to_string((int)scoreVal) );
 }
 
 
@@ -1465,16 +1494,11 @@ int main( int, char** )
                 }
             }
 
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                glDisable( GL_TEXTURE_2D );
+            for( auto it=mode->lines.begin(); it < mode->lines.end(); it++ )
+                (*it)->draw();
 
-
-            float boarder[] = {
-                Arena::minX, Arena::minY,
-                Arena::maxX, Arena::minY,
-                Arena::maxX, Arena::maxY,
-                Arena::minX, Arena::maxY
-            };
+            glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+            glDisable( GL_TEXTURE_2D );
 
             if( paused ) {
                 glColor3f( 1, 1, 1 );
@@ -1484,6 +1508,13 @@ int main( int, char** )
                 b.writeln( "Please refer questions, comments, etc., to my email hakusa@gmail.com." );
                 b.writeln( "The source code is available at https://github.com/splinterofchaos/Gravity-Battle" );
             }
+
+            float boarder[] = {
+                Arena::minX, Arena::minY,
+                Arena::maxX, Arena::minY,
+                Arena::maxX, Arena::maxY,
+                Arena::minX, Arena::maxY
+            };
 
             glColor3f( 1, 1, 1 );
             draw::draw( boarder, 4, GL_LINE_LOOP );

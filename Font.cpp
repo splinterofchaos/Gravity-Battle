@@ -88,3 +88,82 @@ void TextBox::writeln( const std::string& text )
      font.draw( text, x, y );
      y += TrueTypeFont::LINE_HEIGHT;
 }
+
+TextLine::TextLine( TrueTypeFont* f, const std::string& t, 
+                    const Vector<float,2>& p )
+    : ttf(f), text(t), pos(p)
+{
+    SDL_Color c = { 1, 1, 1, 1 };
+    SDL_Color v = { 0, 0, 0, 0 };
+    SDL_Surface* sdlTexture = TTF_RenderText_Shaded( ttf->ttf, text.c_str(), c, v );
+
+    dims.x( sdlTexture->w );
+    dims.y( sdlTexture->h );
+
+    if( !sdlTexture )
+        throw;
+
+    glGenTextures( 1, &tex );
+    glBindTexture( GL_TEXTURE_2D, tex );
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA, dims.x(), dims.y(), 0, 
+                  GL_ALPHA, GL_UNSIGNED_BYTE, sdlTexture->pixels );
+
+    SDL_FreeSurface( sdlTexture );
+}
+
+void TextLine::str( const std::string& s )
+{
+    text = s;
+    glDeleteTextures( 1, &tex );
+
+    SDL_Color c = { 1, 1, 1, 1 };
+    SDL_Color v = { 0, 0, 0, 0 };
+    SDL_Surface* sdlTexture = TTF_RenderText_Shaded( ttf->ttf, text.c_str(), c, v );
+
+    dims.x( sdlTexture->w );
+    dims.y( sdlTexture->h );
+
+    if( !sdlTexture )
+        throw;
+
+    glBindTexture( GL_TEXTURE_2D, tex );
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA, dims.x(), dims.y(), 0, 
+                  GL_ALPHA, GL_UNSIGNED_BYTE, sdlTexture->pixels );
+
+    SDL_FreeSurface( sdlTexture );
+}
+
+void TextLine::draw()
+{
+    static int texCoords[] = {
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1
+    };
+
+    float verts[] = {
+        0,        0, 
+        dims.x(), 0,
+        dims.x(), dims.y(),
+        0,        dims.y()
+    };
+
+    glTranslatef( pos.x(), pos.y(), 0 );
+    draw::draw( verts, 4, tex, texCoords );
+    glLoadIdentity();
+
+}
+
+TextLine::~TextLine()
+{
+    glDeleteTextures( 1, &tex );
+}
