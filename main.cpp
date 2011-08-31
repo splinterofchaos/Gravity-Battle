@@ -157,6 +157,7 @@ Mode chaosMode( "Chaos" );
 
 void initialize_modes()
 {
+    arcadeMode.init    = arcade_init;
     arcadeMode.update  = arcade_mode;
     arcadeMode.onDeath = on_death;
     arcadeMode.score   = score;
@@ -741,7 +742,7 @@ void arcade_spawn( int dt )
 void arcade_init()
 {
     Mode::LinePtr line ( 
-        new TextLine( font.get(), "Score: " + to_string((int)scoreVal),
+        new TextLine( font.get(), "Score: 0",
                       vector(100,100) )
     );
     mode->lines.push_back( line );
@@ -750,14 +751,21 @@ void arcade_init()
 void arcade_mode( int dt )
 {
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    static int lastScore = 0;
+
     play_song( menuSong );
 
-    Mode::LinePtr line ( 
-        new TextLine( font.get(), "Score: " + to_string((int)scoreVal),
-                      vector(100,100) )
-    );
+    if( (int)scoreVal != lastScore )
+    {
+        mode->lines[0].reset ( 
+            new TextLine( font.get(), "Score: " + to_string((int)scoreVal),
+                          vector(100,100) ) 
+        );
 
-    mode->lines[0]->str( "Score: " + to_string((int)scoreVal) );
+        lastScore = scoreVal;
+    }
+
+    mode->lines[0]->color = Color( 0.8, 0.8, 0 );
 }
 
 

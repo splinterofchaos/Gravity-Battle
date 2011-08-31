@@ -91,7 +91,7 @@ void TextBox::writeln( const std::string& text )
 
 TextLine::TextLine( TrueTypeFont* f, const std::string& t, 
                     const Vector<float,2>& p )
-    : ttf(f), text(t), pos(p)
+    : ttf(f), text(t), pos(p), color(1,1,1,1)
 {
     SDL_Color c = { 1, 1, 1, 1 };
     SDL_Color v = { 0, 0, 0, 0 };
@@ -158,6 +158,7 @@ void TextLine::draw()
     };
 
     glTranslatef( pos.x(), pos.y(), 0 );
+    glColor4f( color.r(), color.g(), color.b(), color.a() );
     draw::draw( verts, 4, tex, texCoords );
     glLoadIdentity();
 

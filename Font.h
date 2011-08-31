@@ -32,6 +32,7 @@ class TextBox
 };
 
 #include "Vector.h"
+#include "Color.h"
 
 struct TextLine
 {
@@ -39,6 +40,7 @@ struct TextLine
     std::string text;
     Vector< float, 2 > pos;
     Vector< float, 2 > dims; // < width, height >
+    Color              color;
     unsigned int tex;
 
     TextLine( TrueTypeFont* f, const std::string& t, const Vector<float,2>& p );
