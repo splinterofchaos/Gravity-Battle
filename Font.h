@@ -34,6 +34,9 @@ class TextBox
 #include "Vector.h"
 #include "Color.h"
 
+#include <vector>
+#include <memory>
+
 struct TextLine
 {
     TrueTypeFont* ttf;
@@ -50,4 +53,18 @@ struct TextLine
 
     void str( const std::string& s );
     void draw();
+};
+
+struct LinePrinter
+{
+    TrueTypeFont* ttf;
+    std::vector< std::shared_ptr<TextLine> > lines;
+    Vector< float, 2 > pos;
+    Color color;
+
+    float space; // The distance between lines.
+
+    LinePrinter( TrueTypeFont* f, const Vector< float, 2 >& p );
+
+    void add_line( const std::string& str );
 };

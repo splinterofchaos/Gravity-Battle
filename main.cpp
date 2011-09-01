@@ -101,7 +101,7 @@ struct Mode
     static void null_update(int) { }
     static void null_event()     { }
 
-    typedef std::tr1::shared_ptr< TextLine >    LinePtr;
+    typedef std::shared_ptr< TextLine >    LinePtr;
     typedef std::vector< LinePtr >  LineList;
     LineList  lines;
 
@@ -135,6 +135,7 @@ Mode* mode = 0;
 
 // FUNCTIONS //
 void arcade_init();
+void menu_init();
 
 void arcade_mode( int dt );
 void training_mode( int dt );
@@ -172,6 +173,7 @@ void initialize_modes()
     trainingMode.update = training_mode;
     trainingMode.spawn  = training_spawn;
 
+    menuMode.init   = menu_init;
     menuMode.update = menu;
 
     packageMode.update = package_delivery;
@@ -1100,6 +1102,60 @@ void challenge( int dt )
     package_delivery( dt );
 }
 
+void menu_init()
+{
+    // menuMode.lines[1] - [3]: Into code.
+
+    LinePrinter intro(   font.get(), vector(270,350) );
+    LinePrinter options( font.get(), vector(500,350) );
+
+    intro.color = Color( 1, 1, 0 );
+    options.color = Color( 0.5f, 0.5f, 1.f );
+
+    intro.add_line( "WASD or arrow keys to move." );
+    intro.add_line( "SPACEBAR to dash." );
+    intro.add_line( "Press P to pause." );
+
+    options.add_line( "Press 1 to switch on/off prediction lines.");
+    options.add_line( "Press 2 to switch on/off gravity lines." );
+    options.add_line( "Press 3 to switch on/off velocity arrows." );
+    options.add_line( "Press 4 to switch on/off acceleration arrows." );
+    options.add_line( "Press 5 to switch on/off motion blur." );
+    options.add_line( "To permanently change, edit config.txt" );
+    options.add_line( " " );
+    options.add_line( "Press E to hide this text." );
+
+    mode->lines.insert( mode->lines.end(), intro.lines.begin(), intro.lines.end() );
+    mode->lines.insert( mode->lines.end(), options.lines.begin(), options.lines.end() );
+
+
+    Color c( 1.f, 0.5f, 0.5f );
+
+    Mode::LinePtr ptr ( 
+        new TextLine( font.get(), "^^ Move up here for arcade mode! ^^", vector(350,50) ) 
+    );
+    ptr->color = c;
+    mode->lines.push_back( ptr);
+
+    ptr.reset( 
+        new TextLine( font.get(), "To the left for challenge mode. >>>", vector(650,300) )
+    );
+    ptr->color = c;
+    mode->lines.push_back( ptr);
+
+    ptr.reset( 
+        new TextLine( font.get(), "<<< To the right for CHAOS mode.", vector(20,300) )
+    );
+    ptr->color = c;
+    mode->lines.push_back( ptr);
+
+    ptr.reset( 
+        new TextLine( font.get(), "Press and hold S or the DOWN ARROW to enter training mode.", vector(350,650) )
+    );
+    ptr->color = c;
+    mode->lines.push_back( ptr);
+}
+
 void menu( int )
 {
     static Music menuSong( "art/music/The Creep Behind.ogg" );
@@ -1110,46 +1166,25 @@ void menu( int )
         for( int i=0; i < 3; i++ )
             spawn<MenuOrbital>();
 
-    if( ! playerHasMoved ) 
+    if( !playerHasMoved ) 
     {
-        glColor3f( 1, 1, 0 );
-
-        TextBox b( *font, 270, 350 );
-        b.writeln( "WASD or arrow keys to move." );
-
-        if( ! playerIncreasedGravity )
-            b.writeln( "SPACEBAR to dash." );
-
-        b.writeln( "Press P to pause." );
-    } 
-    else 
+        for( auto it=mode->lines.begin()+3; it < mode->lines.end(); it++ )
+            (*it)->color.a( 0 );
+    }
+    else
     {
+        // Darken the intro text.
+        for( int i=0; i < 3; i++ )
+            mode->lines[i]->color[3] -= 0.001;
+
+        // Brighten the rest.
+        for( auto it=mode->lines.begin()+3; it < mode->lines.end(); it++ )
+            (*it)->color[3] += 0.001;
+
         if( showExtraText ) 
         {
-            glColor3f( 0.5, 0.5, 1 );
-
             // Use a box for config prints.
-            TextBox b( *font, 500, 350 );
-            b.writeln( "Press 1 to switch on/off prediction lines.");
-            b.writeln( "Press 2 to switch on/off gravity lines." );
-            b.writeln( "Press 3 to switch on/off velocity arrows." );
-            b.writeln( "Press 4 to switch on/off acceleration arrows." );
-            b.writeln( "Press 5 to switch on/off motion blur." );
-            b.writeln( "To permanently change, edit config.txt" );
-            b.writeln();
-            b.writeln( "Press E to hide this text." );
         }
-
-        glColor3f( 1, 0.5, 0.5 );
-
-        // Misc prints.
-        font->draw( "^^ Move up here for arcade mode! ^^", 350, 50 );
-        font->draw( "To the left for challenge mode. >>>", 650, 300 );
-        font->draw( "<<< To the right for CHAOS mode.", 20, 300 );
-        font->draw ( 
-            "Press and hold S or the DOWN ARROW to enter training mode.", 
-            350, Arena::maxY - 50 
-        );
     }
 
     // Enter the next mode when the orbital reaches the edge of the screen.

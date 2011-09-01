@@ -168,3 +168,21 @@ TextLine::~TextLine()
 {
     glDeleteTextures( 1, &tex );
 }
+
+LinePrinter::LinePrinter( TrueTypeFont* f, const Vector<float,2>& p )
+    : ttf(f), pos( p ), color(1,1,1,1), space( 0.0f ) 
+{
+}
+
+void LinePrinter::add_line( const std::string& str )
+{
+    Vector<float, 2> p = pos;
+    p.y( p.y() + space );
+
+    lines.push_back( 
+        std::shared_ptr<TextLine>( new TextLine(ttf, str, p) )
+    );
+    lines.back()->color = color;
+
+    space += lines.back()->dims.y();
+}
