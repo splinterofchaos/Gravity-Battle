@@ -101,8 +101,8 @@ struct Mode
     static void null_update(int) { }
     static void null_event()     { }
 
-    typedef std::shared_ptr< TextLine >    LinePtr;
-    typedef std::vector< LinePtr >  LineList;
+    typedef std::shared_ptr< TextLine > LinePtr;
+    typedef std::vector< LinePtr >      LineList;
     LineList  lines;
 
     std::string name;
@@ -164,6 +164,7 @@ void initialize_modes()
     arcadeMode.score   = score;
     arcadeMode.spawn   = arcade_spawn;
 
+    chaosMode.init    = arcade_init;
     chaosMode.update  = chaos_mode;
     chaosMode.onDeath = on_death;
     chaosMode.score   = score;
@@ -665,9 +666,17 @@ void chaos_mode( int dt )
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
     play_song( menuSong );
 
-    glColor3f( 1, 1, 0 );
-    font->draw( "Score: " + to_string((int)scoreVal), 100, 100 );
+    if( (int)scoreVal != lastScore )
+    {
+        mode->lines[0].reset ( 
+            new TextLine( font.get(), "Score: " + to_string((int)scoreVal),
+                          vector(100,100) ) 
+        );
 
+        lastScore = scoreVal;
+    }
+
+    mode->lines[0]->color = Color( 0.8, 0.8, 0 );
 }
 
 void score( int dt )
@@ -1351,10 +1360,10 @@ int main( int, char** )
             DT /= 2;
 
         mode->update( frameTimer.time_ms() );
+        mode->spawn(  frameTimer.time_ms() );
 
         if( !timePlayerDied ) {
             mode->score( frameTimer.time_ms() );
-            mode->spawn( frameTimer.time_ms() );
         } else {
             mode->onDeath( frameTimer.time_ms() );
         }
