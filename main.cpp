@@ -107,8 +107,8 @@ struct Mode
 
     std::string name;
 
-    typedef void (*UpdateFunc) (int dt);
-    typedef void (*EventFunc)  ();
+    typedef std::function<void(int)> UpdateFunc;
+    typedef std::function<void()   > EventFunc;
 
     EventFunc  init;
     UpdateFunc update;
