@@ -131,11 +131,29 @@ struct Mode
     }
 };
 
+struct PackageMode : public Mode
+{
+    std::string tip;
+    std::tr1::weak_ptr<Package> weakPackage;
+    bool started;    // Has the round started?
+    bool scoreSaved; // (At end:) Was the score saved?
+    bool playerWon;
+    int time;
+
+    PackageMode()
+        : Mode( "Package" )
+    {
+        started = scoreSaved = false;
+        tip = "";
+    }
+};
+
 Mode* mode = 0;
 
 // FUNCTIONS //
 void arcade_init();
 void menu_init();
+void package_init();
 
 void arcade_mode( int dt );
 void training_mode( int dt );
@@ -153,8 +171,8 @@ void training_spawn( int dt );
 Mode arcadeMode( "Arcade" );
 Mode trainingMode( "Training" );
 Mode menuMode( "Menu" );
-Mode packageMode( "Package" );
 Mode chaosMode( "Chaos" );
+PackageMode packageMode;
 
 void initialize_modes()
 {
@@ -177,6 +195,7 @@ void initialize_modes()
     menuMode.init   = menu_init;
     menuMode.update = menu;
 
+    packageMode.init   = package_init;
     packageMode.update = package_delivery;
 }
 
@@ -543,6 +562,7 @@ void reset( Mode* newMode = 0 )
     if( newMode && newMode != mode ) {
         mode = newMode;
 
+        // Erase package mode progress, if any.
         packageLevel = 0;
 
         // Before clearing the actors, make them explode.
@@ -664,6 +684,8 @@ void chaos_spawn( int dt )
 void chaos_mode( int dt )
 { 
     static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    static int lastScore = 0;
+
     play_song( menuSong );
 
     if( (int)scoreVal != lastScore )
@@ -962,6 +984,81 @@ void training_spawn( int dt )
     }
 }
 
+void package_init()
+{
+    std::stringstream filename;
+    filename << "challenge/package/level" << packageLevel;
+
+    std::ifstream level( filename.str() );
+
+    Orbital::SharedPlayerPtr target = Orbital::target.lock();
+
+    if( level ) 
+    {
+        // Construct level.
+        packageMode.started    = false;
+        packageMode.playerWon  = false;
+        packageMode.scoreSaved = false;
+        packageMode.time = 0;
+        packageMode.tip  = "";
+
+        std::string val;
+
+        // Parse file.
+        while( level >> val ) 
+        {
+            if( val == "tip" )
+            {
+                // Only the text after "tip" will go into the string.
+                std::getline( level, packageMode.tip );
+            }
+            else
+            {
+                float x,y;
+                level >> x >> y;
+
+                if( val == "player" ) 
+                    target->s = Actor::vector_type( x, y );
+                else if( val == "package" )
+                    packageMode.weakPackage = spawn<Package>( x, y ).lock();
+                else if( val == "obsticle" )
+                    spawn<Obsticle>( x, y );
+                else if( val == "goal" )
+                    Package::goal = spawn<Goal>( x, y ).lock();
+                else if( val == "arenaX" ) {
+                    Arena::minX = x; Arena::maxX = y;
+                } else if( val == "arenaY" ) {
+                    Arena::minY = x; Arena::maxY = y;
+                }
+
+            }
+        } // End parse file.
+
+        Vector<float,2> pos = vector( Arena::minX + (Arena::maxX-Arena::minX)/4, 
+                                      100 );
+        Mode::LinePtr tip ( 
+            new TextLine( font.get(), packageMode.tip, pos )
+        );
+        tip->color = Color( 0.3f, 0.8f, 0.3f, 1.f );
+
+        pos = vector( 270, 150 );
+        Mode::LinePtr deathMessage (
+            new TextLine( font.get(), 
+                          "Press space to advance, r to try again", pos )
+        );
+        deathMessage->color = Color( 0.5f, 0.9f, 0.7f, 0.f );
+
+        mode->lines.push_back( tip );
+        mode->lines.push_back( deathMessage );
+    }
+    else 
+    {
+        // Under increment from finishing previous level.
+        packageLevel--;
+        package_init();
+    }
+}
+
 void package_delivery( int dt )
 {
     // In this mode, the player must guide the "package" to the "goal".
@@ -974,102 +1071,30 @@ void package_delivery( int dt )
         Mix_VolumeMusic( MIX_MAX_VOLUME / 2 );
     }
 
-    static std::tr1::weak_ptr<Package> weakPackage;
-    static bool started    = false; // Has the round started?
-    static bool scoreSaved = false; // (At end:) Was the score saved?
-    static std::string tip = "";
-    static int time;
+    Orbital::SharedPlayerPtr target = Orbital::target.lock();
 
+    // Will get reinitialized if loading new level.
+    std::tr1::shared_ptr<Package> package = packageMode.weakPackage.lock();
+
+    if( !packageMode.started && package && package->started ) {
+        packageMode.started = true;
+    }
+
+    if( packageMode.started )
+        packageMode.time += dt;
+        
     // The conditions for winning are: (1) Be alive, (2) the package is alive,
     // (3) package reached goal. Worst case scenario is the player wins, then
     // runs into the package meaning (1) and (2) are false. We must remember if
     // the player won, instead of just testing the conditions.
-    static bool playerWon = false; 
-
-    Orbital::SharedPlayerPtr target = Orbital::target.lock();
-
-    // Will get reinitialized if loading new level.
-    std::tr1::shared_ptr<Package> package = weakPackage.lock();
-
-    // If we have a player but not package/obstacles/target, initialize them.
-    if( cActors.size() == 1 && target ) 
-    {
-        std::stringstream filename;
-        filename << "challenge/package/level" << packageLevel;
-
-        std::ifstream level( filename.str() );
-
-        if( level ) 
-        {
-            // Construct level.
-            started    = false;
-            playerWon  = false;
-            scoreSaved = false;
-            tip  = "";
-            time = 0;
-
-            std::string val;
-
-            // Parse file.
-            while( level >> val ) 
-            {
-                if( val == "tip" )
-                {
-                    // Only the text after "tip" will go into the string.
-                    std::getline( level, tip );
-                }
-                else
-                {
-                    float x,y;
-                    level >> x >> y;
-
-                    if( val == "player" ) 
-                        target->s = Actor::vector_type( x, y );
-                    else if( val == "package" )
-                        package = spawn<Package>( x, y ).lock();
-                    else if( val == "obsticle" )
-                        spawn<Obsticle>( x, y );
-                    else if( val == "goal" )
-                        Package::goal = spawn<Goal>( x, y ).lock();
-                    else if( val == "arenaX" ) {
-                        Arena::minX = x; Arena::maxX = y;
-                    } else if( val == "arenaY" ) {
-                        Arena::minY = x; Arena::maxY = y;
-                    }
-
-                }
-            } // End parse file.
-        }
-        else 
-        {
-            // Under increment from finishing previous level.
-            packageLevel--;
-            package_delivery( dt );
-        }
-    }
-
-    if( !started && package && package->started ) {
-        started = true;
-    }
-
-    if( started )
-        time += dt;
-
-    // Draw hint.
-    if( tip.size() ) {
-        glColor3f( 0.3, 0.8, 0.3 );
-        font->draw( tip, Arena::minX + (Arena::maxX-Arena::minX)/4, 100 );
-    }
-        
     if( target && package && package->reachedGoal )
-        playerWon = true;
+        packageMode.playerWon = true;
 
-    if( playerWon )
+    if( packageMode.playerWon )
     {
-        glColor3f( 0.5, 0.9, 0.7 );
-        font->draw( "Press space to advance, r to try again.", 270, 150 );
+        mode->lines[1]->color.a( 1 );
 
-        if( ! scoreSaved ) 
+        if( ! packageMode.scoreSaved ) 
         {
             std::stringstream filename;
             filename << "challenge/package-times/level" << packageLevel << ".txt";
@@ -1084,18 +1109,18 @@ void package_delivery( int dt )
                     previousTime = 0;
             }
 
-            if( previousTime < time ) {
+            if( previousTime < packageMode.time ) {
                 std::ofstream score( filename.str() );
-                score << float(time) / SECOND;
+                score << float(packageMode.time) / SECOND;
             }
 
-            scoreSaved = true;
+            packageMode.scoreSaved = true;
         }
 
         // Advance when the player presses spacebar.
         Uint8* keyStates = SDL_GetKeyState( 0 );
         if( keyStates[ SDLK_SPACE ] ) {
-            time = 0;
+            packageMode.time = 0;
 
             packageLevel++;
             reset();
@@ -1103,7 +1128,7 @@ void package_delivery( int dt )
     }
 
     // Keep the static pointer up-to-date.
-    weakPackage = package;
+    packageMode.weakPackage = package;
 }
 
 void challenge( int dt )
