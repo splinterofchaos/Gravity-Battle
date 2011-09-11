@@ -154,6 +154,7 @@ Mode* mode = 0;
 void arcade_init();
 void menu_init();
 void package_init();
+void training_init();
 
 void arcade_mode( int dt );
 void training_mode( int dt );
@@ -189,6 +190,7 @@ void initialize_modes()
     chaosMode.spawn   = chaos_spawn;
     chaosMode.chaos   = true;
 
+    trainingMode.init   = training_init;
     trainingMode.update = training_mode;
     trainingMode.spawn  = training_spawn;
 
@@ -894,6 +896,44 @@ void on_death( int dt )
     }
 }
 
+void training_init()
+{
+    
+    if( showExtraText ) 
+    {
+        LinePrinter intro( font.get(), vector(50,50) );
+
+        intro.add_line( "This is how-to-play mode." );
+        intro.add_line( "Move around with WASD (like in an FPS) or the arrow keys." );
+        intro.add_line( "Spawn enemies to practice dealing with them." );
+        intro.add_line( "    Don't worry, you're invincible here.." );
+        intro.add_line( " " );
+        intro.add_line( "Press ENTER to switch between chaos/arcade physics. (Some enemies only available in chaos mode.)" );
+        intro.add_line( " " );
+        intro.add_line( "To return to the menu, press M." );
+
+        LinePrinter spawnList( font.get(), vector(650,50) );
+
+        spawnList.add_line( "Press Z to spawn an Orbital." );
+        spawnList.lines.back()->color = Color( 0.4f, 0.4f, 1.0f );
+
+        spawnList.add_line( "Press X to spawn a Stopper." );
+        spawnList.lines.back()->color = Color( 0.7f, 0.7f, 0.7f );
+
+        spawnList.add_line( "Press C to spawn a Twister." );
+        spawnList.lines.back()->color = Color( 1.0f, 0.1f, 0.1f );
+
+        spawnList.add_line( "Press V to spawn a Negative. (chaos mode)" );
+        spawnList.lines.back()->color = Color( 0.3f, 1.0f, 1.0f );
+
+        spawnList.add_line( "Press B to spawn a Greedy.   (chaos mode)" );
+        spawnList.lines.back()->color = Color( 1.0f, 0.0f, 1.0f );
+
+        mode->lines.insert( mode->lines.end(), intro.lines.begin(), intro.lines.end() );
+        mode->lines.insert( mode->lines.end(), spawnList.lines.begin(), spawnList.lines.end() );
+    }
+}
+
 void training_mode( int )
 {
     // This is a sandbox mode where the player can't die and s/he can manually
@@ -917,38 +957,6 @@ void training_mode( int )
 
     Orbital::target.lock()->invinsible = true;
 
-    TextBox intro( *font, 50, 50 );
-
-    if( showExtraText ) 
-    {
-        intro.writeln( "This is how-to-play mode." );
-        intro.writeln( "Move around with WASD (like in an FPS) or the arrow keys." );
-        intro.writeln( "Spawn enemies to practice dealing with them." );
-        intro.writeln( "    Don't worry, you're invincible here.." );
-        intro.writeln();
-        intro.writeln( "Press ENTER to switch between chaos/arcade physics. (Some enemies only available in chaos mode.)" );
-        intro.writeln();
-        intro.writeln( "To return to the menu, press M." );
-
-        TextBox spawnList( *font, 650, 50 );
-
-        glColor3f( colors[ORBITAL].r(), colors[ORBITAL].g(), colors[ORBITAL].b() );
-        spawnList.writeln( "Press Z to spawn an Orbital." );
-
-        glColor3f( colors[STOPPER].r(), colors[STOPPER].g(), colors[STOPPER].b() );
-        spawnList.writeln( "Press X to spawn a Stopper." );
-
-        glColor3f( colors[TWISTER].r(), colors[TWISTER].g(), colors[TWISTER].b() );
-        spawnList.writeln( "Press C to spawn a Twister." );
-
-        if( mode->chaos ) {
-            glColor3f( colors[NEGATIVE].r(), colors[NEGATIVE].g(), colors[NEGATIVE].b() );
-            spawnList.writeln( "Press V to spawn a Negative." );
-
-            glColor3f( colors[GREEDY].r(), colors[GREEDY].g(), colors[GREEDY].b() );
-            spawnList.writeln( "Press B to spawn a Greedy." );
-        }
-    }
 }
 
 void training_spawn( int dt )

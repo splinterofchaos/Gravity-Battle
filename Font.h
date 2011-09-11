@@ -67,4 +67,5 @@ struct LinePrinter
     LinePrinter( TrueTypeFont* f, const Vector< float, 2 >& p );
 
     void add_line( const std::string& str );
+    void add_line();
 };

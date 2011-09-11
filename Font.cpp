@@ -186,3 +186,10 @@ void LinePrinter::add_line( const std::string& str )
 
     space += lines.back()->dims.y();
 }
+
+void LinePrinter::add_line()
+{
+    // Assume the user wants the space of the previous line added.
+    if( lines.size() > 0 )
+        space += lines.back()->dims.y();
+}
