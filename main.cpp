@@ -495,6 +495,80 @@ void update_high_score()
         highScoreTable.erase( highScoreTable.begin() );
     }
 
+    // Now construct the high scores for display.
+    Vector<int,2> pos( 250, 370 );
+    mode->lines.push_back( Mode::LinePtr (
+            new TextLine( font.get(), "Scores stored in '" + mode->name + 
+                          " Scores.txt'", pos )
+        )
+    );
+    pos.y( pos.y() + 30 );
+
+    // The table should include two columns, handles and scores, both
+    // determining their width by their longest member. A two pass
+    // algorithm is used. Pass one finds the size of the longest members,
+    // the second prints them.
+
+    // Pass one:
+    size_t largestHandleSize = 0;
+    size_t largestScoreSize = 0;
+    for( HighScoreTable::iterator it=highScoreTable.begin();
+         it != highScoreTable.end(); it++ )
+    {
+        if( it->second.size() > largestHandleSize )
+            largestHandleSize = it->second.size();
+
+        unsigned int nDigits = std::log10( it->first );
+
+        if( nDigits > largestScoreSize )
+            largestScoreSize = nDigits;
+    }
+
+    // Use this to format the text.
+    std::stringstream ss;
+    ss.precision( 3 );
+    ss.fill( '.' );
+
+    const int HANDLE_WIDTH = largestHandleSize + 2;
+    const int SCORE_WIDTH  = largestScoreSize  + 5;
+
+    // To draw text with a gradient, keep track of these:
+    float color = 1;
+    float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
+
+    // Pass 2:
+    // Assume highScoreTable is newly initialized by update_high_score. 
+    for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
+         it!=highScoreTable.rend(); it++ ) 
+    {
+        ss.str( "" );
+
+        ss << std::setw(HANDLE_WIDTH) << std::left << it->second;
+
+        // internal is the only iostream object that seems to work here.
+        // The obvious fixed << right did not work.
+        ss << std::setw(SCORE_WIDTH) << std::fixed << std::internal <<
+            it->first;
+
+        // Let the player know his/hew awesome score.
+        if( it->second == highScoreHandle )
+            ss << " ** NEW HIGH SCORE";
+
+        pos.y( pos.y() + 15 );
+        mode->lines.push_back ( 
+            Mode::LinePtr (
+                new TextLine( font.get(), ss.str(), pos )
+            )
+        );
+
+        mode->lines.back()->color = Color( color, color, 0 );
+        color += dcolor;
+
+        if( it->second == highScoreHandle ) 
+            mode->lines.back()->color = Color( 1, 0, 0 );
+    }
+
+    // Update the file.
     std::ofstream out( tableFile );
     out << "version = " << VERSION << '\n';
     out << highScoreTable;
@@ -796,9 +870,9 @@ void arcade_mode( int dt )
         );
 
         lastScore = scoreVal;
-    }
 
-    mode->lines[0]->color = Color( 0.8, 0.8, 0 );
+        mode->lines[0]->color = Color( 0.8, 0.8, 0 );
+    }
 }
 
 
@@ -809,72 +883,14 @@ void on_death( int dt )
         glColor3f( 1, 1, 1 );
 
         font->draw( "Press r to reset, m for menu", 600, 200 );
-
-        // Draw high scores to screen.
-        std::string line;
-        TextBox b( *font, 470, 250 );
-
-        line = std::string("Scores stored in '") + mode->name + " Scores.txt'";
-        b.writeln( line );
-        b.writeln( "" );
-
-        // The table should include two columns, handles and scores, both
-        // determining their width by their longest member. A two pass
-        // algorithm is used. Pass one finds the size of the longest members,
-        // the second prints them.
-
-        // Pass one:
-        size_t largestHandleSize = 0;
-        size_t largestScoreSize = 0;
-        for( HighScoreTable::iterator it=highScoreTable.begin();
-             it != highScoreTable.end(); it++ )
-        {
-            if( it->second.size() > largestHandleSize )
-                largestHandleSize = it->second.size();
-
-            unsigned int nDigits = std::log10( it->first );
-            
-            if( nDigits > largestScoreSize )
-                largestScoreSize = nDigits;
-        }
-
-        // Use this to format the text.
-        std::stringstream ss;
-        ss.precision( 3 );
-        ss.fill( '.' );
-
-        const int HANDLE_WIDTH = largestHandleSize + 2;
-        const int SCORE_WIDTH  = largestScoreSize  + 5;
-
-        // To draw text with a gradient, keep track of these:
-        float color = 1;
-        float dcolor = ( 0.01 - 1 ) / highScoreTable.size();
-
-        // Pass 2:
-        // Assume highScoreTable is newly initialized by update_high_score. 
-        for( HighScoreTable::reverse_iterator it = highScoreTable.rbegin(); 
-             it!=highScoreTable.rend(); it++ ) 
-        {
-            ss.str( "" );
-
-            ss << std::setw(HANDLE_WIDTH) << std::left << it->second;
-
-            // internal is the only iostream object that seems to work here.
-            // The obvious fixed << right did not work.
-            ss << std::setw(SCORE_WIDTH) << std::fixed << std::internal <<
-                it->first;
-
-            glColor3f( color, color, 0 );
-            color += dcolor;
-
-            // Let the player know his/hew awesome score.
-            if( it->second == highScoreHandle ) {
-                glColor3f( 1, 0, 0 );
-                ss << " ** NEW HIGH SCORE";
-            }
-
-            b.writeln( ss.str() );
-        }
+    }
+    else
+    {
+        for_each ( 
+            mode->lines.begin(), mode->lines.end(), 
+            // Lower alpha value.
+            [](Mode::LineList::value_type& linePtr){ linePtr->color[3] -= 0.001; } 
+        );
     }
 }
 
