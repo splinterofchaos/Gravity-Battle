@@ -1456,13 +1456,12 @@ int main( int, char** )
         static int time = 0;
         for( time += frameTimer.time_ms(); !paused && time >= DT; time -= DT ) 
         {
-            for_each ( 
-                cActors.begin(), cActors.end(), 
-                [DT]( std::tr1::shared_ptr<Actor> ptr ) { ptr->move(DT); }
-            );
+            typedef CActors::iterator CAIt;
+            for( CAIt it=cActors.begin(); it != cActors.end(); it++ )
+                (*it)->move(DT);
 
-            for( auto act1=cActors.begin(); act1+1 < cActors.end(); act1++ )
-                for( auto act2=act1+1;      act2   < cActors.end(); act2++ )
+            for( CAIt act1=cActors.begin(); act1+1 < cActors.end(); act1++ )
+                for( CAIt act2=act1+1;      act2   < cActors.end(); act2++ )
                     if( collision( **act1, **act2 ) ) {
                         (*act1)->collide_with( **act2 );
                         (*act2)->collide_with( **act1 );
@@ -1502,7 +1501,8 @@ int main( int, char** )
             //
             //         Move p.
 
-            for( auto part=particles.begin(); part < particles.end(); part++ )
+            typedef Particles::iterator PIt;
+            for( PIt part=particles.begin(); part < particles.end(); part++ )
             {
                 part->a *= 0;
                 part->isVisible = true;
@@ -1579,10 +1579,14 @@ int main( int, char** )
         static int lastUpdate = realTimer.time_ms();
         if( IDEAL_FRAME_TIME < realTimer.time_ms() ) 
         {
+            typedef CActors::iterator CAIt;
+            typedef Particles::iterator PIt;
+            typedef Mode::LineList::iterator LLIt;
+
             realTimer.zero();
 
             if( ! paused )
-                for( auto it=cActors.begin(); it < cActors.end() ; it++ ) 
+                for( CAIt it=cActors.begin(); it < cActors.end() ; it++ ) 
                     (*it)->draw();
 
             static int texCoords[] = {
@@ -1598,7 +1602,7 @@ int main( int, char** )
 
             glBindTexture( GL_TEXTURE_2D, 1 );
             glTexCoordPointer( 2, GL_INT, 0, texCoords );
-            for( auto it=particles.begin(); it < particles.end(); it++ )
+            for( PIt it=particles.begin(); it < particles.end(); it++ )
             {
 
                 if( it->s.x() > Arena::minX && 
@@ -1612,7 +1616,7 @@ int main( int, char** )
                 }
             }
 
-            for( auto it=mode->lines.begin(); it < mode->lines.end(); it++ )
+            for( LLIt it=mode->lines.begin(); it < mode->lines.end(); it++ )
                 (*it)->draw();
 
             glDisableClientState( GL_TEXTURE_COORD_ARRAY );
