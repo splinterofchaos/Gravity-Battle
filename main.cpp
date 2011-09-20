@@ -815,9 +815,9 @@ void arcade_spawn( int dt )
     if( nMoving <= 1 && cActors.back()->isActive )
     {
         enum SpawnPoints {
-            ORBITAL = 2,
-            STOPPER = 1,
-            TWISTER = 3
+            ORBITAL_POINTS = 2,
+            STOPPER_POINTS = 1,
+            TWISTER_POINTS = 3
         };
 
         // An arbitrary equation. Not very tested.
@@ -838,14 +838,14 @@ void arcade_spawn( int dt )
             Spawns code = N_SPAWN_SLOTS;
 
             if( pick <= orbitalChance ) {
-                code    =      Spawns::ORBITAL;
-                points -= SpawnPoints::ORBITAL;
+                code    = ORBITAL;
+                points -= ORBITAL_POINTS;
             } else if( pick <= stopperChance+orbitalChance ) {
-                code    =      Spawns::STOPPER;
-                points -= SpawnPoints::STOPPER;
+                code    = STOPPER;
+                points -= STOPPER_POINTS;
             } else {
-                code    =      Spawns::TWISTER;
-                points -= SpawnPoints::TWISTER;
+                code    = TWISTER;
+                points -= TWISTER_POINTS;
             }
 
             delegate_spawn( code );
