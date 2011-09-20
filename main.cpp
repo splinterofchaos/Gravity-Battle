@@ -1230,6 +1230,8 @@ void menu_init()
 
 void menu( int )
 {
+    typedef Mode::LineList::iterator LineIt;
+
     static Music menuSong( "art/music/The Creep Behind.ogg" );
     if( ! menuSong.playing() )
         menuSong.fade_in( 1 * SECOND );
@@ -1240,7 +1242,7 @@ void menu( int )
 
     if( !playerHasMoved ) 
     {
-        for( auto it=mode->lines.begin()+3; it < mode->lines.end(); it++ )
+        for( LineIt it=mode->lines.begin()+3; it < mode->lines.end(); it++ )
             (*it)->color.a( 0 );
     }
     else
@@ -1250,7 +1252,7 @@ void menu( int )
             mode->lines[i]->color[3] -= 0.001;
 
         // Brighten the rest.
-        for( auto it=mode->lines.begin()+3; it < mode->lines.end(); it++ )
+        for( LineIt it=mode->lines.begin()+3; it < mode->lines.end(); it++ )
             (*it)->color[3] += 0.001;
 
         if( showExtraText ) 
