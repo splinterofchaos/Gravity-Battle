@@ -3,6 +3,12 @@
 
 #include <SDL/SDL_ttf.h>
 
+#if defined( __GNUC__ )
+    // tr1/memory is required to include tr1/shared_ptr.h... Dunno why.
+    #include <tr1/memory> 
+#elif defined( __MSVC__ )
+    #error "Insert whatever you have to to use shared_ptr here!"
+#endif
 
 class TrueTypeFont
 {
@@ -58,7 +64,7 @@ struct TextLine
 struct LinePrinter
 {
     TrueTypeFont* ttf;
-    std::vector< std::shared_ptr<TextLine> > lines;
+    std::vector< std::tr1::shared_ptr<TextLine> > lines;
     Vector< float, 2 > pos;
     Color color;
 

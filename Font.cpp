@@ -180,7 +180,7 @@ void LinePrinter::add_line( const std::string& str )
     p.y( p.y() + space );
 
     lines.push_back( 
-        std::shared_ptr<TextLine>( new TextLine(ttf, str, p) )
+        std::tr1::shared_ptr<TextLine>( new TextLine(ttf, str, p) )
     );
     lines.back()->color = color;
 

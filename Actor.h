@@ -8,7 +8,6 @@
 #if defined( __GNUC__ )
     // tr1/memory is required to include tr1/shared_ptr.h... Dunno why.
     #include <tr1/memory> 
-    #include <tr1/shared_ptr.h>
 #elif defined( __MSVC__ )
     #error "Insert whatever you have to to use shared_ptr here!"
 #endif
