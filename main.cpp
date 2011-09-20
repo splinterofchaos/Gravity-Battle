@@ -1073,7 +1073,7 @@ void package_init()
         } // End parse file.
 
         Vector<float,2> pos = vector( Arena::minX + (Arena::maxX-Arena::minX)/4, 
-                                      100 );
+                                      100.0f );
         Mode::LinePtr tip ( 
             new TextLine( font.get(), packageMode.tip, pos )
         );
