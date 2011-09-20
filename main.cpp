@@ -47,7 +47,7 @@ int particleRatio = 200;
 
 // Used for high score consistency. Increment when a change may effect scoring
 // in any way--pretty much any game rule change at all.
-const int VERSION = 10;
+const int VERSION = 11;
 
 // SDL uses milliseconds so i will too.
 const int SECOND = 1000;
