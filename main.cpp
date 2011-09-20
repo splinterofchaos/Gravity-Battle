@@ -439,7 +439,7 @@ void update_high_score()
     // Get the old scores first.
     std::string oldVersion = "1";
     {
-        std::ifstream scoresIn( tableFile );
+        std::ifstream scoresIn( tableFile.c_str() );
         highScoreTable.clear();
         if( scoresIn ) 
         {
@@ -571,7 +571,7 @@ void update_high_score()
     }
 
     // Update the file.
-    std::ofstream out( tableFile );
+    std::ofstream out( tableFile.c_str() );
     out << "version = " << VERSION << '\n';
     out << highScoreTable;
 }
@@ -594,7 +594,7 @@ bool delete_me( SharedCActorPtr& actor )
 
         // Explode.
         for( int i=0; i < std::abs(actor->mass()*particleRatio); i++ )
-            spawn_particle( actor->s, actor->v/6, actor->radius()/9,
+            spawn_particle( actor->s, actor->v/6.0f, actor->radius()/9,
                             actor->color() );
 
 
