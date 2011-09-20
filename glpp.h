@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <GL/gl.h>
+#include <SDL/SDL_opengl.h>
 
 namespace glpp
 {

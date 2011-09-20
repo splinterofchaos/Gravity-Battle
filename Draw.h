@@ -2,7 +2,7 @@
 #include "Vector.h"
 
 #include <iterator>
-#include <GL/gl.h>
+#include <SDL/SDL_opengl.h>
 
 namespace draw {
 
