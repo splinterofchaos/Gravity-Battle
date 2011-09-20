@@ -1366,17 +1366,17 @@ void keyboard_events()
         showExtraText = !showExtraText;
 }
 
-void particle_repel( Particles::iterator p, const Vector<float,2>& r, float mult )
+void particle_repel( Particles::iterator p, const Actor::vector_type& r, float mult )
 {
     p->a -= magnitude( r, mult * random(0.8f, 1.2f) );
 
     if( p->v * r < 0 ) {
-        auto u = unit( r );
+        Actor::vector_type u = unit( r );
         p->v = p->v - 2 * (p->v*u) * u;
     }
 }
 
-void particle_in_live_zone( const Particle& p )
+bool particle_in_live_zone( const Particle& p )
 {
     // Letting the particles go a little off-screen safely
     // gives a better "endless space!" feeling.
