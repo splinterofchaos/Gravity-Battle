@@ -729,7 +729,7 @@ void play_song( Music& song )
 
 void chaos_spawn( int dt )
 {
-    static slotsTmp[] = {
+    static Spawns slotsTmp[] = {
         ORBITAL, TWISTER, 
         NEGATIVE, ORBITAL, STOPPER, GREEDY,
         NEGATIVE, TWISTER, ORBITAL, TWISTER 
@@ -883,6 +883,10 @@ void arcade_mode( int dt )
     }
 }
 
+void on_death_lower_color( Mode::LinePtr& ptr )
+{
+    ptr->color[3] -= 0.001;
+}
 
 void on_death( int dt )
 {
@@ -896,8 +900,7 @@ void on_death( int dt )
     {
         for_each ( 
             mode->lines.begin(), mode->lines.end(), 
-            // Lower alpha value.
-            [](Mode::LineList::value_type& linePtr){ linePtr->color[3] -= 0.001; } 
+            on_death_lower_color
         );
     }
 }
@@ -940,6 +943,11 @@ void training_init()
     }
 }
 
+void set_delete_me( CActors::value_type& a )
+{
+    a->deleteMe = true;
+}
+
 void training_mode( int )
 {
     // This is a sandbox mode where the player can't die and s/he can manually
@@ -958,7 +966,7 @@ void training_mode( int )
         mode->chaos = ! mode->chaos;
 
         int offset = !Orbital::target.expired();
-        for_each( cActors.begin()+offset, cActors.end(), []( CActors::value_type a ) { a->deleteMe = true; } );
+        for_each( cActors.begin()+offset, cActors.end(), set_delete_me );
     }
 
     Orbital::target.lock()->invinsible = true;
@@ -1289,10 +1297,9 @@ void load_resources()
 
 void destroy_resources()
 {
-    auto f = []( Sound& s ) { s.reset(); };
-    std::for_each( Orbital::birthSfx,  Orbital::birthSfx+Orbital::N_BIRTH_SFX, f );
-    std::for_each( Orbital::wallSfx,   Orbital::wallSfx+Orbital::N_WALL_SFX,   f );
-    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS,  f );
+    std::for_each( Orbital::birthSfx,  Orbital::birthSfx+Orbital::N_BIRTH_SFX, &Sound::reset );
+    std::for_each( Orbital::wallSfx,   Orbital::wallSfx+Orbital::N_WALL_SFX,  &Sound::reset );
+    std::for_each( Stopper::switchSfx, Stopper::switchSfx+Stopper::N_SWITCHS, &Sound::reset );
 
     Player::body.reset();
     Player::shield.reset();
@@ -1355,6 +1362,26 @@ void keyboard_events()
 
     if( Keyboard::key_state('e') )
         showExtraText = !showExtraText;
+}
+
+void particle_repel( Particles::iterator p, const Vector<float,2>& r, float mult )
+{
+    p->a -= magnitude( r, mult * random(0.8f, 1.2f) );
+
+    if( p->v * r < 0 ) {
+        auto u = unit( r );
+        p->v = p->v - 2 * (p->v*u) * u;
+    }
+}
+
+void particle_in_live_zone( const Particle& p )
+{
+    // Letting the particles go a little off-screen safely
+    // gives a better "endless space!" feeling.
+    return p.s.x() < Arena::minX-400 || 
+           p.s.x() > Arena::maxX+400 || 
+           p.s.y() < Arena::minY-400 || 
+           p.s.y() > Arena::maxY+400;
 }
 
 int main( int, char** )
@@ -1478,16 +1505,6 @@ int main( int, char** )
                 part->a *= 0;
                 part->isVisible = true;
 
-                auto repel = []( Particles::iterator p, const Vector<float,2>& r, float mult )
-                {
-                    p->a -= magnitude( r, mult * random(0.8f, 1.2f) );
-
-                    if( p->v * r < 0 ) {
-                        auto u = unit( r );
-                        p->v = p->v - 2 * (p->v*u) * u;
-                    }
-                };
-
                 // When parts aren't simple (default), do calculations.
                 if( ! simpleParts )
                 {
@@ -1503,7 +1520,7 @@ int main( int, char** )
 
                         if( magnitude(r) < combRad )
                         {
-                            repel( part, r, 0.29f * 0.6f );
+                            particle_repel( part, r, 0.29f * 0.6f );
                         } else {
                             part->a += magnitude (
                                 r, 
@@ -1526,7 +1543,7 @@ int main( int, char** )
 
                         if( magnitude(r) < combRad )
                         {
-                            repel( part, r, -0.01f * 0.6f );
+                            particle_repel( part, r, -0.01f * 0.6f );
                         }
                     }
                 } // if not simple parts
@@ -1539,15 +1556,7 @@ int main( int, char** )
             particles.erase ( 
                 remove_if (
                     particles.begin(), particles.end(),
-                    []( const Particle& p )
-                    {
-                        // Letting the particles go a little off-screen safely
-                        // gives a better "endless space!" feeling.
-                        return p.s.x() < Arena::minX-400 || 
-                               p.s.x() > Arena::maxX+400 || 
-                               p.s.y() < Arena::minY-400 || 
-                               p.s.y() > Arena::maxY+400;
-                    }
+                    particle_in_live_zone
                 ), 
                 particles.end() 
             );
