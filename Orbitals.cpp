@@ -162,7 +162,9 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
         if( gravityLine ) 
         {
             for( size_t i=0; i < attractors.size(); i++ ) 
-                if( auto attr = attractors[i].lock() )
+            {
+                SharedCActorPtr attr = attractors[i].lock();
+                if( attr.get() )
                 {
                     vector_type accelerationLine[] = {
                         attr->s,
@@ -172,6 +174,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                     draw::draw( &accelerationLine[0][0], 2, image.handle(), 
                                 texCoords, GL_LINE_STRIP );
                 }
+            }
         }
 
         const unsigned int NUM_PREDICTIONS = predictionLength;
@@ -193,7 +196,7 @@ void Orbital::draw_impl( float* verts, float zRotation, bool extra )
                 // If this state will collide with an attractor, break.
                 for( size_t k=0; k < attractors.size(); k++ ) 
                 {
-                    auto attr = attractors[k].lock();
+                    SharedCActorPtr attr = attractors[k].lock();
                     if( ! attr || attr.get() == this )
                         continue;
 

@@ -21,7 +21,9 @@ class Orbital : public CircleActor
     GLfloat colorIntensity;
 
   public:
-    typedef std::vector< std::tr1::weak_ptr<CircleActor> > Attractors;
+    typedef std::tr1::weak_ptr<CircleActor>   WeakCActorPtr;
+    typedef std::tr1::shared_ptr<CircleActor> SharedCActorPtr;
+    typedef std::vector< WeakCActorPtr > Attractors;
     static Attractors attractors;
 
     static const value_type RADIUS;
