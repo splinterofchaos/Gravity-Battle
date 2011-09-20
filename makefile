@@ -3,11 +3,19 @@
 # LDFLAGS are flags sent to the linker.
 # CFLAGS are sent to the C compiler.
 
+CC = g++ 
+
 ifeq "$(OS)" "Windows_NT"
 	# Openmp seems to do more bad than good, so don't include it.
 	EXTRA =
 	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lopengl32 -lgdi32 -lSDL_ttf
 	OUT     = run.exe
+else ifeq "${shell uname}" "Darwin"
+	LDFLAGS = -lSDLmain -lSDL -lSDL_mixer -lSDL_ttf -framework OpenGL -framework cocoa
+	CFLAGS += -I/usr/local/include
+	OUT   = run
+
+	CC = llvm-g++
 else
 	# Linux
 	EXTRA =
@@ -15,18 +23,18 @@ else
 	OUT     = run
 endif
 
- 
-CC = g++ 
-
 CFLAGS  += -Wall -Wextra -O3
 
-compile = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -c 
-link    = ${CC} ${CFLAGS} ${EXTRA} -std=c++0x -o ${OUT}
+compile = ${CC} ${CFLAGS} ${EXTRA} -c 
+link    = ${CC} ${CFLAGS} ${EXTRA} -o ${OUT}
 
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o .Timer.o .Keyboard.o
 
-${OUT} : ${OBJ} main.cpp makefile
-	${link} main.cpp -std=c++0x ${OBJ} ${LDFLAGS}
+${OUT} : ${OBJ} .main.o makefile
+	${link} SDLMain.m .main.o ${OBJ} ${LDFLAGS}
+
+.main.o : main.cpp ${OBJ}
+	${compile} main.cpp -o .main.o
 
 .Keyboard.o : Keyboard.h Keyboard.cpp
 	${compile} Keyboard.cpp -o .Keyboard.o
@@ -44,7 +52,7 @@ ${OUT} : ${OBJ} main.cpp makefile
 	${compile} draw_shape.cpp -o .draw_shape.o
 
 .Challenge.o : Challenge.h Challenge.cpp Draw.h
-	${compile} -std=c++0x Challenge.cpp -o .Challenge.o
+	${compile} Challenge.cpp -o .Challenge.o
 
 .Parsing.o : Parsing.cpp Parsing.h
 	${compile} Parsing.cpp -o .Parsing.o
@@ -71,7 +79,7 @@ ${OUT} : ${OBJ} main.cpp makefile
 	${compile} Arena.cpp -o .Arena.o
 
 .Player.o : Player.cpp Player.h .CircleActor.o .Texture.o
-	${compile} -std=c++0x Player.cpp -o .Player.o
+	${compile} Player.cpp -o .Player.o
 
 .Orbitals.o : Orbitals.cpp Orbitals.h .CircleActor.o .Texture.o
 	${compile} Orbitals.cpp -o .Orbitals.o
