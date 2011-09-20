@@ -679,11 +679,14 @@ void reset( Mode* newMode = 0 )
 }
 
 enum Spawns { ORBITAL, STOPPER, TWISTER, NEGATIVE, GREEDY, N_SPAWN_SLOTS=9 };
-std::vector<Spawns> spawnSlots = {
+Spawns slotsTmp[] = {
     STOPPER, ORBITAL,
     ORBITAL, ORBITAL, ORBITAL, TWISTER,
     TWISTER, ORBITAL, TWISTER 
 };
+std::vector<Spawns> spawnSlots (
+    slotsTmp, slotsTmp + sizeof(slotsTmp)/sizeof(slotsTmp[0]) 
+);
 
 WeakCActorPtr delegate_spawn( int spawnCode )
 {
@@ -726,11 +729,14 @@ void play_song( Music& song )
 
 void chaos_spawn( int dt )
 {
-    static std::vector<Spawns> chaosSlots = {
+    static slotsTmp[] = {
         ORBITAL, TWISTER, 
         NEGATIVE, ORBITAL, STOPPER, GREEDY,
         NEGATIVE, TWISTER, ORBITAL, TWISTER 
     };
+    static std::vector<Spawns> chaosSlots ( 
+        slotsTmp, slotsTmp + sizeof(slotsTmp)/sizeof(slotsTmp[0]) 
+    );
 
     // Time to spawn a new enemy?
     spawnWait -= dt;
