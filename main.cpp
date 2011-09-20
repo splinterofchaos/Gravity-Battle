@@ -74,7 +74,7 @@ bool simpleParts;
 bool showExtraText = true;
 
 // Used everywhere to write text on the screen.
-std::shared_ptr<TrueTypeFont> font;
+std::tr1::shared_ptr<TrueTypeFont> font;
 
 // True if the player has moved since the game started.
 bool playerHasMoved = false; 
@@ -101,7 +101,7 @@ struct Mode
     static void null_update(int) { }
     static void null_event()     { }
 
-    typedef std::shared_ptr< TextLine > LinePtr;
+    typedef std::tr1::shared_ptr< TextLine > LinePtr;
     typedef std::vector< LinePtr >      LineList;
     LineList  lines;
 
