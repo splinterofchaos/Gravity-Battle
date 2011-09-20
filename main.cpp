@@ -1027,7 +1027,7 @@ void package_init()
     std::stringstream filename;
     filename << "challenge/package/level" << packageLevel;
 
-    std::ifstream level( filename.str() );
+    std::ifstream level( filename.str().c_str() );
 
     Orbital::SharedPlayerPtr target = Orbital::target.lock();
 
@@ -1140,7 +1140,7 @@ void package_delivery( int dt )
             int previousTime;
             {
                 float input;
-                std::ifstream scoreIn( filename.str() );
+                std::ifstream scoreIn( filename.str().c_str() );
                 if( scoreIn >> input )
                     previousTime = input * SECOND;
                 else
@@ -1148,7 +1148,7 @@ void package_delivery( int dt )
             }
 
             if( previousTime < packageMode.time ) {
-                std::ofstream score( filename.str() );
+                std::ofstream score( filename.str().c_str() );
                 score << float(packageMode.time) / SECOND;
             }
 
