@@ -36,7 +36,7 @@ class CircleActor : public Actor
 
     // Overloads Actor::move to add functionality like staying on the
     // screen.
-    void move( float dt, value_type maxSpeed=0 );
+    void move_impl( float dt, value_type maxSpeed=0 );
 
     // How many points are awarded for killing this. Allows negative values.
     virtual int score_value() = 0;

@@ -63,7 +63,7 @@ CircleActor::State CircleActor::integrate( State state, int dt, value_type maxSp
     return state;
 }
 
-void CircleActor::move( float dt, value_type maxSpeed )
+void CircleActor::move_impl( float dt, value_type maxSpeed )
 {
     previousS = s;
 

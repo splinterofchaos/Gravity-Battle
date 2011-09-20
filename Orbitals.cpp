@@ -114,7 +114,7 @@ void Orbital::move( float dt )
     }
 
     // Will call Orbital::integrate.
-    CircleActor::move( dt );
+    CircleActor::move_impl( dt );
 
     if( hitWall )
         wallSfx[ random(0, N_WALL_SFX) ].play();

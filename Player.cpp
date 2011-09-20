@@ -45,7 +45,7 @@ void Player::move( float dt )
     if( moreGravity )
         a *= 1.05;
 
-    CircleActor::move( dt, SPEED );
+    CircleActor::move_impl( dt, SPEED );
 
     //v *= 0.2;
     a *= 0.9;
