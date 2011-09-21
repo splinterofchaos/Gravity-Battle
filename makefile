@@ -12,7 +12,6 @@ ifeq "$(OS)" "Windows_NT"
 	OUT     = run.exe
 else ifeq "${shell uname}" "Darwin"
 	LDFLAGS = -lSDLmain -lSDL -lSDL_mixer -lSDL_ttf -framework OpenGL -framework cocoa
-	CFLAGS += -I/usr/local/include
 	OUT   = run
 
 	CC = llvm-g++
@@ -26,12 +25,12 @@ endif
 CFLAGS  += -Wall -Wextra -O3
 
 compile = ${CC} ${CFLAGS} ${EXTRA} -c 
-link    = ${CC} ${CFLAGS} ${EXTRA} -o ${OUT}
+link    = ${CC} ${CFLAGS} ${LDFLAGS} ${EXTRA} -o ${OUT}
 
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o .Timer.o .Keyboard.o
 
 ${OUT} : ${OBJ} .main.o makefile
-	${link} SDLMain.m .main.o ${OBJ} ${LDFLAGS}
+	${link} SDLMain.m .main.o ${OBJ} 
 
 .main.o : main.cpp ${OBJ}
 	${compile} main.cpp -o .main.o
