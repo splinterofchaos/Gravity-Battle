@@ -1,6 +1,7 @@
 
 TOC:
     ABOUT
+    RUNNING ON LINUX AND MAC
     HOW TO PLAY
     ENEMIES
     HIGH SCORE
@@ -12,6 +13,12 @@ ABOUT
 The game's name is Orbital Chaos. Email me at hakusa@gmail.com with any
 comments, i'll be glad to hear them. If "Source Code" means anything to you,
 you can grab it at https://github.com/splinterofchaos/Gravity-Battle.
+
+RUNNING ON LINUX AND MAC
+
+It matters whether you downloaded the 64 or 32-bit version. One will not run on
+the other's hardware. However, the libraries needed are generic. You need SDL,
+SDL_ttf, and SDL_mixer.
 
 HOW TO PLAY
 
