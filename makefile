@@ -11,7 +11,8 @@ ifeq "$(OS)" "Windows_NT"
 	LDFLAGS = -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lopengl32 -lgdi32 -lSDL_ttf
 	OUT     = run.exe
 else ifeq "${shell uname}" "Darwin"
-	LDFLAGS = -lSDLmain -lSDL -lSDL_mixer -lSDL_ttf -framework OpenGL -framework cocoa
+	LDFLAGS = -framework SDL -framework SDL_mixer -framework SDL_ttf -framework OpenGL -framework cocoa
+	#LDFLAGS = -framework OpenGL -framework cocoa
 	OUT   = run
 
 	CC = llvm-g++
