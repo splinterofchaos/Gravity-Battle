@@ -26,6 +26,8 @@
 #include "Keyboard.h"
 #include "Timer.h"
 
+#include "System.h"
+
 // 3rd party includes.
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -82,7 +84,7 @@ bool playerHasMoved = false;
 bool playerIncreasedGravity = false;
 
 const Config defaultConfig; // Used when unsure about any config option.
-Config fileConfig( "config.txt" ), config = fileConfig;
+Config fileConfig( LOCAL_FILE("config.txt") ), config = fileConfig;
 
 int packageLevel = 0;
 
@@ -434,7 +436,7 @@ std::ofstream& operator << ( std::ofstream& of, HighScoreTable& highScoreTable )
 void update_high_score()
 {
     std::string tableFile = 
-        mode->name + " Scores.txt";
+        LOCAL_FILE( mode->name + " Scores.txt" );
 
     // Get the old scores first.
     std::string oldVersion = "1";
@@ -581,10 +583,10 @@ void update_high_score()
 bool delete_me( SharedCActorPtr& actor )
 {
     static Sound explosions[] = { 
-        Sound("art/sfx/Explode1.wav"),
-        Sound("art/sfx/Explode2.wav"),
-        Sound("art/sfx/Explode3.wav"),
-        Sound("art/sfx/Explode4.wav"),
+        Sound( LOCAL_FILE("art/sfx/Explode1.wav") ),
+        Sound( LOCAL_FILE("art/sfx/Explode2.wav") ),
+        Sound( LOCAL_FILE("art/sfx/Explode3.wav") ),
+        Sound( LOCAL_FILE("art/sfx/Explode4.wav") ),
     };
     static const int N_EXPLOSIONS = sizeof( explosions ) / sizeof( Sound );
 
@@ -765,7 +767,7 @@ void chaos_spawn( int dt )
 
 void chaos_mode( int dt )
 { 
-    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    static Music menuSong( LOCAL_FILE("art/music/Stuck Zipper.ogg") );
     static int lastScore = 0;
 
     play_song( menuSong );
@@ -865,7 +867,7 @@ void arcade_init()
 
 void arcade_mode( int dt )
 {
-    static Music menuSong( "art/music/Stuck Zipper.ogg" );
+    static Music menuSong( LOCAL_FILE("art/music/Stuck Zipper.ogg") );
     static int lastScore = 0;
 
     play_song( menuSong );
@@ -1101,7 +1103,7 @@ void package_delivery( int dt )
 {
     // In this mode, the player must guide the "package" to the "goal".
 
-    static Music menuSong( "art/music/Magic.ogg" );
+    static Music menuSong( LOCAL_FILE("art/music/Magic.ogg") );
 
     if( ! menuSong.playing() )
     {
@@ -1135,7 +1137,8 @@ void package_delivery( int dt )
         if( ! packageMode.scoreSaved ) 
         {
             std::stringstream filename;
-            filename << "challenge/package-times/level" << packageLevel << ".txt";
+            filename << LOCAL_FILE("challenge/package-times/level") 
+                     << packageLevel << ".txt";
 
             int previousTime;
             {
@@ -1232,7 +1235,7 @@ void menu( int )
 {
     typedef Mode::LineList::iterator LineIt;
 
-    static Music menuSong( "art/music/The Creep Behind.ogg" );
+    static Music menuSong( LOCAL_FILE("art/music/The Creep Behind.ogg") );
     if( ! menuSong.playing() )
         menuSong.fade_in( 1 * SECOND );
 
@@ -1279,22 +1282,22 @@ void menu( int )
 
 void load_resources()
 {
-    Player::body.load(   "art/Orbital.bmp" );
-    Player::shield.load( "art/Sheild2.bmp" );
-    Orbital::image.load( "art/Orbital.bmp" );
+    Player::body.load(   LOCAL_FILE("art/Orbital.bmp") );
+    Player::shield.load( LOCAL_FILE("art/Sheild2.bmp") );
+    Orbital::image.load( LOCAL_FILE("art/Orbital.bmp") );
 
-    Orbital::birthSfx[0].load( "art/sfx/Birth.wav" );
-    Orbital::birthSfx[1].load( "art/sfx/Birth1.wav" );
-    Orbital::birthSfx[2].load( "art/sfx/Birth2.wav" );
+    Orbital::birthSfx[0].load( LOCAL_FILE("art/sfx/Birth.wav") );
+    Orbital::birthSfx[1].load( LOCAL_FILE("art/sfx/Birth1.wav") );
+    Orbital::birthSfx[2].load( LOCAL_FILE("art/sfx/Birth2.wav") );
 
-    Orbital::wallSfx[0].load( "art/sfx/Hit-wall.wav" );
-    Orbital::wallSfx[1].load( "art/sfx/Hit-wall1.wav" );
-    Orbital::wallSfx[2].load( "art/sfx/Hit-wall2.wav" );
+    Orbital::wallSfx[0].load( LOCAL_FILE("art/sfx/Hit-wall.wav") );
+    Orbital::wallSfx[1].load( LOCAL_FILE("art/sfx/Hit-wall1.wav") );
+    Orbital::wallSfx[2].load( LOCAL_FILE("art/sfx/Hit-wall2.wav") );
 
-    Stopper::switchSfx[0].load( "art/sfx/Stopper-change.wav" );
-    Stopper::switchSfx[1].load( "art/sfx/Stopper-change1.wav" );
-    Stopper::switchSfx[2].load( "art/sfx/Stopper-change2.wav" );
-    Stopper::switchSfx[3].load( "art/sfx/Stopper-change3.wav" );
+    Stopper::switchSfx[0].load( LOCAL_FILE("art/sfx/Stopper-change.wav") );
+    Stopper::switchSfx[1].load( LOCAL_FILE("art/sfx/Stopper-change1.wav") );
+    Stopper::switchSfx[2].load( LOCAL_FILE("art/sfx/Stopper-change2.wav") );
+    Stopper::switchSfx[3].load( LOCAL_FILE("art/sfx/Stopper-change3.wav") );
 }
 
 void destroy_resources()
@@ -1329,7 +1332,7 @@ void keyboard_events()
     {
         // Do this in case the user updated prediction- length or
         // precision.
-        fileConfig.reload( "config.txt" );
+        fileConfig.reload( LOCAL_FILE("config.txt") );
 
         bool tmp;
         if( config.get("prediction-length",&tmp), ! tmp )

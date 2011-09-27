@@ -3,7 +3,7 @@
 #define WINDOWS 0
 #define LINUX 0
 
-#if defined( __MACOSX__ )
+#if defined( __APPLE_CC__ )
     #undef MAC
     #define MAC 1
 
@@ -22,8 +22,10 @@
 // running directory, The art files, on Mac, should be IN this folder, not 
 // around.
 #if MAC && MAC_FS
+    #define FILES std::string("OC.app/Contents/Resources/")
     #define LOCAL_FILE(addr) \
-        "OC.app/Contents/Resources"#addr
+        ( FILES + (addr) ).c_str()
 #else
+    #define FILES std::string("./")
     #define LOCAL_FILE(addr) (addr)
 #endif
