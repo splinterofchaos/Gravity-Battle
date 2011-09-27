@@ -2,6 +2,8 @@
 #include "Font.h"
 #include "Draw.h"
 
+#include "System.h"
+
 #include <SDL/SDL_opengl.h>
 
 #include <fstream>
@@ -10,7 +12,7 @@ TrueTypeFont::TrueTypeFont()
 {
     TTF_Init();
 
-    ttf = TTF_OpenFont( "art/font/xlmonoalt.ttf", 20 );
+    ttf = TTF_OpenFont( LOCAL_FILE("art/font/xlmonoalt.ttf"), 20 );
 
     if( ! ttf )
         throw "Could not load font.";
