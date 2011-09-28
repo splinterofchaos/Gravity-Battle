@@ -33,7 +33,7 @@ OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o 
 ${OUT} : ${OBJ} .main.o makefile
 	${link} SDLMain.m .main.o ${OBJ} 
 
-.main.o : main.cpp ${OBJ}
+.main.o : main.cpp System.h ${OBJ}
 	${compile} main.cpp -o .main.o
 
 .Keyboard.o : Keyboard.h Keyboard.cpp
@@ -63,7 +63,7 @@ ${OUT} : ${OBJ} .main.o makefile
 .Random.o : Random.h Random.cpp
 	${compile} Random.cpp -o .Random.o
 
-.Font.o : Font.cpp Font.h
+.Font.o : Font.cpp Font.h System.h
 	${compile} Font.cpp -o .Font.o
 
 .Collision.o : Collision.cpp Collision.h 

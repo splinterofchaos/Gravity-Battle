@@ -1401,8 +1401,8 @@ bool particle_in_live_zone( const Particle& p )
 
 int main( int, char** )
 {
-    const int IDEAL_FRAME_TIME = SECOND / 60;
-    const int MAX_FRAME_TIME = 3 * IDEAL_FRAME_TIME;
+    const int IDEAL_FRAME_TIME = (SECOND / 60);
+    const int MAX_FRAME_TIME = (36 * IDEAL_FRAME_TIME);
 
     bool quit = false;
     bool paused = false;
@@ -1452,7 +1452,7 @@ int main( int, char** )
         if( Keyboard::key_state( Keyboard::ESQ ) )
             quit = true;
 
-        float DT = IDEAL_FRAME_TIME * ( 1.f / 2.f );
+        float DT = IDEAL_FRAME_TIME * ( 1.f / 4.f );
         if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 6*SECOND )
             DT /= 2;
 
