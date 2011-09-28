@@ -12,10 +12,10 @@ void Config::set_defaults()
     vars["particle-opacity"]   = "30";
     vars["particle-behaviour"] = "orbit";
 
-    vars["prediction-length"]    = "100";
+    vars["prediction-length"]    = "0";
     vars["prediction-precision"] = "10";
 
-    vars["gravity-line"]       = "1";
+    vars["gravity-line"]       = "0";
     vars["velocity-arrow"]     = "0";
 	vars["acceleration-arrow"] = "0";
 

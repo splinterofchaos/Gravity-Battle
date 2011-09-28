@@ -1334,7 +1334,7 @@ void keyboard_events()
         // precision.
         fileConfig.reload( LOCAL_FILE("config.txt") );
 
-        bool tmp;
+        int tmp;
         if( config.get("prediction-length",&tmp), ! tmp )
             if( fileConfig.get("prediction-length",&tmp), tmp )
                 config["prediction-length"] = 
@@ -1452,7 +1452,7 @@ int main( int, char** )
         if( Keyboard::key_state( Keyboard::ESQ ) )
             quit = true;
 
-        float DT = IDEAL_FRAME_TIME * ( 1.f / 4.f );
+        float DT = IDEAL_FRAME_TIME * ( 1.f / 2.f );
         if( timePlayerDied && gameTimer.time_ms() < timePlayerDied + 6*SECOND )
             DT /= 2;
 

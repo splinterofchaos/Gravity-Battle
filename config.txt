@@ -58,5 +58,5 @@ nHighScores = 10
 fps = 0
 
 # Music and Sound volumes: Maximum is 128, minimum is zero.
-music-volume = 8
+music-volume = 0
 sfx-volume   = 8

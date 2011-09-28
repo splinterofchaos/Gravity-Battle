@@ -22,7 +22,7 @@
 // running directory, The art files, on Mac, should be IN this folder, not 
 // around.
 #if MAC && MAC_FS
-    #define FILES std::string("OC.app/Contents/Resources/")
+    #define FILES std::string("Orbital Chaos.app/Contents/Resources/")
     #define LOCAL_FILE(addr) \
         ( FILES + (addr) ).c_str()
 #else
