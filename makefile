@@ -4,6 +4,7 @@
 # CFLAGS are sent to the C compiler.
 
 CC = g++ 
+SDLMAIN = 
 
 ifeq "$(OS)" "Windows_NT"
 	# Openmp seems to do more bad than good, so don't include it.
@@ -16,6 +17,7 @@ else ifeq "${shell uname}" "Darwin"
 	OUT   = run
 
 	CC = llvm-g++
+	SDLMAIN = SDLMain.m
 else
 	# Linux
 	EXTRA =
@@ -26,15 +28,13 @@ endif
 CFLAGS  += -Wall -Wextra -O3
 
 compile = ${CC} ${CFLAGS} ${EXTRA} -c 
-link    = ${CC} ${CFLAGS} ${LDFLAGS} ${EXTRA} -o ${OUT}
+link    = ${CC} ${CFLAGS} ${EXTRA} -o ${OUT}
 
 OBJ = .Challenge.o .Config.o .Random.o .Font.o .Actor.o .CircleActor.o .Arena.o .Texture.o .Player.o .Orbitals.o .MenuOrbital.o .Particle.o .Collision.o .Color.o .draw_shape.o .glpp.o .Parsing.o .Sound.o .Timer.o .Keyboard.o
 
-${OUT} : ${OBJ} .main.o makefile
-	${link} SDLMain.m .main.o ${OBJ} 
+${OUT} : ${OBJ} main.cpp System.h makefile
+	${link} ${SDLMAIN} main.cpp ${OBJ}  ${LDFLAGS}
 
-.main.o : main.cpp System.h ${OBJ}
-	${compile} main.cpp -o .main.o
 
 .Keyboard.o : Keyboard.h Keyboard.cpp
 	${compile} Keyboard.cpp -o .Keyboard.o
