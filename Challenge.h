@@ -30,9 +30,12 @@ struct Obsticle : public Orbital
 {
     static const float SIZE;
 
+    bool collisionChecked;
+
     Obsticle( const vector_type& pos, const vector_type& v=vector_type(0,0) );
 
-    State on_off_screen( State state );
+
+    void move( float dt );
 
     Color color();
 

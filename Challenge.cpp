@@ -76,12 +76,15 @@ Obsticle::Obsticle( const vector_type& pos, const vector_type& )
     : Orbital( pos, vector_type(0,0), false )
 {
     isMovable = false;
+    isActive = true;
     activationDelay = 0;
 }
 
-Obsticle::State Obsticle::on_off_screen( State s )
+
+void Obsticle::move( float dt )
 {
-    return s;
+    collisionChecked = false;
+    s += v*dt;
 }
 
 Color Obsticle::color()
@@ -94,9 +97,31 @@ Obsticle::value_type Obsticle::radius() const
     return SIZE;
 }
 
-void Obsticle::collide_with( CircleActor& )
+void Obsticle::collide_with( CircleActor& other )
 {
-    // This is not a stub. Do nothing on collision.
+    if( collisionChecked )
+        return;
+
+    ((Obsticle*)&other)->collisionChecked = true;
+
+    if( ! isMovable )
+    {
+        isMovable = true;
+        v = other.v;
+    }
+    else
+    {
+        if( ! other.isMovable )
+        {
+            other.v =  v / 2;
+            v       = -v / 2;
+        }
+        else
+        {
+            v = -v;
+            other.v = -v;
+        }
+    }
 }
 
 Goal::Goal( const vector_type& pos, const vector_type& )
