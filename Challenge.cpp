@@ -102,7 +102,9 @@ void Obsticle::collide_with( CircleActor& other )
     if( collisionChecked )
         return;
 
-    ((Obsticle*)&other)->collisionChecked = true;
+    Obsticle* otherPtr = dynamic_cast<Obsticle*>( &other );
+    if( otherPtr )
+        otherPtr->collisionChecked = true;
 
     if( ! isMovable )
     {
