@@ -21,6 +21,8 @@ struct Package : public Orbital
     void move( float dt );
     void draw();
 
+    value_type mass();
+
     Color color();
 
     void collide_with( CircleActor& collider );

@@ -40,7 +40,6 @@ void Package::move( float dt )
     Orbital::move( dt );
 }
 
-#include <fstream>
 void Package::draw()
 {
     Orbital::draw();
@@ -55,6 +54,11 @@ void Package::draw()
 
         glLoadIdentity();
     }
+}
+
+Package::value_type Package::mass()
+{
+    return 20;
 }
 
 Color Package::color()
@@ -105,6 +109,32 @@ void Obsticle::collide_with( CircleActor& other )
     Obsticle* otherPtr = dynamic_cast<Obsticle*>( &other );
     if( otherPtr )
         otherPtr->collisionChecked = true;
+
+    isMovable = true;
+    other,isMovable = true;
+
+    Vector<float,2> diff = other.s - s;
+    float d       = magnitude( diff );
+    float combRad = other.radius() + radius();
+
+    // Move them off each other.
+    s -= magnitude( diff, magnitude(diff) - combRad );
+
+    Vector<float,2> mtd = diff * (((radius() + other.radius())-d)/d); 
+
+    Vector<float,2> vel = v - other.v;
+    float vn = vel * unit(mtd);
+
+    if( vn < 0 )
+        // They are moving away from each other. No extra work needed.
+        return;
+
+    float i = -1.01 * vn * ( mass() + other.mass() );
+    Vector<float,2> impulse = mtd * i;
+
+    v       += impulse / mass();
+    other.v -= impulse / other.mass();
+    return;
 
     if( ! isMovable )
     {
