@@ -116,7 +116,7 @@ void Obsticle::collide_with( CircleActor& other )
         return;
 
     isMovable = true;
-    other,isMovable = true;
+    other.isMovable = true;
 
     Vector<float,2> diff = other.s - s;
     float d       = magnitude( diff );
@@ -134,31 +134,11 @@ void Obsticle::collide_with( CircleActor& other )
         // They are moving away from each other. No extra work needed.
         return;
 
-    float i = -0.9 * vn * ( mass() + other.mass() );
+    float i = vn * ( mass() + other.mass() );
     Vector<float,2> impulse = mtd * i;
 
-    v       += impulse / mass();
-    other.v -= impulse / other.mass();
-    return;
-
-    if( ! isMovable )
-    {
-        isMovable = true;
-        v = other.v;
-    }
-    else
-    {
-        if( ! other.isMovable )
-        {
-            other.v =  v / 2;
-            v       = -v / 2;
-        }
-        else
-        {
-            v = -v;
-            other.v = -v;
-        }
-    }
+    v       -= impulse / mass();
+    other.v += impulse / other.mass();
 }
 
 Goal::Goal( const vector_type& pos, const vector_type& )
