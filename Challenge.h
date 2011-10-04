@@ -36,7 +36,6 @@ struct Obsticle : public Orbital
 
     Obsticle( const vector_type& pos, const vector_type& v=vector_type(0,0) );
 
-
     void move( float dt );
 
     Color color();
