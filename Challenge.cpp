@@ -112,6 +112,9 @@ void Obsticle::collide_with( CircleActor& other )
     if( otherPtr )
         otherPtr->collisionChecked = true;
 
+    if( &other == Package::goal.lock().get() )
+        return;
+
     isMovable = true;
     other,isMovable = true;
 
