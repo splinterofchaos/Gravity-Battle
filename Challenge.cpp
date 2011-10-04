@@ -88,7 +88,9 @@ Obsticle::Obsticle( const vector_type& pos, const vector_type& )
 void Obsticle::move( float dt )
 {
     collisionChecked = false;
-    Orbital::move( dt );
+    s += v*dt;
+
+    state( Orbital::on_off_screen( state() ) );
 }
 
 Color Obsticle::color()
@@ -118,7 +120,7 @@ void Obsticle::collide_with( CircleActor& other )
     float combRad = other.radius() + radius();
 
     // Move them off each other.
-    s -= magnitude( diff, magnitude(diff) - combRad );
+    s -= magnitude( diff, magnitude(diff) - combRad + 0.01 );
 
     Vector<float,2> mtd = diff * (((radius() + other.radius())-d)/d); 
 
@@ -129,7 +131,7 @@ void Obsticle::collide_with( CircleActor& other )
         // They are moving away from each other. No extra work needed.
         return;
 
-    float i = -1.01 * vn * ( mass() + other.mass() );
+    float i = -0.9 * vn * ( mass() + other.mass() );
     Vector<float,2> impulse = mtd * i;
 
     v       += impulse / mass();
