@@ -88,7 +88,7 @@ Obsticle::Obsticle( const vector_type& pos, const vector_type& )
 void Obsticle::move( float dt )
 {
     collisionChecked = false;
-    s += v*dt;
+    Orbital::move( dt );
 }
 
 Color Obsticle::color()
