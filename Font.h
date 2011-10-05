@@ -55,7 +55,7 @@ struct TextLine
     TextLine( TrueTypeFont* f, const std::string& t, const Vector<float,2>& p );
     virtual ~TextLine();
 
-    virtual void update( int dt ) { };
+    virtual void update( int ) { };
 
     void str( const std::string& s );
     void draw();
