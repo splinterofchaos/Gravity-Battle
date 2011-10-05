@@ -1162,7 +1162,7 @@ void package_delivery( int dt )
 
         // Advance when the player presses spacebar.
         Uint8* keyStates = SDL_GetKeyState( 0 );
-        if( keyStates[ SDLK_SPACE ] ) {
+        if( keyStates[ ' ' ] ) {
             packageMode.time = 0;
 
             packageLevel++;
