@@ -158,7 +158,7 @@ Color Goal::color()
 
 Goal::value_type Goal::mass()
 {
-    return 30;
+    return 50;
 }
 
 Goal::value_type Goal::radius() const
@@ -169,11 +169,7 @@ Goal::value_type Goal::radius() const
 void Goal::collide_with( CircleActor& other )
 {
     if( &other == Package::pack.lock().get() )
-    {
         deleteMe = true;
-    }
     else
-    {
         Obsticle::collide_with( other );
-    }
 }
