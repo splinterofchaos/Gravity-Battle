@@ -765,7 +765,7 @@ void chaos_spawn( int dt )
     }
 }
 
-void chaos_mode( int dt )
+void chaos_mode( int )
 { 
     static Music menuSong( LOCAL_FILE("art/music/Stuck Zipper.ogg") );
     static int lastScore = 0;
@@ -806,7 +806,7 @@ void score( int dt )
     scoreVal += sum / 4.0 * nEnemies*nEnemies * (float(dt)/SECOND);
 }
 
-void arcade_spawn( int dt )
+void arcade_spawn( int )
 {
     int nMoving = 0;
     for( size_t i=1; i < cActors.size(); i++ ) 
@@ -865,7 +865,7 @@ void arcade_init()
     mode->lines.push_back( line );
 }
 
-void arcade_mode( int dt )
+void arcade_mode( int )
 {
     static Music menuSong( LOCAL_FILE("art/music/Stuck Zipper.ogg") );
     static int lastScore = 0;
@@ -890,7 +890,7 @@ void on_death_lower_color( Mode::LinePtr& ptr )
     ptr->color[3] -= 0.001;
 }
 
-void on_death( int dt )
+void on_death( int )
 {
     if( gameTimer.time_ms() < timePlayerDied + 30*SECOND ) 
     {
@@ -975,7 +975,7 @@ void training_mode( int )
 
 }
 
-void training_spawn( int dt )
+void training_spawn( int )
 {
     // Tips will appear on the bottom of the screen after an enemy is spawned. 
     static const char* tips[ N_SPAWN_SLOTS ];
@@ -1591,7 +1591,6 @@ int main( int, char** )
 
         static Timer realTimer;
         realTimer.update();
-        static int lastUpdate = realTimer.time_ms();
         if( IDEAL_FRAME_TIME < realTimer.time_ms() ) 
         {
             typedef CActors::iterator CAIt;
