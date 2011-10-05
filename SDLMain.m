@@ -10,6 +10,8 @@
 #include <sys/param.h> /* for MAXPATHLEN */
 #include <unistd.h>
 
+#define UNUSED(var) (void)(var)
+
 /* For some reaon, Apple removed setAppleMenu from the headers in 10.4,
  but the method still is there and works. To avoid warnings, we declare
  it ourselves here. */
@@ -71,6 +73,8 @@ static NSString *getApplicationName(void)
 /* Invoked from the Quit menu item */
 - (void)terminate:(id)sender
 {
+    UNUSED( sender );
+
     /* Post a SDL_QUIT event */
     SDL_Event event;
     event.type = SDL_QUIT;
@@ -197,6 +201,9 @@ static void setupWindowMenu(void)
 /* Replacement for NSApplicationMain */
 static void CustomApplicationMain (int argc, char **argv)
 {
+    UNUSED( argc );
+    UNUSED( argv );
+
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
     SDLMain				*sdlMain;
 
@@ -250,6 +257,8 @@ static void CustomApplicationMain (int argc, char **argv)
  */
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
+    UNUSED( theApplication );
+
     const char *temparg;
     size_t arglen;
     char *arg;
@@ -285,6 +294,8 @@ static void CustomApplicationMain (int argc, char **argv)
 /* Called when the internal event loop has just started running */
 - (void) applicationDidFinishLaunching: (NSNotification *) note
 {
+    UNUSED( note );
+
     int status;
 
     /* Set the working directory to the .app's parent directory */
