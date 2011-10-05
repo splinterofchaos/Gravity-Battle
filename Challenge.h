@@ -9,7 +9,9 @@ struct Package : public Orbital
     static const float RADIUS_TO_START;
 
     typedef std::tr1::weak_ptr<Goal> WeakGoalPtr;
+    typedef std::tr1::weak_ptr<Package> WeakPackagePtr;
     static WeakGoalPtr goal;
+    static WeakPackagePtr pack;
 
     bool started;
     bool reachedGoal;
@@ -45,17 +47,17 @@ struct Obsticle : public Orbital
     void collide_with( CircleActor& collider );
 };
 
-struct Goal : public Orbital
+struct Goal : public Obsticle
 {
     static const float SIZE;
 
     Goal( const vector_type& pos, const vector_type& v=vector_type(0,0) );
 
-    State on_off_screen( State state );
+    value_type mass();
 
     Color color();
 
-    value_type radius() const ;
+    value_type radius() const;
 
-    void collide_with( CircleActor& collider );
+    void collide_with( CircleActor& );
 };

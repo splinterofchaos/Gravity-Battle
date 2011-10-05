@@ -5,6 +5,7 @@
 #include "Draw.h"
 
 Package::WeakGoalPtr Package::goal;
+Package::WeakPackagePtr Package::pack;
 
 const float Package::RADIUS_TO_START = 200;
 const float Obsticle::SIZE = 15;
@@ -58,7 +59,7 @@ void Package::draw()
 
 Package::value_type Package::mass()
 {
-    return 20;
+    return 40;
 }
 
 Color Package::color()
@@ -116,9 +117,6 @@ void Obsticle::collide_with( CircleActor& other )
     if( otherPtr )
         otherPtr->collisionChecked = true;
 
-    if( &other == Package::goal.lock().get() )
-        return;
-
     isMovable = true;
     other.isMovable = true;
 
@@ -146,15 +144,11 @@ void Obsticle::collide_with( CircleActor& other )
 }
 
 Goal::Goal( const vector_type& pos, const vector_type& )
-    : Orbital( pos, vector_type(0,0), false )
+    : Obsticle( pos, vector_type(0,0) )
 {
     isMovable = false;
+    isActive = true;
     activationDelay = 0;
-}
-
-Goal::State Goal::on_off_screen( State s )
-{
-    return s;
 }
 
 Color Goal::color()
@@ -162,12 +156,24 @@ Color Goal::color()
     return Color( 0.3, 1.8, 0.8 );
 }
 
+Goal::value_type Goal::mass()
+{
+    return 30;
+}
+
 Goal::value_type Goal::radius() const
 {
     return SIZE;
 }
 
-void Goal::collide_with( CircleActor& )
+void Goal::collide_with( CircleActor& other )
 {
-    // This is not a stub. Do nothing on collision.
+    if( &other == Package::pack.lock().get() )
+    {
+        deleteMe = true;
+    }
+    else
+    {
+        Obsticle::collide_with( other );
+    }
 }

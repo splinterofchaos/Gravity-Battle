@@ -1072,6 +1072,8 @@ void package_init()
                 }
 
             }
+
+            Package::pack = packageMode.weakPackage;
         } // End parse file.
 
         Vector<float,2> pos = vector( Arena::minX + (Arena::maxX-Arena::minX)/4, 
