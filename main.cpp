@@ -1124,7 +1124,7 @@ void package_delivery( int dt )
 
     if( packageMode.started )
         packageMode.time += dt;
-        
+
     // The conditions for winning are: (1) Be alive, (2) the package is alive,
     // (3) package reached goal. Worst case scenario is the player wins, then
     // runs into the package meaning (1) and (2) are false. We must remember if
